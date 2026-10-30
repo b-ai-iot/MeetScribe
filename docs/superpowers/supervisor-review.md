@@ -1,3 +1,11 @@
+# Kết quả giám sát cuối — 2026-10-30
+
+Các phát hiện bên dưới đã được sửa và kiểm tra lại trên bản `cfce221`. Không còn lỗi quan trọng chưa xử lý trong phạm vi rà soát. Codex chạy lại 61 unit test, 22 kiểm tra trình duyệt, smoke test extension và đóng gói; các ca tái hiện caption, ZIP 1 MiB, đọc dữ liệu theo phiên, giới hạn dung lượng và cứu ZIP khi mất quyền đã được kiểm tra độc lập.
+
+Giới hạn còn lại: chưa kiểm tra hộp chọn thư mục ngoài của hệ điều hành hoặc một cuộc họp Meet/Zoom thật. Xem `docs/verification.md`.
+
+## Lịch sử phát hiện và yêu cầu sửa
+
 # Latest remaining checks from Codex supervisor
 As of current repair code: root manually re-ran caption repro, 1MiB ZIP, scoped store details and stop-and-ZIP rescue; those now pass. Before final commit, fix these remaining exact items:
 - Last Python patch introduced mojibake in store.mjs around line102 (`KÃ­ch...`) and line150 (`KhÃ´ng...`). Restore valid Vietnamese UTF-8; use “Không thể xóa phiên đang ghi hoặc đang lưu.” (no audio recording). Run rg for Ã/Æ/á»/áº/Ä in extension to confirm none.

@@ -2,7 +2,7 @@
 
 Extension Chrome độc lập để thu caption và chọn ảnh chia sẻ trên Google Meet và Zoom web. Giao diện tiếng Việt, thanh điều khiển kính mờ nổi trên trang họp, hoàn toàn không gọi API AI từ tiện ích (người dùng tự mang gói ZIP sang các mô hình AI bên ngoài).
 
-Mã nguồn dự án: `/Users/baopham/Desktop/ENFARM/3.Software/MeetScribe`.
+Mã nguồn nằm trong repository này; thư mục nạp vào Chrome là `extension/`.
 Không sửa Local Collector 0.1.2, skill ghi-meeting, dữ liệu hay cấu hình extension cũ. Đây là tiện ích mới với cơ sở dữ liệu riêng.
 
 ## Cài lần đầu
@@ -93,10 +93,19 @@ Google Meet và Zoom bản web trên Chrome; không hỗ trợ ứng dụng Zoom
   - Ghim đích lưu theo từng phiên họp: thay đổi cấu hình thư mục cho các phiên sau không làm lệch đường dẫn của phiên cũ. Có nút cấp lại quyền khi trình duyệt yêu cầu xác thực lại.
 - **Tải ZIP cầm tay cho AI**:
   - Xuất gói ZIP chuẩn từ toàn bộ tệp nhật ký (cả tệp đã xuất và tệp chờ), bao gồm `transcript.md` (chứa các mốc phụ đề theo thời gian), `README-for-AI.md` (chỉ dẫn chống bịa đặt và prompt lập biên bản họp) và `manifest.json`.
-  - Tương thích 100% với giải nén chuẩn của Python `zipfile`, bảo toàn byte nhị phân PNG và tên tiếng Việt Unicode.
+  - Gói ZIP đã được kiểm tra bằng Python `zipfile`, gồm dữ liệu nhị phân 1 MiB và tên/nội dung tiếng Việt.
 - **Tự động nhận diện & Khôi phục phụ đề**:
   - Nhận diện phụ đề Google Meet và Zoom bằng các bộ chọn ngữ nghĩa và vùng hiển thị; nghiêm ngặt loại trừ khung trò chuyện (chat), danh sách người tham gia, thanh công cụ và toàn bộ trang.
   - Gom cụm ứng viên theo widget và ưu tiên vùng bao ngoài để không mất tên người nói; cảnh báo mơ hồ nếu có hai vùng cạnh tranh điểm số cao; khôi phục tự động khi cuộc họp render lại thẻ phụ đề mà không reset số thứ tự hoặc phát cảnh báo sai; giữ trạng thái chọn thủ công khi người dùng đã chỉ định.
 - **Thư viện phiên họp & Quản lý**:
   - Tìm kiếm cuộc họp theo tên hoặc ngày tạo; đổi tên hiển thị an toàn mà không làm đổi đường dẫn tệp trên đĩa; xem trước trích đoạn caption cuối và ảnh thu nhỏ; hiển thị dung lượng bản dự phòng cục bộ; xóa phiên họp đã dừng sau khi người dùng xác nhận rõ ràng; bảo vệ các phiên đang ghi không thể bị xóa nhầm; an toàn chống XSS.
-- **Kiểm thử**: 56 unit tests, 21 browser checks trong Chrome thật, kiểm thử tiện ích unpacked với Python zipfile verification. Xem chi tiết tại `docs/verification.md`.
+- **Kiểm thử**: 61 unit tests, 22 browser checks trong Chrome thật, kiểm thử tiện ích unpacked với Python zipfile verification. Xem chi tiết tại `docs/verification.md`.
+
+## Dùng các tính năng 1.2.0
+
+- Mở **Cài đặt** từ thanh nổi hoặc thư viện. Chỉnh độ mờ nền/cỡ chữ, bấm **Lưu cài đặt**; **Đặt lại mặc định** khôi phục cả vị trí và chế độ thu nhỏ.
+- Chọn **Thư mục cục bộ tùy chọn → Chọn thư mục…**, cấp quyền ghi và lưu cài đặt. Thay đổi áp dụng cho phiên mới; phiên cũ giữ thư mục đã chọn lúc bắt đầu. Khi cần, dùng **Cấp lại quyền thư mục** ở phiên bị lỗi.
+- Sau khi dừng, vào thư viện chọn **Tải ZIP cho AI** hoặc **Lưu ZIP (Save As...)**. Gói gồm caption thô, ảnh, sự kiện, metadata, `transcript.md`, `README-for-AI.md` và manifest. Tiện ích không tự gửi gói lên AI.
+- Bật phụ đề của Meet/Zoom. Tiện ích tự tìm và tìm lại khung phụ đề; dùng **Vùng caption** để chọn thủ công nếu không xác định chắc chắn.
+
+Kiểm thử tự động dùng trang họp mô phỏng và directory handle OPFS trong hồ sơ Chrome riêng. Hộp chọn thư mục thật của hệ điều hành, quyền còn lại sau khi khởi động lại Chrome và DOM của cuộc họp Meet/Zoom thực tế cần được kiểm tra trực tiếp khi sử dụng.

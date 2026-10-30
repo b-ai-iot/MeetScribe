@@ -75,3 +75,7 @@ Phiên sửa đổi giám sát cuối cùng (final supervised repair pass) đã 
    - Tiện ích chỉ trích xuất phụ đề khi cuộc họp có bật phụ đề và phụ đề xuất hiện trên DOM. Không ghi âm âm thanh micro và không thu nhận tiếng nói nếu không có phụ đề chữ.
 4. **Không gọi API AI từ tiện ích (No AI Calls by Extension)**:
    - Bản thân tiện ích mở rộng hoàn toàn không thực hiện bất kỳ lệnh gọi API AI hay kết nối mạng bên ngoài nào. Việc xử lý hoặc phân tích bằng AI (nếu có) do người dùng chủ động mang gói tệp ZIP độc lập sang các mô hình AI bên ngoài theo quy trình riêng của họ; tiện ích không tự nhận là xử lý AI ngoại tuyến.
+
+## Xác minh cuối của Codex
+
+Sau commit `cfce221`, Codex tự chạy lại `npm test` (61/61), `npm run test:browser` (22 kiểm tra), `npm run test:extension` (Meet, Zoom iframe và ZIP 1 MiB giải nén bằng Python), `npm run package` và `git diff --check`. Tất cả đều đạt. Các log nằm trong `artifacts/supervisor-*.log` (không commit). Ba lượt rà soát độc lập đã kiểm tra lại các lỗi settings/destination/ZIP, caption và truy vấn dữ liệu theo phiên; không còn phát hiện quan trọng chưa xử lý trong phạm vi đã rà soát.
