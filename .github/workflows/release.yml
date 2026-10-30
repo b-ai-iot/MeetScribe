@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify version and main ancestry
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+          python3 tools/release.py --tag "$RELEASE_TAG"
+
+  verify:
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: meetscribe-extension
+          path: dist
+      - name: Verify assets and prepare notes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+          python3 tools/release.py --tag "$RELEASE_TAG" --notes release-notes.md
+      - name: Upload to draft, then publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A rerun may finish an existing draft, but never mutates a published release.
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
+            if [ "$(python3 -c 'import json; print(json.load(open("release-state.json"))["isDraft"])')" != True ]; then
+              echo "Release already published; preserving its assets."
+              exit 0
+            fi
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft \
+              --title "MeetScribe $RELEASE_TAG" --notes-file release-notes.md
+          fi
+          gh release upload "$RELEASE_TAG" dist/*.zip dist/SHA256SUMS.txt --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest

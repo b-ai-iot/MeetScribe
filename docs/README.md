@@ -40,3 +40,8 @@ Images used throughout the documentation are located in [`docs/images/`](images/
 
 All screenshots depict synthetic demonstration data to protect privacy.
 Toàn bộ ảnh chụp giao diện sử dụng dữ liệu mô phỏng nhằm bảo đảm tính riêng tư.
+
+## Repository / Kho mã nguồn
+
+- Governance and branches / Quản trị và nhánh: [English](en/governance.md) · [Tiếng Việt](vi/governance.md)
+- Releases and checksums / Phát hành và checksum: [English](en/releasing.md) · [Tiếng Việt](vi/releasing.md)

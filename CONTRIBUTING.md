@@ -75,3 +75,7 @@ npm run package
 ## Code of Conduct
 
 All contributors and participants must adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please treat all community members with respect, patience, and empathy.
+
+## Branches and review
+
+Fork this repository, branch from current `main` using `feat/`, `fix/`, `docs/` or `chore/`, then open a PR into `main`. Required CI must pass and review conversations must be resolved before squash merge. See [access and review policy](docs/en/governance.md) and [release procedure](docs/en/releasing.md).

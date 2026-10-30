@@ -2,15 +2,15 @@
 
 [English](CHANGELOG.md) · [README](README.vi.md)
 
-## Chưa phát hành — tài liệu mã nguồn mở
+## 1.3.0 — 2026-10-30
 
+- GitHub release đóng gói đầu tiên, có ZIP ổn định, checksum SHA-256 và workflow phát hành song ngữ.
+- Áp dụng GitHub Flow, CODEOWNERS, mẫu PR và chính sách nhánh/tag với ngoại lệ review cho maintainer duy nhất.
 - Thêm MIT theo lựa chọn của người dùng và đưa giấy phép vào ZIP phân phối tiện ích.
 - Thêm bộ hướng dẫn Anh/Việt, quy định đóng góp/bảo mật/ứng xử và biểu mẫu issue.
 - Thêm ảnh tiện ích thật với dữ liệu cuộc họp giả lập và lệnh tạo lại ảnh.
 - Thêm kiểm tra tài liệu cục bộ và workflow xác minh GitHub Actions.
-- Cho bộ test trình duyệt tự tạo thư mục kết quả trong checkout mới. Không đổi ngôn ngữ giao diện hay tính năng runtime.
-
-## 1.3.0 — 2026-10-30
+- Cho bộ test trình duyệt tự tạo thư mục kết quả trong checkout mới. Các thay đổi tài liệu không đổi hành vi runtime.
 
 - Thêm lựa chọn giao diện VI/EN lưu bền trong Cài đặt, cập nhật trang đang mở và thanh nổi đang thu.
 - Dịch UI tĩnh/động, nhãn hỗ trợ tiếp cận, thông báo lỗi/phục hồi và phần hướng dẫn sinh khi xuất; không đổi dữ liệu đã thu.
@@ -35,4 +35,5 @@
 - Ra mắt bộ thu caption Google Meet độc lập, thanh nổi, lưu journal cục bộ trước và xuất Downloads.
 - Thêm lấy mẫu vùng share đã chọn, loại ảnh trùng cục bộ và chốt phiên.
 
-Các mục phiên bản mô tả lịch sử mã nguồn, không mặc định có bản đóng gói sẵn trên GitHub Releases hoặc Chrome Web Store.
+
+`v1.3.0` là GitHub release đóng gói đầu tiên. Các mục cũ mô tả lịch sử mã nguồn. Chưa phân phối qua Chrome Web Store.
