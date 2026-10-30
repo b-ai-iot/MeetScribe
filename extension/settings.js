@@ -9,6 +9,7 @@ import {
 const $ = id => document.getElementById(id);
 
 let currentSettings = { ...DEFAULT_SETTINGS };
+let preloadedHandle = null;
 
 function showBanner(text, type = 'success') {
   const banner = $('statusBanner');
@@ -53,9 +54,11 @@ async function init() {
       if (destMod && typeof destMod.getStoredDirectoryInfo === 'function') {
         const info = await destMod.getStoredDirectoryInfo();
         if (info?.name) {
+          preloadedHandle = info.handle;
           $('customDirName').textContent = info.name;
           $('customDirStatus').textContent = info.hasPermission ? 'Đã cấp quyền ghi' : 'Cần cấp lại quyền truy cập';
           $('customDirStatus').className = `dest-status ${info.hasPermission ? 'granted' : 'revoked'}`;
+          if ($('reauthorizeDirBtn')) $('reauthorizeDirBtn').hidden = Boolean(info.hasPermission);
         }
       }
     } catch {}
@@ -113,15 +116,35 @@ async function init() {
       }
       const res = await destMod.requestCustomDirectory();
       if (res && res.name) {
+        preloadedHandle = res.handle;
         $('customDirName').textContent = res.name;
         $('customDirStatus').textContent = res.hasPermission ? 'Đã cấp quyền ghi' : 'Chưa cấp quyền ghi';
         $('customDirStatus').className = `dest-status ${res.hasPermission ? 'granted' : 'revoked'}`;
+        if ($('reauthorizeDirBtn')) $('reauthorizeDirBtn').hidden = Boolean(res.hasPermission);
         showBanner(`Đã chọn thư mục: ${res.name}`);
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
         showBanner(`Lỗi chọn thư mục: ${err.message}`, 'error');
       }
+    }
+  });
+
+  $('reauthorizeDirBtn')?.addEventListener('click', async () => {
+    try {
+      const destMod = await import('./destination.mjs').catch(() => null);
+      if (!destMod || !preloadedHandle) return;
+      const res = await destMod.reauthorizeDirectoryHandle(preloadedHandle);
+      if (res.hasPermission) {
+        $('customDirStatus').textContent = 'Đã cấp quyền ghi';
+        $('customDirStatus').className = 'dest-status granted';
+        $('reauthorizeDirBtn').hidden = true;
+        showBanner(`Đã cấp lại quyền ghi cho thư mục: ${res.name}`);
+      } else {
+        showBanner('Chưa cấp quyền ghi cho thư mục.', 'error');
+      }
+    } catch (err) {
+      showBanner(`Lỗi cấp lại quyền: ${err.message}`, 'error');
     }
   });
 }

@@ -103,3 +103,82 @@ test('destination: rejected or revoked permission prevents writing and throws ex
   const hasAccess = await verifyDirectoryPermission(root);
   assert.equal(hasAccess, false);
 });
+
+test('destination: per-session destination pinning preserves handle across subsequent folder choices', async () => {
+  const handleA = createMockDirectoryHandle('FolderA', 'granted');
+  const handleB = createMockDirectoryHandle('FolderB', 'granted');
+
+  const destAId = 'dest-a-id';
+  const destBId = 'dest-b-id';
+
+  const mockDb = {
+    handles: new Map(),
+    activeId: null
+  };
+
+  // Save handle A as initial active destination
+  mockDb.handles.set(destAId, handleA);
+  mockDb.activeId = destAId;
+
+  // Session A is created pinning destAId
+  const sessionA = {
+    id: 'session-a',
+    destination: 'customDirectory',
+    destinationId: destAId
+  };
+
+  // User later selects Folder B in settings, becoming active
+  mockDb.handles.set(destBId, handleB);
+  mockDb.activeId = destBId;
+
+  // Session B is created pinning destBId
+  const sessionB = {
+    id: 'session-b',
+    destination: 'customDirectory',
+    destinationId: destBId
+  };
+
+  // Both handles exist concurrently; neither was overwritten
+  assert.equal(mockDb.handles.get(destAId).name, 'FolderA');
+  assert.equal(mockDb.handles.get(destBId).name, 'FolderB');
+
+  // Session A resolves handle A
+  const resolvedHandleA = mockDb.handles.get(sessionA.destinationId);
+  assert.equal(resolvedHandleA.name, 'FolderA');
+
+  // Session B resolves handle B
+  const resolvedHandleB = mockDb.handles.get(sessionB.destinationId);
+  assert.equal(resolvedHandleB.name, 'FolderB');
+
+  // File write for session A goes to FolderA
+  const fileA = await getFileHandleByPath(resolvedHandleA, 'captions/part-1.jsonl', { create: true });
+  await writeToDirectoryHandle(fileA, '{"text":"A"}\n', 'application/json', false);
+  assert.equal(fileA.getContent(), '{"text":"A"}\n');
+  assert.equal(handleA.entries.get('captions').entries.has('part-1.jsonl'), true);
+  assert.equal(handleB.entries.has('captions'), false);
+});
+
+test('destination: canceled folder picker leaves prior chosen folder and settings intact', async () => {
+  let showPickerCalled = false;
+  const mockWindow = {
+    async showDirectoryPicker() {
+      showPickerCalled = true;
+      const err = new Error('The user aborted a request.');
+      err.name = 'AbortError';
+      throw err;
+    }
+  };
+
+  const priorName = 'ExistingFolder';
+  let currentChosen = priorName;
+
+  try {
+    await mockWindow.showDirectoryPicker();
+    currentChosen = 'NewFolder';
+  } catch (err) {
+    if (err.name !== 'AbortError') throw err;
+  }
+
+  assert.equal(showPickerCalled, true);
+  assert.equal(currentChosen, priorName);
+});

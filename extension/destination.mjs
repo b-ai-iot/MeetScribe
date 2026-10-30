@@ -85,32 +85,50 @@ export async function requestCustomDirectory(windowObj = globalThis) {
   }
   const handle = await windowObj.showDirectoryPicker({ mode: 'readwrite' });
 
-  // Verify actual write support by creating and removing a verification marker
+  // Verify actual write support with a cryptographically unique temporary file
+  const verifyName = `.meetscribe-verify-${crypto.randomUUID()}`;
   try {
-    const testFile = await handle.getFileHandle('.meetscribe-verify', { create: true });
+    const testFile = await handle.getFileHandle(verifyName, { create: true });
     const writable = await testFile.createWritable();
     await writable.write('verify');
     await writable.close();
-    await handle.removeEntry('.meetscribe-verify');
+    await handle.removeEntry(verifyName);
   } catch (e) {
     throw new Error(`Thư mục đã chọn không cho phép ghi: ${e.message}`);
   }
 
-  await store.saveDirectoryHandle(handle);
-  await saveSettings({ destination: 'customDirectory' });
+  const destId = crypto.randomUUID();
+  await store.saveDirectoryHandle(handle, destId);
+  await saveSettings({ destination: 'customDirectory', destinationId: destId });
 
   return {
+    id: destId,
     name: handle.name,
-    hasPermission: true
+    hasPermission: true,
+    handle
   };
 }
 
-export async function getStoredDirectoryInfo() {
-  const handle = await store.getDirectoryHandle();
+export async function reauthorizeDirectoryHandle(handle) {
+  if (!handle) {
+    handle = await store.getDirectoryHandle();
+  }
+  if (!handle) throw new Error('Chưa có thư mục nào được lưu.');
+  const granted = await verifyDirectoryPermission(handle, { request: true });
+  return {
+    name: handle.name,
+    hasPermission: granted,
+    handle
+  };
+}
+
+export async function getStoredDirectoryInfo(id) {
+  const handle = await store.getDirectoryHandle(id);
   if (!handle) return null;
   const hasPermission = await verifyDirectoryPermission(handle);
   return {
     name: handle.name,
-    hasPermission
+    hasPermission,
+    handle
   };
 }

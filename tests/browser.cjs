@@ -104,6 +104,33 @@ const root=path.resolve(__dirname,'../extension');
   assert.match(customDirTest.revokedError,/chưa được cấp quyền ghi/);
   assert.equal(customDirTest.stillHasPending,true);
   passed++;console.log('PASS custom directory handle persistence, write adapter, and revoked permission protection');
+  const opfsTest=await page.evaluate(async()=>{
+   const s=await import('./store.mjs');
+   const dest=await import('./destination.mjs');
+   const opfs=await navigator.storage.getDirectory();
+   await s.saveDirectoryHandle(opfs,'opfs-real-dest');
+   const retrieved=await s.getDirectoryHandle('opfs-real-dest');
+   const isRealHandle=retrieved instanceof FileSystemDirectoryHandle;
+
+   await s.createSession({id:'opfs-sess',title:'OPFS Meeting',folder:'MeetScribe/opfs',tabId:11,status:'recording',count:0,lastSequence:0,createdAt:new Date().toISOString(),destination:'customDirectory',destinationId:'opfs-real-dest'});
+   await s.appendCaptions('opfs-sess',[{sequence:1,timestamp:'2026-10-30T10:00:00Z',text:'OPFS real caption'}]);
+   const files=await s.pendingFiles('opfs-sess');
+   const capFile=files.find(f=>f.name.includes('captions/'));
+   await dest.exportFileToDirectory(capFile,retrieved);
+
+   const parts=capFile.name.split('/').filter(Boolean);
+   let cur=opfs;
+   for(let i=0;i<parts.length-1;i++)cur=await cur.getDirectoryHandle(parts[i]);
+   const fh=await cur.getFileHandle(parts[parts.length-1]);
+   const fileObj=await fh.getFile();
+   const readText=await fileObj.text();
+   const pendingNow=await s.pendingFiles('opfs-sess');
+   return {isRealHandle,hasText:readText.includes('OPFS real caption'),exported:!pendingNow.some(f=>f.id===capFile.id)};
+  });
+  assert.equal(opfsTest.isRealHandle,true);
+  assert.equal(opfsTest.hasText,true);
+  assert.equal(opfsTest.exported,true);
+  passed++;console.log('PASS OPFS-based real FileSystemDirectoryHandle integration check (OPFS platform handle, distinct from OS showDirectoryPicker)');
  const budgets=await page.evaluate(async()=>{
   const s=await import('./store.mjs');await s.createSession({id:'budget',title:'Images',folder:'MeetScribe/budget',tabId:2,status:'recording',count:0,lastSequence:0,createdAt:new Date().toISOString()});
   let rejected=false;for(let i=0;i<31;i++){try{await s.saveImage('budget',{name:`screen-${i}.png`,data:'data:image/png;base64,AAAA',bytes:3,event:{capturedAt:new Date().toISOString()}});}catch{rejected=true;}}

@@ -84,47 +84,64 @@ export function finalizeSession(id,{interrupted=false,reason,endedAt=new Date().
  });
 }
 
-let cachedMockHandle=null;
-export async function saveDirectoryHandle(handle){
+const mockHandlesMap=new Map();
+export async function saveDirectoryHandle(handle,id=crypto.randomUUID()){
  const db=await database();
- const item={id:'default',handle,name:handle?.name||'Thư mục',updatedAt:new Date().toISOString()};
+ const item={id,handle,name:handle?.name||'Thư mục',updatedAt:new Date().toISOString()};
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('destination_handles','readwrite');
   tx.oncomplete=()=>resolve(item);
   tx.onerror=()=>reject(tx.error);
   try{
    tx.objectStore('destination_handles').put(item);
+   tx.objectStore('destination_handles').put({id:'active',activeId:id});
   }catch(e){
    if(e.name==='DataCloneError'){
-    cachedMockHandle=handle;
-    tx.objectStore('destination_handles').put({id:'default',name:handle?.name||'Thư mục',updatedAt:new Date().toISOString(),isMock:true});
+    mockHandlesMap.set(id,handle);
+    mockHandlesMap.set('active',handle);
+    tx.objectStore('destination_handles').put({id,name:handle?.name||'Thư mục',updatedAt:new Date().toISOString(),isMock:true});
+    tx.objectStore('destination_handles').put({id:'active',activeId:id});
    }else throw e;
   }
  });
 }
-export async function getDirectoryHandle(){
+export async function getActiveDirectoryHandleId(){
  const db=await database();
  if(!db.objectStoreNames.contains('destination_handles'))return null;
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('destination_handles','readonly');
-  const req=tx.objectStore('destination_handles').get('default');
+  const req=tx.objectStore('destination_handles').get('active');
+  req.onsuccess=()=>resolve(req.result?.activeId||null);
+  req.onerror=()=>reject(req.error);
+ });
+}
+export async function getDirectoryHandle(id){
+ const db=await database();
+ if(!db.objectStoreNames.contains('destination_handles'))return null;
+ const targetId=id||await getActiveDirectoryHandleId();
+ if(!targetId)return null;
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('destination_handles','readonly');
+  const req=tx.objectStore('destination_handles').get(targetId);
   req.onsuccess=()=>{
    const res=req.result;
    if(!res)resolve(null);
-   else if(res.isMock&&cachedMockHandle)resolve(cachedMockHandle);
+   else if(res.isMock&&mockHandlesMap.has(targetId))resolve(mockHandlesMap.get(targetId));
    else resolve(res.handle||null);
   };
   req.onerror=()=>reject(req.error);
  });
 }
-export async function clearDirectoryHandle(){
- cachedMockHandle=null;
+export async function clearDirectoryHandle(id){
  const db=await database();
  if(!db.objectStoreNames.contains('destination_handles'))return;
+ const targetId=id||await getActiveDirectoryHandleId();
+ if(targetId)mockHandlesMap.delete(targetId);
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('destination_handles','readwrite');
   tx.oncomplete=()=>resolve();
   tx.onerror=()=>reject(tx.error);
-  tx.objectStore('destination_handles').delete('default');
+  if(targetId)tx.objectStore('destination_handles').delete(targetId);
+  if(!id||id===targetId)tx.objectStore('destination_handles').delete('active');
  });
 }

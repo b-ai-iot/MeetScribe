@@ -45,9 +45,9 @@ export async function exportSession(id){
    const isCustom=currentSession?.destination==='customDirectory';
    let dirHandle=null;
    if(isCustom){
-    dirHandle=await store.getDirectoryHandle();
+    dirHandle=await store.getDirectoryHandle(currentSession.destinationId);
     if(!dirHandle){
-     throw Error('Chưa chọn thư mục lưu cục bộ. Mở Cài đặt để chọn thư mục.');
+     throw Error('Chưa tìm thấy quyền truy cập thư mục: '+(currentSession.destinationName||'thư mục cục bộ')+'. Mở Cài đặt để cấp lại quyền.');
     }
    }
    while(true){
@@ -70,8 +70,9 @@ async function start(tab){return commands.run(tab.id,'start',async()=>{
  const id=crypto.randomUUID(),title=(tab.title||'Cuộc họp').replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'').trim();
  const currentSettings=await getSettings();
  const isCustom=currentSettings.destination==='customDirectory';
- const dirInfo=isCustom?await getStoredDirectoryInfo():null;
- const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected',destination:isCustom?'customDirectory':'downloads',destinationName:isCustom?(dirInfo?.name||'Thư mục cục bộ'):'Downloads'});
+ const activeDestId=isCustom?await store.getActiveDirectoryHandleId():null;
+ const dirInfo=isCustom?await getStoredDirectoryInfo(activeDestId):null;
+ const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected',destination:isCustom?'customDirectory':'downloads',destinationId:activeDestId,destinationName:isCustom?(dirInfo?.name||'Thư mục cục bộ'):'Downloads'});
  try{const answer=await sendSessionMessage(chrome,s,'begin',{session:await publicState(s)});if(!answer?.ok)throw Error(answer?.error||'Không thể khởi động bộ thu.');}
  catch(e){await store.patchSession(id,{status:'interrupted',error:e.message});throw e;}
  await event(id,'started');scheduleExport(id);return s;
