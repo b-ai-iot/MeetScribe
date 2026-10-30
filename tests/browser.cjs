@@ -438,6 +438,114 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  passed++;console.log('PASS toolbar proportional font scaling at 12px/18px and reset to default coordinates');
  await scaleCheck.close();
  await settingsPage.close();
+
+ // Task 5: Session library UI test (search, date, rename, preview, confirmed deletion, XSS prevention, 375px responsive)
+ const libPage = await browser.newPage({viewport: {width: 1280, height: 800}});
+ await libPage.addInitScript(() => {
+  window.chrome = {
+   runtime: {
+    id: 'fixture',
+    getURL: path => path,
+    async sendMessage(msg) {
+     const store = await import('./store.mjs');
+     if (msg.type === 'list') {
+      return { ok: true, sessions: await store.listSessions() };
+     }
+     if (msg.type === 'rename') {
+      const updated = await store.renameSession(msg.sid, msg.title);
+      return { ok: true, session: updated };
+     }
+     if (msg.type === 'delete') {
+      await store.deleteSession(msg.sid);
+      return { ok: true, deleted: true };
+     }
+     if (msg.type === 'session-details') {
+      const bytes = await store.sessionBackupBytes(msg.sid);
+      const s = await store.getSession(msg.sid);
+      return { ok: true, session: s, backupBytes: bytes, images: [], captionTail: s?.captionTail || null };
+     }
+     return { ok: true };
+    }
+   }
+  };
+ });
+ await libPage.goto(base + '/library.html');
+ await libPage.evaluate(async () => {
+  const store = await import('./store.mjs');
+  await store.createSession({
+   id: 'session-completed-xss',
+   title: '<script>alert("xss")</script> & <b>Bảo mật</b>',
+   folder: 'MeetScribe/2026-10-30/Họp Bảo Mật',
+   status: 'completed',
+   createdAt: '2026-10-30T08:30:00Z',
+   count: 12,
+   images: 1,
+   captionTail: 'Đây là trích đoạn caption cuối cùng.',
+   destination: 'downloads'
+  });
+  await store.writeFile('session-completed-xss', 'captions/part-000001.jsonl', '{"text":"test"}\n');
+  await store.finalizeSession('session-completed-xss', { reason: 'done' });
+
+  await store.createSession({
+   id: 'session-active-rec',
+   title: 'Họp chiến lược Q4 đang diễn ra',
+   folder: 'MeetScribe/2026-10-30/Họp Q4',
+   status: 'recording',
+   createdAt: '2026-10-30T10:00:00Z',
+   count: 3,
+   images: 0,
+   destination: 'customDirectory',
+   destinationName: 'TaiLieuHop'
+  });
+ });
+
+ await libPage.reload();
+ await libPage.locator('#searchInput').waitFor();
+
+ const xssCard = libPage.locator('[data-sid="session-completed-xss"]');
+ assert.equal(await xssCard.locator('.session-title').textContent(), '<script>alert("xss")</script> & <b>Bảo mật</b>');
+
+ const activeCard = libPage.locator('[data-sid="session-active-rec"]');
+ assert.equal(await activeCard.locator('.delete-btn').count(), 0);
+ assert.equal(await xssCard.locator('.delete-btn').count(), 1);
+
+ await libPage.locator('#searchInput').fill('chiến lược');
+ assert.equal(await libPage.locator('.session').count(), 1);
+ assert.equal(await libPage.locator('.session-title').textContent(), 'Họp chiến lược Q4 đang diễn ra');
+
+ await libPage.locator('#clearSearch').click();
+ assert.equal(await libPage.locator('.session').count(), 2);
+
+ await libPage.locator('#searchInput').fill('2026-10-30');
+ assert.equal(await libPage.locator('.session').count(), 2);
+ await libPage.locator('#searchInput').fill('1999-01-01');
+ assert.equal(await libPage.locator('.session').count(), 0);
+ assert.match(await libPage.locator('#sessions').textContent(), /Không tìm thấy/);
+ await libPage.locator('#clearSearch').click();
+
+ libPage.on('dialog', async dialog => {
+  if (dialog.type() === 'prompt') {
+   await dialog.accept('Họp Bảo Mật An Toàn Đã Đổi Tên');
+  } else if (dialog.type() === 'confirm') {
+   await dialog.accept();
+  }
+ });
+
+ await xssCard.locator('.rename-btn').click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .session-title')?.textContent === 'Họp Bảo Mật An Toàn Đã Đổi Tên');
+ assert.equal(await libPage.locator('[data-sid="session-completed-xss"] .session-title').textContent(), 'Họp Bảo Mật An Toàn Đã Đổi Tên');
+
+ await libPage.screenshot({path: path.resolve(__dirname, '../artifacts/library-desktop.png')});
+
+ await libPage.setViewportSize({width: 375, height: 812});
+ await libPage.screenshot({path: path.resolve(__dirname, '../artifacts/library-375px.png')});
+
+ await libPage.locator('[data-sid="session-completed-xss"] .delete-btn').click();
+ await libPage.waitForFunction(() => !document.querySelector('[data-sid="session-completed-xss"]'));
+ assert.equal(await libPage.locator('[data-sid="session-completed-xss"]').count(), 0);
+
+ passed++;console.log('PASS session library: search, date, rename, preview, confirmed deletion, XSS prevention and 375px responsive');
+ await libPage.close();
  console.log(`${passed} browser checks passed`);
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

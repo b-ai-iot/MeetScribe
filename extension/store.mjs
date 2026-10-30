@@ -93,6 +93,57 @@ export function finalizeSession(id,{interrupted=false,reason,endedAt=new Date().
  });
 }
 
+export function renameSession(id, title){
+ if(!title||typeof title!=='string'||!title.trim())throw Error('Tiêu đề không hợp lệ');
+ return mutate(id,(_tx,s)=>{
+  s.title=title.trim();
+  return s;
+ });
+}
+
+export async function deleteSession(id){
+ const s=await getSession(id);
+ if(!s)return;
+ if(['recording','stopping'].includes(s.status)){
+  throw Error('Không thể xóa phiên đang ghi âm hoặc đang lưu.');
+ }
+ const db=await database();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction(['sessions','files'],'readwrite',{durability:'strict'});
+  tx.oncomplete=()=>resolve();
+  tx.onerror=()=>reject(tx.error);
+  tx.onabort=()=>reject(tx.error);
+  tx.objectStore('sessions').delete(id);
+  const filesStore=tx.objectStore('files');
+  const req=filesStore.getAll();
+  req.onsuccess=()=>{
+   for(const f of req.result){
+    if(f.sid===id)filesStore.delete(f.id);
+   }
+  };
+ });
+}
+
+export async function sessionBackupBytes(id){
+ const files=await allSessionFiles(id);
+ let bytes=0;
+ for(const f of files){
+  if(!f.data)continue;
+  if(typeof f.data==='string'){
+   if(f.isDataURL&&f.data.startsWith('data:')){
+    const comma=f.data.indexOf(',');
+    const b64=comma===-1?'':f.data.slice(comma+1);
+    bytes+=Math.floor(b64.length*0.75);
+   } else {
+    bytes+=new TextEncoder().encode(f.data).length;
+   }
+  } else if(f.data.byteLength!==undefined){
+   bytes+=f.data.byteLength;
+  }
+ }
+ return bytes;
+}
+
 const mockHandlesMap=new Map();
 export async function saveDirectoryHandle(handle,id=crypto.randomUUID()){
  const db=await database();

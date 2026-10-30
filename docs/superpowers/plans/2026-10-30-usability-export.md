@@ -50,7 +50,7 @@ Follow the spec's Vietnamese/local-only UI, no host permission expansion, journa
 ### Task 5: Session library and full verification
 **Files:** modify library.js/library.html/library.css, store.mjs, background.js, README.md, docs/verification.md, package/manifest versions; add behavioral tests/browser scenarios.
 **Interfaces:** existing session reads plus safe display-name override, preview, byte accounting and confirmed deletion of stopped sessions.
-- [ ] Test search/date/rename/preview/deletion, recording-session guard, literal rendering of unsafe titles/text, and no file relocation.
-- [ ] Implement restrained responsive library UI and truthful separate backup/export states; maintain keyboard focus and confirmation.
-- [ ] Run npm test, npm run test:browser, npm run test:extension, npm run package; produce screenshots at desktop/375px in artifacts; record real commands and failures/limitations.
-- [ ] Commit; mark checklist and ledger only when verified. Report SHAs, files, test counts, screenshot paths, directory-write evidence and unresolved issues for supervising Codex review.
+- [x] Test search/date/rename/preview/deletion, recording-session guard, literal rendering of unsafe titles/text, and no file relocation.
+- [x] Implement restrained responsive library UI and truthful separate backup/export states; maintain keyboard focus and confirmation.
+- [x] Run npm test, npm run test:browser, npm run test:extension, npm run package; produce screenshots at desktop/375px in artifacts; record real commands and failures/limitations.
+- [x] Commit; mark checklist and ledger only when verified. Report SHAs, files, test counts, screenshot paths, directory-write evidence and unresolved issues for supervising Codex review.

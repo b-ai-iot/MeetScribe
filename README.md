@@ -84,11 +84,19 @@ Xem `docs/verification.md` để biết chính xác các kiểm thử đã chạ
 
 Google Meet và Zoom bản web trên Chrome; không hỗ trợ ứng dụng Zoom desktop. Chọn vùng hiện dùng chuột, trong khi các nút điều khiển/di chuyển hỗ trợ bàn phím. Không thể phục hồi caption chưa từng xuất hiện trong DOM hoặc chưa được thu trước khi tab bị đóng/máy tắt. Chrome hoặc chính sách doanh nghiệp có thể chặn tải hoặc tab capture; tiện ích phải hiển thị lỗi và giữ bản dự phòng.
 
-## Cập nhật 1.1.0 — Zoom web (2026-10-30)
+## Cập nhật 1.1.0 — Tiện ích và Xuất file cầm tay (2026-10-30)
 
-- Hỗ trợ app.zoom.us, các miền con chính thức zoom.us/zoom.com ở đường dẫn họp web.
-- Zoom PWA thường có khung webclient bên trong trang ngoài. Tiện ích tìm khung có meeting-app, gắn thanh và bộ thu ở đó; lưu frameId để gửi lệnh đúng nơi sau khi service worker thức lại.
-- Nhận diện một số khung live captions/transcript thông dụng; vẫn cho chọn Vùng caption bằng tay nếu Zoom đổi giao diện. Bật **Show Captions** trong Zoom; nếu không có, kiểm tra quyền/tính năng do host cung cấp. Tiện ích không tự yêu cầu host hay mở ghi âm.
-- Ảnh share trong Zoom PWA được quy đổi từ tọa độ khung con sang toàn tab trước khi crop; không đo được vị trí thì báo chưa chụp được, caption vẫn lưu.
-- Cập nhật tại thư mục cài hiện tại rồi bấm **Reload** trên thẻ MeetScribe trong chrome://extensions. Sau đó bấm biểu tượng MeetScribe trên tab Zoom. Không cần reload/rời trang Zoom nếu chưa có bộ thu chạy trong đó.
-- Kiểm thử mới: 18 unit tests,14 browser checks,2 đường đi extension thật (Meet và Zoom iframe mô phỏng). Không dùng cuộc họp thật hay dữ liệu người dùng cho smoke test.
+- **Cài đặt & Thanh điều khiển**:
+  - Tùy chỉnh độ mờ nền thanh nổi 40–100% (chỉ đổi alpha nền, giữ chữ luôn rõ), cỡ chữ 12–18px với tỷ lệ co giãn đồng bộ toàn bộ thành phần, ghi nhớ vị trí và trạng thái thu nhỏ. Có nút khôi phục mặc định (96%, 14px, góc trên trái).
+- **Lưu thư mục cục bộ tùy chọn**:
+  - Cho phép chọn thư mục bất kỳ trên máy thông qua trang Cài đặt; lưu trữ handle bền vững trong IndexedDB `meetscribe-local-v1` (store `destination_handles`).
+  - Ghim đích lưu theo từng phiên họp: thay đổi cấu hình thư mục cho các phiên sau không làm lệch đường dẫn của phiên cũ. Có nút cấp lại quyền khi trình duyệt yêu cầu xác thực lại.
+- **Tải ZIP cầm tay cho AI**:
+  - Xuất gói ZIP chuẩn từ toàn bộ tệp nhật ký (cả tệp đã xuất và tệp chờ), bao gồm `transcript.md` (chứa các mốc phụ đề theo thời gian), `README-for-AI.md` (chỉ dẫn chống bịa đặt và prompt lập biên bản họp) và `manifest.json`.
+  - Tương thích 100% với giải nén chuẩn của Python `zipfile`, bảo toàn byte nhị phân PNG và tên tiếng Việt Unicode.
+- **Tự động nhận diện & Khôi phục phụ đề**:
+  - Nhận diện phụ đề Google Meet và Zoom bằng các bộ chọn ngữ nghĩa và vùng hiển thị; nghiêm ngặt loại trừ khung trò chuyện (chat), danh sách người tham gia, thanh công cụ và toàn bộ trang.
+  - Gom cụm ứng viên theo widget và ưu tiên vùng bao ngoài để không mất tên người nói; cảnh báo mơ hồ nếu có hai vùng cạnh tranh điểm số cao; khôi phục tự động khi cuộc họp render lại thẻ phụ đề mà không reset số thứ tự hoặc phát cảnh báo sai; giữ trạng thái chọn thủ công khi người dùng đã chỉ định.
+- **Thư viện phiên họp & Quản lý**:
+  - Tìm kiếm cuộc họp theo tên hoặc ngày tạo; đổi tên hiển thị an toàn mà không làm đổi đường dẫn tệp trên đĩa; xem trước trích đoạn caption cuối và ảnh thu nhỏ; hiển thị dung lượng bản dự phòng cục bộ; xóa phiên họp đã dừng sau khi người dùng xác nhận rõ ràng; bảo vệ các phiên đang ghi không thể bị xóa nhầm; an toàn chống XSS.
+- **Kiểm thử**: 56 unit tests, 21 browser checks trong Chrome thật, kiểm thử tiện ích unpacked với Python zipfile verification. Xem chi tiết tại `docs/verification.md`.

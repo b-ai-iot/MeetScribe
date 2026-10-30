@@ -160,6 +160,22 @@ async function receive(msg,sender){
   if(msg.type==='retry'){await exportSession(s.id);return {session:await publicState(await store.getSession(s.id))};}
   if(msg.type==='show-folder'){if(s.lastDownloadId)await chrome.downloads.show(s.lastDownloadId);else await chrome.downloads.showDefaultFolder();return {};}
   if(msg.type==='stop'){return {session:await publicState(await stop(s,'library-stop'))};}
+  if(msg.type==='rename'){
+   if(!msg.title||typeof msg.title!=='string'||!msg.title.trim())throw Error('Tiêu đề không hợp lệ');
+   const updated=await store.renameSession(s.id,msg.title.trim());
+   return {session:await publicState(updated)};
+  }
+  if(msg.type==='delete'){
+   if(['recording','stopping'].includes(s.status))throw Error('Không thể xóa phiên đang ghi hoặc đang lưu.');
+   await store.deleteSession(s.id);
+   return {deleted:true,sid:s.id};
+  }
+  if(msg.type==='session-details'){
+   const bytes=await store.sessionBackupBytes(s.id);
+   const files=await store.allSessionFiles(s.id);
+   const images=files.filter(f=>f.isDataURL&&typeof f.data==='string'&&f.data.startsWith('data:image/')).slice(0,6);
+   return {session:s,backupBytes:bytes,images:images.map(img=>({name:img.name.split('/').pop(),data:img.data})),captionTail:s.captionTail||null};
+  }
   if(msg.type==='export-zip'){
    let targetSession=s;
    if(['recording','stopping'].includes(targetSession.status)){
