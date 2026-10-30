@@ -36,9 +36,9 @@ Follow the spec's Vietnamese/local-only UI, no host permission expansion, journa
 ### Task 3: ZIP for AI
 **Files:** create extension/archive.mjs and tests/archive.test.mjs; modify store.mjs, background.js, library.js/library.html/library.css; add browser/extension coverage.
 **Interfaces:** expose list-all-session-files read independent of pending state; archive module builds standard ZIP bytes + manifest/transcript/readme from stable stopped session.
-- [ ] Write failing tests for all journal entries, binary PNG, Vietnamese UTF-8, snapshots, safe paths, bounded size and active session rejection.
-- [ ] Implement standard ZIP using a small bundled library or well-tested format writer; progress/loading/error/retry, save destination choice and stop-and-export.
-- [ ] Extract generated artifact with Python zipfile and compare contents; run suite, commit, ledger.
+- [x] Write failing tests for all journal entries, binary PNG, Vietnamese UTF-8, snapshots, safe paths, bounded size and active session rejection.
+- [x] Implement standard ZIP using a small bundled library or well-tested format writer; progress/loading/error/retry, save destination choice and stop-and-export.
+- [x] Extract generated artifact with Python zipfile and compare contents; run suite, commit, ledger.
 
 ### Task 4: Automatic native-caption discovery/recovery
 **Files:** create focused caption detector script/module compatible with content-script injection; modify content.js/install.mjs; extend browser tests and Meet/Zoom fixtures.

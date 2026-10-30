@@ -18,7 +18,12 @@ async function render(){
    const actions=el('div',undefined,'actions');
    if(s.pendingExports)actions.append(button('Thử xuất lại',async()=>{await command('retry',{sid:s.id});await render();},'retry'));
    actions.append(button('Mở thư mục',()=>command('show-folder',{sid:s.id})));
-   if(['recording','stopping'].includes(s.status))actions.append(button('Dừng và lưu',async()=>{await command('stop',{sid:s.id});await render();}));
+   if(['recording','stopping'].includes(s.status)){
+    actions.append(button('Dừng và lưu',async()=>{await command('stop',{sid:s.id});await render();}));
+    actions.append(button('Dừng & Tải ZIP',async()=>{await command('export-zip',{sid:s.id,stopFirst:true});await render();}));
+   }else{
+    actions.append(button('Tải ZIP cho AI',async()=>{await command('export-zip',{sid:s.id});},'zip-btn'));
+   }
    card.append(info,actions);list.append(card);
   }
  }catch(e){message.textContent='Chưa đọc được thư viện: '+e.message;}

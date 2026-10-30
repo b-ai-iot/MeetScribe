@@ -59,6 +59,15 @@ export function saveImage(id,{name,data,bytes,event}){return mutate(id,(tx,s)=>{
  s.images++;s.imageTimes.push(now);s.imageBytes+=bytes;return {images:s.images,imageBytes:s.imageBytes};
 });}
 export async function pendingFiles(id){return request((await database()).transaction('files').objectStore('files').index('pending').getAll([id,0]));}
+export async function allSessionFiles(id){
+ const db=await database();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('files','readonly');
+  const req=tx.objectStore('files').getAll();
+  req.onsuccess=()=>resolve(req.result.filter(f=>f.sid===id));
+  req.onerror=()=>reject(req.error);
+ });
+}
 export function markExported(file,download){return mutate(file.sid,(tx,s)=>{
  const req=tx.objectStore('files').get(file.id);req.onsuccess=()=>{
   const current=req.result;if(!current||current.state!==0)return;

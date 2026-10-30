@@ -11,3 +11,14 @@ Also remove implementation jargon 'File System Access API' from settings product
 - requestCustomDirectory currently overwrites then deletes fixed `.meetscribe-verify`; this could delete a user's existing file. Use a cryptographically unique temporary name and remove only the file this operation created.
 - Need explicit reauthorize-existing-folder action from settings click, not just selecting another folder. Handle retrieval must not consume transient activation before requestPermission; preload handle before button click if needed.
 - Existing new unit tests use mocks only and do not yet assert canceled picker or pending-state preservation. Add integration coverage with real browser directory handles; label OPFS-based coverage as such, never as real OS-picker verification.
+
+## Task 2 independent re-review — remaining important issues
+- settings.js only preloads active folder B for reauthorization. Older session A pinned to A has no UI way to reauthorize A after choosing B. Add per-session repair/reauthorize action opening an extension page with destinationId, preloading that precise handle before the user click. Do not change global active destination when reauthorizing old A.
+- Start permits customDirectory with no stored handle/id; session pins null, and store.getDirectoryHandle(null) resolves active default during later retry, allowing reroute to B. Prevent starting custom session until a directory is chosen, or preserve explicit unconfigured/error destination without fallback to future active. Add real production-path integration tests, not only manually authored objects.
+- exportFileToDirectory calls markExported with lastDownloadId string 'fs-handle'; show-folder unconditionally calls chrome.downloads.show expecting numeric id. Show appropriate custom-directory feedback/action instead of broken Open folder. Toolbar/library status must describe custom destination, not claim Downloads.
+
+## Task 3 early archive review
+- buildSessionArchive must strip exact `session.folder + '/'` prefix, not a regex removing any first three path segments. Validate *relative entry path segments* after stripping, rejecting '.'/'..' components/backslashes/absolute paths, not any rawPath containing '..' (valid meeting title 'Sprint... review' must export). Test legacy/custom folder paths, unicode/dots in meeting title and no duplicate/colliding entries.
+- Standard ZIP16 entry count/UTF-8 name length and ZIP32 size/offset bounds must throw explanatory errors before wrapping header integers. Add limits tests at function boundary.
+- Enforce maxBytes incrementally BEFORE further data decoding/accumulation; estimate serialized/base64 byte totals before loading whole archive when possible. Current check after accumulating all decoded files does not bound memory.
+- README-for-AI should tell AI not to invent decisions/owners/dates, explicitly flag interrupted/missing coverage, and refer to raw snapshots+image timestamps.

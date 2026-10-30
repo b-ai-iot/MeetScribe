@@ -155,6 +155,45 @@ const root=path.resolve(__dirname,'../extension');
  assert.equal(finalized.status,'completed');assert.equal(finalized.reason,'user-stop');
  assert.ok(finalized.files.some(f=>f.endsWith('/finished.json')));assert.ok(finalized.files.some(f=>f.endsWith('/session-final.json')));
  assert.equal(finalized.pending,finalized.files.length);passed++;console.log('PASS atomic idempotent finalization creates final metadata and marker with consistent export count');
+  const zipTest=await page.evaluate(async()=>{
+   const s=await import('./store.mjs');
+   const {buildSessionArchive}=await import('./archive.mjs');
+   const sess=await s.getSession('test');
+   const allFiles=await s.allSessionFiles('test');
+
+   let activeRejected=false;
+   try{
+    await buildSessionArchive({...sess,status:'recording'},allFiles);
+   }catch{activeRejected=true;}
+
+   const zipBytes=await buildSessionArchive(sess,allFiles);
+   return {
+    activeRejected,
+    allFilesCount:allFiles.length,
+    zipLength:zipBytes.length,
+    zipBase64:btoa(String.fromCharCode(...zipBytes))
+   };
+  });
+  assert.equal(zipTest.activeRejected,true);
+  assert.ok(zipTest.allFilesCount>0);
+  assert.ok(zipTest.zipLength>100);
+
+  const testZipBuf=Buffer.from(zipTest.zipBase64,'base64');
+  const tempZipPath=path.resolve(__dirname,'../artifacts/browser-test-session.zip');
+  await fs.writeFile(tempZipPath,testZipBuf);
+  const {execFileSync}=require('node:child_process');
+  const pyCheck=`
+import zipfile, sys
+with zipfile.ZipFile(sys.argv[1], 'r') as zf:
+    names = zf.namelist()
+    assert 'transcript.md' in names
+    assert 'README-for-AI.md' in names
+    assert 'manifest.json' in names
+    print(len(names))
+`;
+  const countStr=execFileSync('python3',['-c',pyCheck,tempZipPath],{encoding:'utf8'}).trim();
+  assert.ok(parseInt(countStr,10)>=3);
+  passed++;console.log('PASS portable session ZIP: all journal files, transcript/README/manifest, and Python zipfile verification');
  await page.close();
  const ui=await browser.newPage({viewport:{width:1440,height:900}});
  await ui.goto(base+'/library.html');

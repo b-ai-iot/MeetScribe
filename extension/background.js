@@ -129,6 +129,31 @@ async function receive(msg,sender){
   if(msg.type==='retry'){await exportSession(s.id);return {session:await publicState(await store.getSession(s.id))};}
   if(msg.type==='show-folder'){if(s.lastDownloadId)await chrome.downloads.show(s.lastDownloadId);else await chrome.downloads.showDefaultFolder();return {};}
   if(msg.type==='stop'){return {session:await publicState(await stop(s,'library-stop'))};}
+  if(msg.type==='export-zip'){
+   let targetSession=s;
+   if(['recording','stopping'].includes(targetSession.status)){
+    if(msg.stopFirst){targetSession=await stop(targetSession,'zip-stop');}
+    else throw Error('Phiên đang ghi. Hãy dừng phiên trước khi xuất ZIP.');
+   }
+   const files=await store.allSessionFiles(targetSession.id);
+   const {buildSessionArchive}=await import('./archive.mjs');
+   const zipBytes=await buildSessionArchive(targetSession,files);
+   const safeTitle=(targetSession.title||'Cuoc-hop').replace(/[\\/:*?"<>|]/g,'-').slice(0,50);
+   const zipName=`MeetScribe-${targetSession.createdAt.slice(0,10)}-${safeTitle}-${targetSession.id.slice(0,8)}.zip`;
+   if(msg.destination==='customDirectory'&&targetSession.destination==='customDirectory'){
+    const dirHandle=await store.getDirectoryHandle(targetSession.destinationId);
+    if(dirHandle){
+     const {writeToDirectoryHandle}=await import('./destination.mjs');
+     const fh=await dirHandle.getFileHandle(zipName,{create:true});
+     await writeToDirectoryHandle(fh,zipBytes);
+     return {savedTo:'directory',filename:zipName};
+    }
+   }
+   const b64=typeof Buffer!=='undefined'?Buffer.from(zipBytes).toString('base64'):btoa(String.fromCharCode(...zipBytes));
+   const dataUrl=`data:application/zip;base64,${b64}`;
+   const downloadId=await chrome.downloads.download({url:dataUrl,filename:zipName,saveAs:Boolean(msg.saveAs),conflictAction:'uniquify'});
+   return {savedTo:'downloads',downloadId,filename:zipName};
+  }
   throw Error('Unsupported library command');
  }
  if(visual){
