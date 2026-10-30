@@ -51,7 +51,9 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 
 ## Bắt đầu nhanh
 
-MeetScribe chưa phân phối qua Chrome Web Store và chưa có tệp cài đặt biên dịch sẵn trên mục Releases. Bạn có thể cài đặt trực tiếp từ mã nguồn:
+Tải `MeetScribe-1.3.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
+
+Hoặc cài trực tiếp từ mã nguồn:
 
 1. **Sao chép kho mã nguồn:**
    ```bash
@@ -101,3 +103,5 @@ Tham khảo các hướng dẫn chi tiết song ngữ trong thư mục [`docs/`]
 Mọi đóng góp bằng tiếng Anh hoặc tiếng Việt đều được hoan nghênh. Vui lòng đọc kỹ [CONTRIBUTING.vi.md](CONTRIBUTING.vi.md) và [CODE_OF_CONDUCT.vi.md](CODE_OF_CONDUCT.vi.md) trước khi gửi yêu cầu sửa đổi hoặc phản hồi. Về báo cáo bảo mật, vui lòng xem [SECURITY.vi.md](SECURITY.vi.md).
 
 MeetScribe được phát hành theo [Giấy phép MIT](LICENSE). Bản quyền &copy; 2026 Nhóm đóng góp MeetScribe.
+
+Xem [quản trị nhánh và quyền](docs/vi/governance.md) và [quy trình phát hành](docs/vi/releasing.md).

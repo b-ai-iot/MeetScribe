@@ -75,3 +75,7 @@ npm run package
 ## Quy tắc ứng xử
 
 Mọi thành viên tham gia đóng góp đều phải tuân thủ [Quy tắc ứng xử](CODE_OF_CONDUCT.vi.md) của dự án. Hãy luôn giao tiếp tôn trọng, kiên nhẫn và xây dựng.
+
+## Nhánh và review
+
+Fork repo, tạo nhánh từ `main` mới nhất với tiền tố `feat/`, `fix/`, `docs/` hoặc `chore/`, rồi mở PR vào `main`. CI bắt buộc phải đạt và các thảo luận review phải được giải quyết trước squash merge. Xem [quyền và chính sách review](docs/vi/governance.md) và [quy trình phát hành](docs/vi/releasing.md).

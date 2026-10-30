@@ -17,7 +17,9 @@ Tài liệu này hướng dẫn bạn cách cài đặt tiện ích MeetScribe t
 
 ## Cách 1: Nạp tiện ích chưa giải nén (Khuyên dùng)
 
-Do MeetScribe là dự án mã nguồn mở chưa đưa lên Chrome Web Store và chưa có tệp phát hành đóng gói sẵn trên GitHub Releases, bạn sẽ nạp trực tiếp từ mã nguồn:
+Với bản ổn định đóng gói sẵn, tải ZIP tiện ích và `SHA256SUMS.txt` từ [GitHub Releases](https://github.com/b-ai-iot/MeetScribe/releases/latest), [kiểm tra SHA-256](releasing.md#kiểm-tra-file-tải-về) rồi giải nén. Tải thư mục `MeetScribe/` theo các bước Chrome bên dưới. Chưa có trên Chrome Web Store.
+
+Để dùng mã nguồn:
 
 1. **Sao chép kho mã nguồn:**
    ```bash

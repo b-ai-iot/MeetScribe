@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -25,6 +26,8 @@ jobs:
       - run: npm ci
       - run: npm run docs:check
       - run: npm test
+      - name: Release tooling regression tests
+        run: python3 -m unittest discover -s tests -p 'test_release.py'
       - run: npx playwright install --with-deps chromium
       - name: DOM and browser checks
         shell: bash
@@ -50,4 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: meetscribe-extension
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error

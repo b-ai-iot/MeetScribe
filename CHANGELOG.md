@@ -2,15 +2,15 @@
 
 [Tiếng Việt](CHANGELOG.vi.md) · [README](README.md)
 
-## Unreleased — open-source documentation
+## 1.3.0 — 2026-10-30
 
+- First packaged GitHub release, with deterministic extension ZIP, SHA-256 checksums and bilingual release workflow.
+- Adopt GitHub Flow, CODEOWNERS, PR template and documented branch/tag rules with a sole-maintainer review exception.
 - Add the user-selected MIT license and include it in the extension distribution ZIP.
 - Add paired English/Vietnamese guides, contribution/security/conduct policies and issue forms.
 - Add actual extension screenshots with synthetic meeting data and a regeneration command.
 - Add local documentation validation and a GitHub Actions verification workflow.
-- Make browser tests create their output directory in a fresh checkout. No extension UI language or runtime feature change.
-
-## 1.3.0 — 2026-10-30
+- Make browser tests create their output directory in a fresh checkout. The documentation changes do not alter runtime behavior.
 
 - Add persisted VI/EN interface language in Settings, with live updates across open pages and an active toolbar.
 - Translate static/dynamic UI, accessible labels, error/recovery messages and generated export helper text; keep captured data unchanged.
@@ -35,4 +35,4 @@
 - Introduce the independent Google Meet caption collector, floating toolbar, journal-first local storage and ordinary Downloads export.
 - Add selected shared-region image sampling, local deduplication and session finalization.
 
-Version entries describe source history; they do not imply that prebuilt GitHub releases or Chrome Web Store packages exist.
+`v1.3.0` is the first packaged GitHub release. Earlier version entries describe source history. There is no Chrome Web Store distribution.

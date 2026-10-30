@@ -51,7 +51,9 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 
 ## Quickstart
 
-MeetScribe is not distributed through the Chrome Web Store and provides no prebuilt release assets yet. You load it directly from source:
+Download `MeetScribe-1.3.0.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
+
+To install from source instead:
 
 1. **Clone the repository:**
    ```bash
@@ -101,3 +103,5 @@ Explore the comprehensive bilingual documentation in the [`docs/`](docs/README.m
 Contributions are welcome in both English and Vietnamese. Please review [CONTRIBUTING.md](CONTRIBUTING.md) and our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before submitting issues or pull requests. For vulnerability disclosures, refer to [SECURITY.md](SECURITY.md).
 
 MeetScribe is licensed under the [MIT License](LICENSE). Copyright &copy; 2026 MeetScribe contributors.
+
+See [branch governance and permissions](docs/en/governance.md) and [release procedure](docs/en/releasing.md).

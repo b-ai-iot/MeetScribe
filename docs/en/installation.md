@@ -17,7 +17,9 @@ This guide walks you through installing MeetScribe from source, verifying manife
 
 ## Method 1: Load Unpacked Extension (Recommended)
 
-Because MeetScribe is an open-source project without a Chrome Web Store listing or prebuilt release assets, you load it directly from source code:
+For a packaged stable build, download the extension ZIP and `SHA256SUMS.txt` from [GitHub Releases](https://github.com/b-ai-iot/MeetScribe/releases/latest), [verify SHA-256](releasing.md#verify-a-download) and extract it. Load the extracted `MeetScribe/` folder using the Chrome steps below. There is no Chrome Web Store listing.
+
+To use source code instead:
 
 1. **Clone the Repository:**
    ```bash
