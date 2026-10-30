@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "MeetScribe — Ghi chú cuộc họp",
-  "version": "1.1.0",
+  "name": "MeetScribe \u2014 Ghi ch\u00fa cu\u1ed9c h\u1ecdp",
+  "version": "1.2.0",
   "minimum_chrome_version": "116",
-  "description": "Thu caption và ảnh chia sẻ trên Google Meet / Zoom web. Thanh nổi, lưu cục bộ vào Downloads, không gọi AI khi họp.",
+  "description": "Thu caption v\u00e0 \u1ea3nh chia s\u1ebb tr\u00ean Google Meet / Zoom web. Thanh n\u1ed5i, l\u01b0u c\u1ee5c b\u1ed9 v\u00e0o Downloads, kh\u00f4ng g\u1ecdi AI khi h\u1ecdp.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -19,7 +19,7 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "MeetScribe · Mở thanh ghi họp"
+    "default_title": "MeetScribe \u00b7 M\u1edf thanh ghi h\u1ecdp"
   },
   "background": {
     "service_worker": "background.js",

@@ -5,7 +5,32 @@
  let caption=null,share=null,captionSource='auto',observer=null,picker=null,session=null,running=false,starting=false,stopping=false,lost=false;
  let buffer=recovered,sequence=0,last='',flushTimer=null,flight=null,healthBusy=false,pendingBytes=0;
  let host=null,root=null,collapsed=false,notice='',noticeKind='info',healthTimer;
- const visible=el=>el?.isConnected&&el.getBoundingClientRect().width>0&&el.getBoundingClientRect().height>0&&getComputedStyle(el).visibility!=='hidden'&&getComputedStyle(el).display!=='none';
+ const visible = el => {
+  if (globalThis.__meetScribeCaptions?.isElementVisible) {
+   return globalThis.__meetScribeCaptions.isElementVisible(el);
+  }
+  if (!el || !el.isConnected) return false;
+  let curr = el;
+  while (curr && curr.nodeType !== 9) {
+   if (curr.style && (curr.style.display === 'none' || curr.style.visibility === 'hidden' || curr.style.opacity === '0')) return false;
+   if (typeof getComputedStyle === 'function') {
+    try {
+     const s = getComputedStyle(curr);
+     if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false;
+    } catch {}
+   }
+   curr = curr.parentElement;
+  }
+  if (typeof el.getBoundingClientRect === 'function') {
+   try {
+    const r = el.getBoundingClientRect();
+    if (r && typeof r.width === 'number' && typeof r.height === 'number') {
+     if (r.width === 0 || r.height === 0) return false;
+    }
+   } catch {}
+  }
+  return true;
+ };
  const $=id=>root?.getElementById(id);
  const icons={note:'<path d="M8 3h8l4 4v14H4V3h4m8 0v5h5M8 12h8M8 16h5"/>',play:'<path d="m9 5 11 7-11 7Z"/>',stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',caption:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 10H7v4h3m7-4h-3v4h3"/>',screen:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8m-4-4v4m-4-12 4-4 4 4m-4-4v9"/>',mark:'<path d="M6 21V3m0 1h12l-3 5 3 5H6"/>',folder:'<path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>',minus:'<path d="M6 12h12"/>',move:'<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3m12-6 3 3-3 3"/>',arrow:'<path d="M8 5h11v11m0-11L5 19"/>',download:'<path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/>',settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>'};
  const icon=name=>`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
@@ -41,7 +66,7 @@
   const next=discover();
   if(next&&next!==caption){
    caption=next;captionSource='auto';
-   if(running)bind();
+   if(running)bind(false);
   }
   return visible(caption)?caption:null;
  }
@@ -49,13 +74,13 @@
   if(!running)return;
   if(!visible(caption))reacquireIfNeeded();
   if(!visible(caption))return;
-  const text=caption.innerText?.trim();if(!text){last='';return;}if(text===last)return;
+  const text=caption.innerText?.trim();if(!text)return;if(text===last)return;
   if(text.length>2000000||buffer.length>=20000||pendingBytes+text.length*2>128*1024*1024){fault('Caption chờ lưu đã chạm giới hạn an toàn. Cứu dữ liệu đang chờ và kiểm tra thư viện.');return;}
   last=text;buffer.push({sequence:++sequence,timestamp:new Date().toISOString(),text,speaker:null});pendingBytes+=text.length*2;
   if(!flushTimer)flushTimer=setTimeout(()=>{flushTimer=null;flush().catch(e=>fault(e.message));},10000);
   if(buffer.length>=100)flush().catch(e=>fault(e.message));
  }
- function bind(){observer?.disconnect();last='';if(running&&caption){observer=new MutationObserver(snapshot);observer.observe(caption,{subtree:true,characterData:true,childList:true});snapshot();}}
+ function bind(resetLast=true){observer?.disconnect();if(resetLast)last='';if(running&&caption){observer=new MutationObserver(snapshot);observer.observe(caption,{subtree:true,characterData:true,childList:true});snapshot();}}
  async function flush(){
   if(flight){await flight;if(buffer.length)return flush();return;}
   clearTimeout(flushTimer);flushTimer=null;
@@ -216,9 +241,9 @@
    if(msg.type==='begin'){
     if(running&&session?.id===msg.session.id)return {};
     if(buffer.length)throw Error('Cứu caption cũ đang chờ trước khi bắt đầu phiên mới.');
-    setSession(msg.session,true);sequence=session.lastSequence||0;running=true;lost=false;notice='';bind();render();return {};
+    setSession(msg.session,true);sequence=session.lastSequence||0;running=true;lost=false;notice='';last='';bind(true);render();return {};
    }
-   if(msg.type==='end'){snapshot();running=false;observer?.disconnect();picker?.();await flush();render();return {};}
+   if(msg.type==='end'){reacquireIfNeeded();snapshot();running=false;observer?.disconnect();picker?.();await flush();render();return {};}
    if(msg.type==='status'){setSession(msg.session);if(!['recording','stopping'].includes(session?.status)){running=false;observer?.disconnect();}render();return {};}
    if(msg.type==='highlight-caption'){
     if(visible(caption)&&globalThis.__meetScribeCaptions?.highlightCaptionRegion){

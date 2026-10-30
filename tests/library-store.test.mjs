@@ -56,8 +56,12 @@ function createMockIndexedDB() {
             get(key) {
               return makeReq(() => map.get(key));
             },
-            getAll() {
-              return makeReq(() => [...map.values()]);
+            getAll(range) {
+              return makeReq(() => {
+                const all = [...map.values()];
+                if (!range) return all;
+                return all.filter(f => !range.includes || range.includes(f.id));
+              });
             },
             put(val) {
               return makeReq(() => { map.set(val.id, val); return val.id; });
@@ -65,8 +69,51 @@ function createMockIndexedDB() {
             add(val) {
               return makeReq(() => { map.set(val.id, val); return val.id; });
             },
-            delete(key) {
-              return makeReq(() => { map.delete(key); return undefined; });
+            delete(keyOrRange) {
+              return makeReq(() => {
+                if (keyOrRange && typeof keyOrRange.includes === 'function') {
+                  for (const k of [...map.keys()]) {
+                    if (keyOrRange.includes(k)) {
+                      map.delete(k);
+                    }
+                  }
+                  return undefined;
+                }
+                map.delete(keyOrRange);
+                return undefined;
+              });
+            },
+            openCursor(range) {
+              const req = { result: null, onsuccess: null, onerror: null };
+              const items = [...map.values()].filter(f => !range || !range.includes || range.includes(f.id));
+              let idx = 0;
+              function advance() {
+                if (aborted) return;
+                pending++;
+                queueMicrotask(() => {
+                  if (aborted) return;
+                  if (idx >= items.length) {
+                    req.result = null;
+                    pending--;
+                    req.onsuccess?.({ target: req });
+                    checkComplete();
+                    return;
+                  }
+                  const currentItem = items[idx++];
+                  const cursor = {
+                    value: currentItem,
+                    continue() {
+                      advance();
+                    }
+                  };
+                  req.result = cursor;
+                  pending--;
+                  req.onsuccess?.({ target: req });
+                  checkComplete();
+                });
+              }
+              advance();
+              return req;
             },
             index() {
               return {
@@ -106,6 +153,18 @@ function createMockIndexedDB() {
     }
   };
 }
+
+globalThis.IDBKeyRange = {
+  bound(lower, upper) {
+    return {
+      lower,
+      upper,
+      includes(val) {
+        return val >= lower && val <= upper;
+      }
+    };
+  }
+};
 
 globalThis.indexedDB = createMockIndexedDB();
 
@@ -212,4 +271,48 @@ test('library store: computes truthful session backup bytes', async () => {
 
   const totalBytes = await store.sessionBackupBytes(sid);
   assert.ok(totalBytes >= 500, `Expected total bytes >= 500, got ${totalBytes}`);
+});
+
+test('library store: allSessionFiles returns empty array for empty or nonexistent session without fallback scan', async () => {
+  const nonexistent = 'nonexistent-session-' + Date.now();
+  const files = await store.allSessionFiles(nonexistent);
+  assert.deepEqual(files, []);
+});
+
+test('library store: allSessionFiles scopes strictly to requested session ID', async () => {
+  const sidA = 'sess-scope-a-' + Date.now();
+  const sidB = 'sess-scope-b-' + Date.now();
+  await store.createSession({ id: sidA, title: 'Session A', folder: 'MeetScribe/A', status: 'recording', createdAt: new Date().toISOString(), count: 0, lastSequence: 0 });
+  await store.createSession({ id: sidB, title: 'Session B', folder: 'MeetScribe/B', status: 'recording', createdAt: new Date().toISOString(), count: 0, lastSequence: 0 });
+  await store.writeFile(sidA, 'captions/a.jsonl', '{"text":"a"}');
+  await store.writeFile(sidB, 'captions/b.jsonl', '{"text":"b"}');
+
+  const filesA = await store.allSessionFiles(sidA);
+  const filesB = await store.allSessionFiles(sidB);
+  assert.equal(filesA.length, 2); // session.json + captions/a.jsonl
+  assert.equal(filesB.length, 2); // session.json + captions/b.jsonl
+  assert.ok(filesA.every(f => f.sid === sidA));
+  assert.ok(filesB.every(f => f.sid === sidB));
+});
+
+test('library store: readSessionFilesBounded / sessionFilesForExport enforces size budget via cursor before accumulating', async () => {
+  const sidLarge = 'sess-budget-' + Date.now();
+  await store.createSession({ id: sidLarge, title: 'Budget Test', folder: 'MeetScribe/Large', status: 'recording', createdAt: new Date().toISOString(), count: 0, lastSequence: 0 });
+  await store.writeFile(sidLarge, 'captions/part-1.jsonl', 'a'.repeat(500));
+  await store.writeFile(sidLarge, 'captions/part-2.jsonl', 'b'.repeat(500));
+  await store.finalizeSession(sidLarge, { reason: 'done' });
+
+  // Normal allSessionFiles preserves normal scoped semantics and returns all files without size limit
+  const allFiles = await store.allSessionFiles(sidLarge);
+  assert.ok(allFiles.length >= 3);
+
+  // Bounded reader with small maxBytes rejects before reading excessive bytes
+  await assert.rejects(
+    async () => store.readSessionFilesBounded(sidLarge, 600),
+    /Kích thước tệp nén vượt quá giới hạn an toàn/
+  );
+
+  // Bounded reader with sufficient maxBytes succeeds
+  const boundedFiles = await store.readSessionFilesBounded(sidLarge, 100000);
+  assert.equal(boundedFiles.length, allFiles.length);
 });

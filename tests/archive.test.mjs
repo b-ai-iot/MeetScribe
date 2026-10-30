@@ -27,7 +27,7 @@ function createSampleSession(status = 'completed') {
     createdAt: '2026-10-30T10:00:00.000Z',
     endedAt: '2026-10-30T10:45:00.000Z',
     reason: 'user-stop',
-    version: '1.1.0'
+    version: '1.2.0'
   };
 }
 

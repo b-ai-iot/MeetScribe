@@ -273,7 +273,7 @@ export function generateArchiveManifest(session, fileList) {
     createdAt: session.createdAt,
     endedAt: session.endedAt,
     reason: session.reason,
-    version: session.version || '1.1.0',
+    version: session.version || '1.2.0',
     totalFiles: fileList.length,
     files: fileList.map(f => ({
       path: f.path,

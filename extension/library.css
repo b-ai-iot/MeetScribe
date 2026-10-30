@@ -76,3 +76,8 @@ footer{padding-top:20px;border-top:1px solid var(--line)}
   .thumb{width:80px;height:48px}
 }
 @media(prefers-reduced-motion:reduce){button{transition:none}}
+
+.zip-dest-select{font:inherit;font-size:12px;font-weight:550;min-height:44px;padding:8px 12px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;cursor:pointer}
+.zip-dest-select:focus{outline:3px solid var(--accent);outline-offset:2px}
+.in-progress{color:var(--accent);font-style:italic}
+.error-text{color:#ffd4cf}

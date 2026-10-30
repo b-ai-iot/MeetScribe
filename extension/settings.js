@@ -10,6 +10,7 @@ const $ = id => document.getElementById(id);
 
 let currentSettings = { ...DEFAULT_SETTINGS };
 let preloadedHandle = null;
+let repairHandle = null;
 
 function showBanner(text, type = 'success') {
   const banner = $('statusBanner');
@@ -53,16 +54,29 @@ async function init() {
       const destMod = await import('./destination.mjs').catch(() => null);
       if (destMod && typeof destMod.getStoredDirectoryInfo === 'function') {
         const queryDestId = new URLSearchParams(window.location.search).get('destinationId');
-        if (queryDestId) {
-          $('customDirSection').hidden = false;
+        if (queryDestId && $('sessionRepairSection')) {
+          $('sessionRepairSection').hidden = false;
+          const repairInfo = await destMod.getStoredDirectoryInfo(queryDestId);
+          if (repairInfo?.name) {
+            repairHandle = repairInfo.handle;
+            $('repairDirName').textContent = repairInfo.name;
+            $('repairDirStatus').textContent = repairInfo.hasPermission ? 'Đã cấp quyền ghi' : 'Cần cấp lại quyền truy cập';
+            $('repairDirStatus').className = `dest-status ${repairInfo.hasPermission ? 'granted' : 'revoked'}`;
+            if ($('reauthorizeSessionDirBtn')) $('reauthorizeSessionDirBtn').hidden = Boolean(repairInfo.hasPermission);
+          } else {
+            $('repairDirName').textContent = 'Thư mục không tồn tại';
+            $('repairDirStatus').textContent = 'Không tìm thấy dữ liệu thư mục của phiên họp này';
+            if ($('reauthorizeSessionDirBtn')) $('reauthorizeSessionDirBtn').hidden = true;
+          }
         }
-        const info = await destMod.getStoredDirectoryInfo(queryDestId || undefined);
-        if (info?.name) {
-          preloadedHandle = info.handle;
-          $('customDirName').textContent = info.name + (queryDestId ? ' (Phiên đã chọn)' : '');
-          $('customDirStatus').textContent = info.hasPermission ? 'Đã cấp quyền ghi' : 'Cần cấp lại quyền truy cập';
-          $('customDirStatus').className = `dest-status ${info.hasPermission ? 'granted' : 'revoked'}`;
-          if ($('reauthorizeDirBtn')) $('reauthorizeDirBtn').hidden = Boolean(info.hasPermission);
+        // Active destination for future sessions
+        const activeInfo = await destMod.getStoredDirectoryInfo();
+        if (activeInfo?.name) {
+          preloadedHandle = activeInfo.handle;
+          $('customDirName').textContent = activeInfo.name;
+          $('customDirStatus').textContent = activeInfo.hasPermission ? 'Đã cấp quyền ghi' : 'Cần cấp lại quyền truy cập';
+          $('customDirStatus').className = `dest-status ${activeInfo.hasPermission ? 'granted' : 'revoked'}`;
+          if ($('reauthorizeDirBtn')) $('reauthorizeDirBtn').hidden = Boolean(activeInfo.hasPermission);
         }
       }
     } catch {}
@@ -149,6 +163,24 @@ async function init() {
       }
     } catch (err) {
       showBanner(`Lỗi cấp lại quyền: ${err.message}`, 'error');
+    }
+  });
+
+  $('reauthorizeSessionDirBtn')?.addEventListener('click', async () => {
+    try {
+      const destMod = await import('./destination.mjs').catch(() => null);
+      if (!destMod || !repairHandle) return;
+      const res = await destMod.reauthorizeDirectoryHandle(repairHandle);
+      if (res.hasPermission) {
+        $('repairDirStatus').textContent = 'Đã cấp quyền ghi';
+        $('repairDirStatus').className = 'dest-status granted';
+        $('reauthorizeSessionDirBtn').hidden = true;
+        showBanner(`Đã cấp lại quyền ghi cho thư mục phiên: ${res.name}`);
+      } else {
+        showBanner('Chưa cấp quyền ghi cho thư mục phiên.', 'error');
+      }
+    } catch (err) {
+      showBanner(`Lỗi cấp lại quyền phiên: ${err.message}`, 'error');
     }
   });
 }

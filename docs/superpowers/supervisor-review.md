@@ -1,3 +1,13 @@
+# Latest remaining checks from Codex supervisor
+As of current repair code: root manually re-ran caption repro, 1MiB ZIP, scoped store details and stop-and-ZIP rescue; those now pass. Before final commit, fix these remaining exact items:
+- Last Python patch introduced mojibake in store.mjs around line102 (`KÃ­ch...`) and line150 (`KhÃ´ng...`). Restore valid Vietnamese UTF-8; use “Không thể xóa phiên đang ghi hoặc đang lưu.” (no audio recording). Run rg for Ã/Æ/á»/áº/Ä in extension to confirm none.
+- store.allSessionFiles currently falls back to unfiltered files.getAll() when scoped range returns empty (and includes an IDBKeyRange-absent test path). Remove production whole-database fallback; empty requested session means [] and must not scan history. Fix test fixtures/adapter instead of product fallback.
+- ZIP still calls allSessionFiles without a budget, materializing arbitrarily large session before archive maxBytes guard. Add session-scoped cursor/size-limited reader for export (check text/base64 size before accumulating), pass archive cap from worker, and regression. Preserve allSessionFiles normal scoped semantics.
+- package-lock.json root and packages[''] versions still 1.1.0 while package/model/manifest now1.2.0; update consistently.
+- Re-run `/private/tmp/meetscribe-store-review.cjs $PWD` with Node20/NODE_PATH: expect only 3 scoped reads for3 detail requests (not6), and stop-and-ZIP ok:true for explicit downloads with missing custom handle.
+
+---
+
 # Codex supervisor review — Task 1 (must fix before completion)
 Independent reviewer verified four functional defects. Fix with regressions, keep executing all tasks.
 1. overlay.css fixed px for title/hint/tools/metrics/compact means font setting changes primary button only. Scale text relative to selected size and verify computed styles at 12/18.
@@ -52,3 +62,8 @@ Current library.js command() catches worker rejection and returns {ok:false,erro
 
 ## Task2 persistence integrity must-fix discovered during final store review
 store.mjs currently has mockHandlesMap and catches DataCloneError to store `{isMock:true}` then resolve success using in-memory handle. This is test-only behavior in production and falsely claims persistence: after worker restart, saved destination has no usable handle. Remove mockHandlesMap/isMock fallback entirely; serialization errors must reject atomically and retain prior active directory/settings. Use real OPFS FileSystemDirectoryHandle for browser persistence tests or test-only adapter outside product code. Add regression that DataCloneError rejects and does not replace previous active destination.
+
+## Whole-branch performance/data isolation review (must fix)
+store.allSessionFiles(id) currently calls files.getAll() for the ENTIRE historical database then filters by sid. Library session-details invokes it twice per card, eager for every session; ZIP loads every session data before maxBytes checks. Scope IndexedDB reads to the requested session using existing file primary-key prefix IDBKeyRange.bound(id+'/',id+'/\uffff') or a sid index (test old records too). Avoid duplicated all-files reads per details and avoid retrieving every session full images just to list the library. Add real IndexedDB regression proving unrelated session records are not materialized. Apply size guard while reading export files (cursor/metadata), before accumulating unlimited history.
+
+Whole-branch review reproduced both using `/private/tmp/meetscribe-store-review.cjs` (Node20 + NODE_PATH repo/node_modules): 3 sessions x1MiB, production session-details generated SIX unfiltered files.getAll calls each cloning all 3,146,469 bytes. Also active custom session with unavailable pinned folder + `export-zip {stopFirst:true,destination:'downloads'}` returns missing-folder error AFTER finalization because stop() awaits normal exportSession(). Stop-and-ZIP rescue should finalize/drain durably, retain ordinary exportError/pending, then still build ZIP from journal to explicitly chosen Downloads. Add actual worker regression, keep normal Stop failure reporting honest.

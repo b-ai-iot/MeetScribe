@@ -8,15 +8,13 @@ let searchTerm = '';
 
 async function command(type, data = {}) {
   if (!chrome?.runtime?.sendMessage) {
-    return { ok: false, error: 'Chưa kết nối tiện ích.' };
+    throw new Error('Chưa kết nối tiện ích.');
   }
-  try {
-    const answer = await chrome.runtime.sendMessage({ scope: 'meetscribe', target: 'worker', type, ...data });
-    if (!answer?.ok) throw Error(answer?.error || 'Không kết nối được tiện ích.');
-    return answer;
-  } catch (e) {
-    return { ok: false, error: e.message };
+  const answer = await chrome.runtime.sendMessage({ scope: 'meetscribe', target: 'worker', type, ...data });
+  if (!answer?.ok) {
+    throw new Error(answer?.error || 'Không kết nối được tiện ích.');
   }
+  return answer;
 }
 
 function el(tag, text, cls) {
@@ -83,11 +81,21 @@ async function render() {
     title.className = 'session-title';
     titleRow.append(title);
 
+    const cardError = el('p', '', 'meta warning error-text card-error');
+    cardError.hidden = true;
+
     const renameBtn = button('Đổi tên', async () => {
       const newTitle = prompt('Nhập tên hiển thị mới cho cuộc họp:', s.title || '');
       if (newTitle && newTitle.trim() && newTitle.trim() !== s.title) {
-        await command('rename', { sid: s.id, title: newTitle.trim() });
-        await loadAndRender();
+        try {
+          await command('rename', { sid: s.id, title: newTitle.trim() });
+          await loadAndRender();
+        } catch (e) {
+          cardError.textContent = 'Lỗi đổi tên: ' + e.message;
+          cardError.hidden = false;
+          message.textContent = 'Lỗi đổi tên: ' + e.message;
+          throw e;
+        }
       }
     }, 'textbutton rename-btn');
     titleRow.append(renameBtn);
@@ -148,13 +156,26 @@ async function render() {
       }
     }).catch(() => {});
 
+    info.append(cardError);
+
+    const zipStatus = el('p', '', 'meta zip-status');
+    zipStatus.hidden = true;
+    info.append(zipStatus);
+
     // Actions
     const actions = el('div', undefined, 'actions');
 
     if (s.pendingExports) {
       actions.append(button('Thử xuất lại', async () => {
-        await command('retry', { sid: s.id });
-        await loadAndRender();
+        try {
+          await command('retry', { sid: s.id });
+          await loadAndRender();
+        } catch (e) {
+          cardError.textContent = 'Lỗi xuất lại: ' + e.message;
+          cardError.hidden = false;
+          message.textContent = 'Lỗi xuất lại: ' + e.message;
+          throw e;
+        }
       }, 'retry'));
     }
 
@@ -176,24 +197,136 @@ async function render() {
 
     if (isActive) {
       actions.append(button('Dừng và lưu', async () => {
-        await command('stop', { sid: s.id });
-        await loadAndRender();
+        try {
+          await command('stop', { sid: s.id });
+          await loadAndRender();
+        } catch (e) {
+          cardError.textContent = 'Lỗi dừng phiên: ' + e.message;
+          cardError.hidden = false;
+          message.textContent = 'Lỗi dừng phiên: ' + e.message;
+          throw e;
+        }
       }));
+
+      let retryActiveZipBtn;
+      const doStopAndZip = async (opts = {}) => {
+        if (retryActiveZipBtn) retryActiveZipBtn.hidden = true;
+        zipStatus.hidden = false;
+        zipStatus.textContent = 'Đang dừng và đóng gói ZIP...';
+        zipStatus.className = 'meta zip-status in-progress';
+        message.textContent = '';
+        try {
+          const res = await command('export-zip', { sid: s.id, stopFirst: true, ...opts });
+          zipStatus.textContent = 'Đã lưu ZIP thành công: ' + (res.filename || '');
+          zipStatus.className = 'meta success zip-status';
+          await loadAndRender();
+        } catch (e) {
+          zipStatus.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          zipStatus.className = 'meta warning zip-status error-text';
+          cardError.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          cardError.hidden = false;
+          message.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          if (retryActiveZipBtn) {
+            retryActiveZipBtn.hidden = false;
+            retryActiveZipBtn.disabled = false;
+          }
+          throw e;
+        }
+      };
+
       actions.append(button('Dừng & Tải ZIP', async () => {
-        await command('export-zip', { sid: s.id, stopFirst: true });
-        await loadAndRender();
-      }));
-    } else {
-      actions.append(button('Tải ZIP cho AI', async () => {
-        await command('export-zip', { sid: s.id });
+        await doStopAndZip();
       }, 'zip-btn'));
+
+      actions.append(button('Dừng & Lưu ZIP (Save As...)', async () => {
+        await doStopAndZip({ saveAs: true, destination: 'downloads' });
+      }, 'zip-save-as-btn'));
+
+      retryActiveZipBtn = button('Thử lại xuất ZIP', async () => {
+        await doStopAndZip();
+      }, 'retry zip-retry-btn');
+      retryActiveZipBtn.hidden = true;
+      actions.append(retryActiveZipBtn);
+    } else {
+      let retryZipBtn;
+      const doExportZip = async (opts = {}) => {
+        if (retryZipBtn) retryZipBtn.hidden = true;
+        zipStatus.hidden = false;
+        zipStatus.textContent = 'Đang đóng gói và lưu ZIP...';
+        zipStatus.className = 'meta zip-status in-progress';
+        message.textContent = '';
+        try {
+          const res = await command('export-zip', { sid: s.id, ...opts });
+          zipStatus.textContent = 'Đã lưu ZIP thành công: ' + (res.filename || '');
+          zipStatus.className = 'meta success zip-status';
+        } catch (e) {
+          zipStatus.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          zipStatus.className = 'meta warning zip-status error-text';
+          cardError.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          cardError.hidden = false;
+          message.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          if (retryZipBtn) {
+            retryZipBtn.hidden = false;
+            retryZipBtn.disabled = false;
+          }
+          throw e;
+        }
+      };
+
+      const destSelect = document.createElement('select');
+      destSelect.className = 'zip-dest-select';
+      destSelect.setAttribute('aria-label', 'Vị trí lưu tệp ZIP');
+      const optDefault = document.createElement('option');
+      optDefault.value = 'default';
+      optDefault.textContent = isCustom ? `Thư mục phiên (${s.destinationName || 'cục bộ'})` : 'Thư mục Downloads';
+      destSelect.append(optDefault);
+      if (isCustom) {
+        const optDl = document.createElement('option');
+        optDl.value = 'downloads';
+        optDl.textContent = 'Thư mục Downloads';
+        destSelect.append(optDl);
+      }
+      const optSaveAs = document.createElement('option');
+      optSaveAs.value = 'saveAs';
+      optSaveAs.textContent = 'Hỏi vị trí lưu (Save As...)';
+      destSelect.append(optSaveAs);
+      actions.append(destSelect);
+
+      const zipBtn = button('Tải ZIP cho AI', async () => {
+        const val = destSelect.value;
+        const saveAs = val === 'saveAs';
+        const destination = val === 'downloads' ? 'downloads' : (val === 'default' ? undefined : val);
+        await doExportZip({ saveAs, destination });
+      }, 'zip-btn');
+      actions.append(zipBtn);
+
+      const saveAsBtn = button('Lưu ZIP (Save As...)', async () => {
+        await doExportZip({ saveAs: true, destination: 'downloads' });
+      }, 'zip-save-as-btn');
+      actions.append(saveAsBtn);
+
+      retryZipBtn = button('Thử lại xuất ZIP', async () => {
+        const val = destSelect.value;
+        const saveAs = val === 'saveAs';
+        const destination = val === 'downloads' ? 'downloads' : (val === 'default' ? undefined : val);
+        await doExportZip({ saveAs, destination });
+      }, 'retry zip-retry-btn');
+      retryZipBtn.hidden = true;
+      actions.append(retryZipBtn);
 
       // Confirmed deletion ONLY for stopped / completed sessions
       const delBtn = button('Xóa phiên', async () => {
         const ok = confirm(`Bạn có chắc chắn muốn xóa phiên họp "${s.title || 'này'}" và toàn bộ dữ liệu dự phòng cục bộ trong Chrome?`);
         if (ok) {
-          await command('delete', { sid: s.id });
-          await loadAndRender();
+          try {
+            await command('delete', { sid: s.id });
+            await loadAndRender();
+          } catch (e) {
+            cardError.textContent = 'Lỗi xóa phiên: ' + e.message;
+            cardError.hidden = false;
+            message.textContent = 'Lỗi xóa phiên: ' + e.message;
+            throw e;
+          }
         }
       }, 'delete-btn danger');
       actions.append(delBtn);
@@ -206,11 +339,10 @@ async function render() {
 
 async function loadAndRender() {
   try {
-    const res = await command('list');
-    if (!res.ok) {
-      if (message) message.textContent = res.error || '';
+    if (!chrome?.runtime?.sendMessage) {
       return;
     }
+    const res = await command('list');
     allSessions = res.sessions || [];
     await render();
   } catch (e) {

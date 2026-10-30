@@ -4,6 +4,7 @@ import {
   findCaptionContainer,
   rankCaptionCandidates,
   isExclusionElement,
+  isElementVisible,
   highlightCaptionRegion,
   reacquireCaptionContainer
 } from '../extension/captions.mjs';
@@ -501,4 +502,63 @@ test('captions: highlightCaptionRegion applies non-destructive feedback and clea
   assert.equal(typeof cleanup, 'function');
   // Highlight sets outline or creates overlay without breaking style
   cleanup();
+});
+
+test('captions: generic live ancestor never expands to encompass chat or status', () => {
+  const doc = createMockDocument();
+  const meeting = new MockElement({
+    tagName: 'div',
+    id: 'meeting',
+    attributes: { 'aria-live': 'polite' },
+    innerText: 'PRIVATE CHAT\nSPEECH\nMIC STATUS'
+  });
+  const chat = new MockElement({
+    tagName: 'div',
+    id: 'chat',
+    attributes: { 'aria-label': 'Chat' },
+    innerText: 'PRIVATE CHAT'
+  });
+  const cap = new MockElement({
+    tagName: 'div',
+    id: 'cap',
+    attributes: { 'aria-label': 'Captions' },
+    innerText: 'SPEECH'
+  });
+  const status = new MockElement({
+    tagName: 'div',
+    attributes: { role: 'status' },
+    innerText: 'MIC STATUS'
+  });
+  meeting.append(chat, cap, status);
+  doc.body.appendChild(meeting);
+
+  const res = findCaptionContainer(doc);
+  assert.equal(res.status, 'found');
+  assert.equal(res.container, cap);
+  assert.notEqual(res.container, meeting);
+});
+
+test('captions: opacity 0 is rejected by isElementVisible and detector reacquires visible element', () => {
+  const doc = createMockDocument();
+  const oldNode = new MockElement({
+    tagName: 'div',
+    id: 'old',
+    attributes: { 'aria-label': 'Captions' },
+    style: { opacity: '0' },
+    innerText: 'OLD HIDDEN SPEECH'
+  });
+  const newNode = new MockElement({
+    tagName: 'div',
+    id: 'new',
+    attributes: { 'aria-label': 'Captions' },
+    innerText: 'NEW VISIBLE SPEECH'
+  });
+  doc.body.append(oldNode, newNode);
+
+  assert.equal(isElementVisible(oldNode), false);
+  assert.equal(isElementVisible(newNode), true);
+
+  const res = findCaptionContainer(doc);
+  assert.equal(res.status, 'found');
+  assert.equal(res.container, newNode);
 });

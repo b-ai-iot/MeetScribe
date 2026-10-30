@@ -76,6 +76,11 @@
       if (!hasCaptionWord) return true;
     }
 
+    // Elements containing chat, message logs, or participant lists
+    if (el.querySelector?.('#chat, .chat-container, .chat-box, .chat-window, [role="log"][aria-label*="chat" i], [aria-label*="trò chuyện" i], [aria-label*="tin nhắn" i], [aria-label*="chat" i], .conversation-panel, [aria-label*="người tham gia" i], [aria-label*="participants" i], [aria-label*="people" i], [role="list"][aria-label*="participant" i]')) {
+      return true;
+    }
+
     // Chat / messaging elements
     const isChatKeyword = /chat|trò chuyện|tin nhắn|message|conversation/i.test(label) ||
       /chat|trò chuyện|tin nhắn|message/i.test(id) ||
@@ -114,7 +119,7 @@
     let curr = el;
     while (curr && curr.nodeType !== 9 /* DOCUMENT_NODE */) {
       if (curr.style) {
-        if (curr.style.display === 'none' || curr.style.visibility === 'hidden') {
+        if (curr.style.display === 'none' || curr.style.visibility === 'hidden' || curr.style.opacity === '0') {
           return false;
         }
       }
@@ -134,7 +139,7 @@
       try {
         const r = el.getBoundingClientRect();
         if (r && typeof r.width === 'number' && typeof r.height === 'number') {
-          if (r.width === 0 && r.height === 0) {
+          if (r.width === 0 || r.height === 0) {
             if (typeof global.getComputedStyle === 'function') {
               return false;
             }
@@ -181,11 +186,17 @@
 
   // Groups candidates into widgets by hierarchical containment (parent contains child)
   // and selects the OUTER-most container for each widget to retain full speaker context.
+  // Never promotes a low-confidence generic ancestor (e.g. aria-live) over caption-specific widgets.
   function groupCandidatesIntoWidgets(candidates) {
     const widgets = [];
     for (const candidate of candidates) {
       let merged = false;
+      const isCandidateLow = candidate.confidence === 'low' || candidate.score < 70;
       for (const widget of widgets) {
+        const isWidgetLow = widget.confidence === 'low' || widget.score < 70;
+        // Do not merge low-confidence generic regions with caption-specific widgets
+        if (isCandidateLow !== isWidgetLow) continue;
+
         // If candidate element is ancestor or descendant of any element in widget
         const isRelated = widget.members.some(m =>
           m.element === candidate.element ||
@@ -199,9 +210,11 @@
             widget.confidence = candidate.confidence;
             widget.platform = candidate.platform;
           }
-          // Update outer-most element
+          // Update outer-most element ONLY if candidate is caption-specific
           if (candidate.element.contains?.(widget.element)) {
-            widget.element = candidate.element;
+            if (!isCandidateLow) {
+              widget.element = candidate.element;
+            }
           }
           merged = true;
           break;

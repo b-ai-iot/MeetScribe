@@ -34,54 +34,23 @@ const root=path.resolve(__dirname,'../extension');
   const customDirTest=await page.evaluate(async()=>{
    const s=await import('./store.mjs');
    const dest=await import('./destination.mjs');
-   const writtenFiles=new Map();
-   const mockHandle={
-    kind:'directory',
-    name:'MyCustomMeetingFolder',
-    perm:'granted',
-    async queryPermission(){return this.perm;},
-    async requestPermission(){return this.perm;},
-    async getDirectoryHandle(name,{create=true}={}){
-     if(!writtenFiles.has(name))writtenFiles.set(name,new Map());
-     const sub=writtenFiles.get(name);
-     return {
-      kind:'directory',
-      name,
-      async getDirectoryHandle(){return this;},
-      async getFileHandle(fn,{create=true}={}){
-       return {
-        kind:'file',
-        name:fn,
-        async createWritable(){
-         return {
-          async write(data){sub.set(fn,data);},
-          async close(){},
-          async abort(){}
-         };
-        }
-       };
-      }
-     };
-    },
-    async getFileHandle(fn,{create=true}={}){
-     return {
-      kind:'file',
-      name:fn,
-      async createWritable(){
-       return {
-        async write(data){writtenFiles.set(fn,data);},
-        async close(){},
-        async abort(){}
-       };
-      }
-     };
-    }
-   };
-   await s.saveDirectoryHandle(mockHandle);
-   const retrievedHandle=await s.getDirectoryHandle();
-   const handlePersisted=retrievedHandle?.name==='MyCustomMeetingFolder';
+   const opfs=await navigator.storage.getDirectory();
+   const realFolder=await opfs.getDirectoryHandle('MyCustomMeetingFolder',{create:true});
+   await s.saveDirectoryHandle(realFolder,'custom-dest-1');
+   const retrievedHandle=await s.getDirectoryHandle('custom-dest-1');
+   const handlePersisted=retrievedHandle instanceof FileSystemDirectoryHandle && retrievedHandle.name==='MyCustomMeetingFolder';
 
-   await s.createSession({id:'custom-sess',title:'Custom Meeting',folder:'MeetScribe/custom',tabId:9,status:'recording',count:0,lastSequence:0,createdAt:new Date().toISOString(),destination:'customDirectory'});
+   // Regression: non-serializable object must reject with DataCloneError and preserve prior active destination
+   let cloneErrorName='';
+   try{
+    await s.saveDirectoryHandle({name:'fake-folder',badFunction:()=>{}});
+   }catch(e){
+    cloneErrorName=e.name;
+   }
+   const activeAfterError=await s.getActiveDirectoryHandleId();
+   const activeRetained = activeAfterError === 'custom-dest-1';
+
+   await s.createSession({id:'custom-sess',title:'Custom Meeting',folder:'MeetScribe/custom',tabId:9,status:'recording',count:0,lastSequence:0,createdAt:new Date().toISOString(),destination:'customDirectory',destinationId:'custom-dest-1'});
    await s.appendCaptions('custom-sess',[{sequence:1,timestamp:'2026-10-30T10:00:00Z',text:'Test caption custom'}]);
    const files=await s.pendingFiles('custom-sess');
    const capFile=files.find(f=>f.name.includes('captions/'));
@@ -89,21 +58,28 @@ const root=path.resolve(__dirname,'../extension');
    const pendingAfter=await s.pendingFiles('custom-sess');
    const captionExported=!pendingAfter.some(f=>f.id===capFile.id);
 
-   mockHandle.perm='denied';
+   // Verify exportFileToDirectory checks permission rejection properly
+   const deniedHandle={
+    kind:'directory',
+    name:'denied-dir',
+    async queryPermission(){return 'denied';}
+   };
    let revokedError='';
    try{
     const file2=pendingAfter[0];
-    await dest.exportFileToDirectory(file2,mockHandle);
+    await dest.exportFileToDirectory(file2,deniedHandle);
    }catch(e){revokedError=e.message;}
 
    const pendingFinal=await s.pendingFiles('custom-sess');
-   return {handlePersisted,captionExported,revokedError,stillHasPending:pendingFinal.length>0};
+   return {handlePersisted,cloneErrorName,activeRetained,captionExported,revokedError,stillHasPending:pendingFinal.length>0};
   });
   assert.equal(customDirTest.handlePersisted,true);
+  assert.equal(customDirTest.cloneErrorName,'DataCloneError');
+  assert.equal(customDirTest.activeRetained,true);
   assert.equal(customDirTest.captionExported,true);
   assert.match(customDirTest.revokedError,/chưa được cấp quyền ghi/);
   assert.equal(customDirTest.stillHasPending,true);
-  passed++;console.log('PASS custom directory handle persistence, write adapter, and revoked permission protection');
+  passed++;console.log('PASS custom directory handle persistence, DataCloneError rejection preserving prior destination, and revoked permission protection');
   const opfsTest=await page.evaluate(async()=>{
    const s=await import('./store.mjs');
    const dest=await import('./destination.mjs');
@@ -194,6 +170,29 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   const countStr=execFileSync('python3',['-c',pyCheck,tempZipPath],{encoding:'utf8'}).trim();
   assert.ok(parseInt(countStr,10)>=3);
   passed++;console.log('PASS portable session ZIP: all journal files, transcript/README/manifest, and Python zipfile verification');
+
+  const boundedCheck = await page.evaluate(async () => {
+    const s = await import('./store.mjs');
+    await s.createSession({ id: 'budget-export', title: 'Export Budget', folder: 'MeetScribe/budget-export', tabId: 99, status: 'recording', count: 0, lastSequence: 0, createdAt: new Date().toISOString() });
+    await s.writeFile('budget-export', 'captions/huge.jsonl', 'x'.repeat(2000));
+    await s.finalizeSession('budget-export', { reason: 'done' });
+    let rejected = false;
+    let errMessage = '';
+    try {
+      await s.readSessionFilesBounded('budget-export', 1000);
+    } catch (e) {
+      rejected = true;
+      errMessage = e.message;
+    }
+    const normal = await s.allSessionFiles('budget-export');
+    const withinBudget = await s.readSessionFilesBounded('budget-export', 50000);
+    return { rejected, errMessage, normalCount: normal.length, withinBudgetCount: withinBudget.length };
+  });
+  assert.equal(boundedCheck.rejected, true);
+  assert.match(boundedCheck.errMessage, /Kích thước tệp nén vượt quá giới hạn an toàn/);
+  assert.equal(boundedCheck.normalCount, boundedCheck.withinBudgetCount);
+  passed++; console.log('PASS session-scoped cursor size-limited reader for export halts on budget limit');
+
  await page.close();
  const ui=await browser.newPage({viewport:{width:1440,height:900}});
  await ui.goto(base+'/library.html');
@@ -437,6 +436,30 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  assert.equal(await toolbar.evaluate(el=>el.style.top),'100px');
  passed++;console.log('PASS toolbar proportional font scaling at 12px/18px and reset to default coordinates');
  await scaleCheck.close();
+ // Test old session repair section is visible even when global destination is Downloads
+ const repairTestPage = await browser.newPage({viewport: {width: 1280, height: 800}});
+ await repairTestPage.goto(base + '/settings.html?destinationId=custom-dest-1');
+ await repairTestPage.evaluate(async () => {
+  const s = await import('./store.mjs');
+  const opfs = await navigator.storage.getDirectory();
+  const folder = await opfs.getDirectoryHandle('MyCustomMeetingFolder', {create: true});
+  await s.saveDirectoryHandle(folder, 'custom-dest-1');
+ });
+ await repairTestPage.reload();
+ await repairTestPage.waitForFunction(() => document.getElementById('repairDirName')?.textContent.includes('MyCustomMeetingFolder'));
+
+ assert.equal(await repairTestPage.locator('input[value="downloads"]').isChecked(), true);
+ assert.equal(await repairTestPage.locator('#customDirSection').isVisible(), false);
+ assert.equal(await repairTestPage.locator('#sessionRepairSection').isVisible(), true);
+ assert.match(await repairTestPage.locator('#repairDirName').textContent(), /MyCustomMeetingFolder/);
+
+ await repairTestPage.locator('#reauthorizeSessionDirBtn').evaluate(el => el.hidden = false);
+ await repairTestPage.locator('#reauthorizeSessionDirBtn').click();
+ await repairTestPage.waitForFunction(() => document.getElementById('reauthorizeSessionDirBtn')?.hidden === true);
+ assert.match(await repairTestPage.locator('#repairDirStatus').textContent(), /Đã cấp quyền ghi/);
+ assert.equal(await repairTestPage.locator('input[value="downloads"]').isChecked(), true);
+ await repairTestPage.close();
+
  await settingsPage.close();
 
  // Task 5: Session library UI test (search, date, rename, preview, confirmed deletion, XSS prevention, 375px responsive)
@@ -452,12 +475,18 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
       return { ok: true, sessions: await store.listSessions() };
      }
      if (msg.type === 'rename') {
+      if (window.__mockFailRename) return { ok: false, error: 'Tiêu đề không hợp lệ' };
       const updated = await store.renameSession(msg.sid, msg.title);
       return { ok: true, session: updated };
      }
      if (msg.type === 'delete') {
+      if (window.__mockFailDelete) return { ok: false, error: 'disk failure on delete' };
       await store.deleteSession(msg.sid);
       return { ok: true, deleted: true };
+     }
+     if (msg.type === 'export-zip') {
+      if (window.__mockFailZip) return { ok: false, error: 'disk failure' };
+      return { ok: true, savedTo: msg.saveAs ? 'saveAs' : 'downloads', filename: 'export-test.zip' };
      }
      if (msg.type === 'session-details') {
       const bytes = await store.sessionBackupBytes(msg.sid);
@@ -523,9 +552,10 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  assert.match(await libPage.locator('#sessions').textContent(), /Không tìm thấy/);
  await libPage.locator('#clearSearch').click();
 
+ let promptRenameVal = 'Họp Bảo Mật An Toàn Đã Đổi Tên';
  libPage.on('dialog', async dialog => {
   if (dialog.type() === 'prompt') {
-   await dialog.accept('Họp Bảo Mật An Toàn Đã Đổi Tên');
+   await dialog.accept(promptRenameVal);
   } else if (dialog.type() === 'confirm') {
    await dialog.accept();
   }
@@ -539,6 +569,41 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
 
  await libPage.setViewportSize({width: 375, height: 812});
  await libPage.screenshot({path: path.resolve(__dirname, '../artifacts/library-375px.png')});
+
+  // Regression: mock worker export-zip failure -> visible error text and enabled retry button
+ await libPage.evaluate(() => { window.__mockFailZip = true; });
+ await xssCard.locator('.zip-btn').click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('disk failure'));
+ assert.match(await xssCard.locator('.zip-status').textContent(), /disk failure/);
+ const retryBtn = xssCard.locator('.zip-retry-btn');
+ assert.equal(await retryBtn.isVisible(), true);
+ assert.equal(await retryBtn.isDisabled(), false);
+
+ // Retrying when worker succeeds updates status to success
+ await libPage.evaluate(() => { window.__mockFailZip = false; });
+ await retryBtn.click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
+ assert.match(await xssCard.locator('.zip-status').textContent(), /Đã lưu ZIP thành công/);
+
+ // Save As option button is present and triggers export
+ const saveAsBtn = xssCard.locator('.zip-save-as-btn');
+ assert.equal(await saveAsBtn.count(), 1);
+ await saveAsBtn.click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
+
+ // Regression: rename mutation error is propagated to UI instead of silently swallowed
+ await libPage.evaluate(() => { window.__mockFailRename = true; });
+ promptRenameVal = 'Tên Thử Lỗi Đổi';
+ await xssCard.locator('.rename-btn').click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .card-error')?.textContent.includes('Tiêu đề không hợp lệ') || document.getElementById('message')?.textContent.includes('Tiêu đề không hợp lệ'));
+ await libPage.evaluate(() => { window.__mockFailRename = false; });
+
+ // Regression: delete mutation error is propagated to UI instead of silently swallowed
+ await libPage.evaluate(() => { window.__mockFailDelete = true; });
+ await xssCard.locator('.delete-btn').click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .card-error')?.textContent.includes('disk failure on delete') || document.getElementById('message')?.textContent.includes('disk failure on delete'));
+ assert.equal(await libPage.locator('[data-sid="session-completed-xss"]').count(), 1);
+ await libPage.evaluate(() => { window.__mockFailDelete = false; });
 
  await libPage.locator('[data-sid="session-completed-xss"] .delete-btn').click();
  await libPage.waitForFunction(() => !document.querySelector('[data-sid="session-completed-xss"]'));

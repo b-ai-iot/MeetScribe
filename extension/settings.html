@@ -70,6 +70,20 @@
         </div>
       </section>
 
+      <section id="sessionRepairSection" class="card" hidden>
+        <h2>Cấp lại quyền thư mục cho phiên họp cũ</h2>
+        <p class="desc">Phiên họp này được ghim lưu vào thư mục cục bộ riêng. Bạn có thể cấp lại quyền ghi mà không thay đổi vị trí lưu mặc định của các phiên mới.</p>
+        <div class="dest-details" style="display:flex!important">
+          <div>
+            <div><strong>Thư mục của phiên:</strong> <span id="repairDirName">Đang tải…</span></div>
+            <div class="dest-status" id="repairDirStatus">Đang kiểm tra quyền…</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" id="reauthorizeSessionDirBtn" class="btn-secondary">Cấp lại quyền ghi cho thư mục này</button>
+          </div>
+        </div>
+      </section>
+
       <section class="card">
         <h2>Vị trí lưu trữ dữ liệu</h2>
         <p class="desc">Chọn nơi xuất các tệp caption, ảnh chụp và biên bản cuộc họp.</p>

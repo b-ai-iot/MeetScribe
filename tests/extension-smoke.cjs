@@ -47,6 +47,23 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   await lib.reload();await lib.getByRole('heading',{name:'Enfarm smoke test',exact:true}).waitFor();
   await lib.screenshot({path:artifacts+'/library-desktop.png',fullPage:true});
 
+  // Seed 1MiB deterministic binary and Vietnamese captions before library export
+  const binary1M = Buffer.alloc(1024 * 1024);
+  let st = 0x5a17c9e3;
+  for (let i = 0; i < binary1M.length; i++) {
+    st ^= st << 13; st ^= st >>> 17; st ^= st << 5;
+    binary1M[i] = st & 255;
+  }
+  const viCaption = JSON.stringify({sequence: 2, timestamp: '2026-10-30T10:30:00Z', text: 'Bảo: Thống nhất kế hoạch phiên bản 1.2.0.'}) + '\n';
+  await lib.evaluate(async ({sid, b64, cap}) => {
+    const store = await import('./store.mjs');
+    await store.writeFile(sid, 'images/slide-01.png', 'data:image/png;base64,' + b64, 'image/png', true);
+    await store.writeFile(sid, 'captions/part-000002.jsonl', cap, 'application/octet-stream');
+  }, {sid: complete.s.id, b64: binary1M.toString('base64'), cap: viCaption});
+
+  const expectedBinaryPath = path.join(artifacts, 'expected-1m.bin');
+  await fs.writeFile(expectedBinaryPath, binary1M);
+
   // Trigger production export-zip from library UI
   const zipBtn = lib.locator('.zip-btn').first();
   await zipBtn.click();
@@ -61,16 +78,19 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   const {execFileSync} = require('node:child_process');
   const pyOut = execFileSync('python3', ['-c', `
 import sys, zipfile
-archive = sys.argv[1]
+archive, expected_bin = sys.argv[1:3]
 with zipfile.ZipFile(archive) as z:
     names = z.namelist()
     assert 'transcript.md' in names
     assert 'README-for-AI.md' in names
     assert 'manifest.json' in names
+    assert 'images/slide-01.png' in names
     assert any(n.endswith('.jsonl') for n in names)
     assert z.testzip() is None
-    print('PASS unpacked extension production ZIP export verified by Python zipfile')
-`, zipItem.filename], {encoding: 'utf8'});
+    assert z.read('images/slide-01.png') == open(expected_bin, 'rb').read()
+    assert 'Thống nhất kế hoạch' in z.read('transcript.md').decode('utf-8')
+    print('PASS unpacked extension production ZIP export with 1MiB binary and Vietnamese verified by Python zipfile')
+`, zipItem.filename, expectedBinaryPath], {encoding: 'utf8'});
   console.log(pyOut.trim());
 
   await fs.writeFile(artifacts+'/extension-smoke-result.json',JSON.stringify({session:complete.s,downloads:complete.downloads.map(({filename,state})=>({filename,state})),pageErrors,workerErrors:errors},null,2));

@@ -119,7 +119,13 @@ async function stop(s,reason='user-stop',sourceClosed=false){return commands.run
  try{await off('stop',{sid:s.id,final:true});}catch{}
  s=await store.finalizeSession(s.id,{interrupted:interruption,reason});
  endStates.delete(s.id);
- await publish(s);await exportSession(s.id);return store.getSession(s.id);
+ await publish(s);
+ if(reason==='zip-stop'){
+  try{await exportSession(s.id);}catch(e){}
+ }else{
+  await exportSession(s.id);
+ }
+ return store.getSession(s.id);
  });}
 async function visualStart(s){
  if(s.visual==='ready')return;
@@ -171,8 +177,8 @@ async function receive(msg,sender){
    return {deleted:true,sid:s.id};
   }
   if(msg.type==='session-details'){
-   const bytes=await store.sessionBackupBytes(s.id);
    const files=await store.allSessionFiles(s.id);
+   const bytes=await store.sessionBackupBytes(s.id,files);
    const images=files.filter(f=>f.isDataURL&&typeof f.data==='string'&&f.data.startsWith('data:image/')).slice(0,6);
    return {session:s,backupBytes:bytes,images:images.map(img=>({name:img.name.split('/').pop(),data:img.data})),captionTail:s.captionTail||null};
   }
@@ -182,8 +188,9 @@ async function receive(msg,sender){
     if(msg.stopFirst){targetSession=await stop(targetSession,'zip-stop');}
     else throw Error('Phiên đang ghi. Hãy dừng phiên trước khi xuất ZIP.');
    }
-   const files=await store.allSessionFiles(targetSession.id);
-   const zipBytes=await buildSessionArchive(targetSession,files);
+   const maxBytes=500*1024*1024;
+   const files=await store.readSessionFilesBounded(targetSession.id,maxBytes);
+   const zipBytes=await buildSessionArchive(targetSession,files,{maxBytes});
    const safeTitle=(targetSession.title||'Cuoc-hop').replace(/[\\/:*?"<>|]/g,'-').slice(0,50);
    const zipName=`MeetScribe-${targetSession.createdAt.slice(0,10)}-${safeTitle}-${targetSession.id.slice(0,8)}.zip`;
    if(msg.destination==='customDirectory'||(msg.destination!=='downloads'&&targetSession.destination==='customDirectory')){

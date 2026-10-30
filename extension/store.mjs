@@ -63,11 +63,53 @@ export async function allSessionFiles(id){
  const db=await database();
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('files','readonly');
-  const req=tx.objectStore('files').getAll();
-  req.onsuccess=()=>resolve(req.result.filter(f=>f.sid===id));
+  const store=tx.objectStore('files');
+  const range=IDBKeyRange.bound(id+'/',id+'/￿');
+  const req=store.getAll(range);
+  req.onsuccess=()=>resolve(req.result||[]);
   req.onerror=()=>reject(req.error);
  });
 }
+export async function readSessionFilesBounded(id, maxBytes = 500 * 1024 * 1024){
+ const db=await database();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('files','readonly');
+  const store=tx.objectStore('files');
+  const range=IDBKeyRange.bound(id+'/',id+'/￿');
+  const req=store.openCursor(range);
+  const files=[];
+  let totalBytes=0;
+  req.onsuccess=(e)=>{
+   const cursor=e.target.result;
+   if(!cursor){
+    resolve(files);
+    return;
+   }
+   const f=cursor.value;
+   let fileBytes=0;
+   if(typeof f.data==='string'){
+    if(f.isDataURL&&f.data.startsWith('data:')){
+     const comma=f.data.indexOf(',');
+     const b64=comma===-1?'':f.data.slice(comma+1);
+     fileBytes=Math.floor(b64.length*0.75);
+    } else {
+     fileBytes=new TextEncoder().encode(f.data).length;
+    }
+   } else if(f.data?.byteLength!==undefined){
+    fileBytes=f.data.byteLength;
+   }
+   if(totalBytes+fileBytes>maxBytes){
+    reject(new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round((totalBytes+fileBytes)/(1024*1024))}MB > ${Math.round(maxBytes/(1024*1024))}MB).`));
+    return;
+   }
+   totalBytes+=fileBytes;
+   files.push(f);
+   cursor.continue();
+  };
+  req.onerror=()=>reject(req.error);
+ });
+}
+export const sessionFilesForExport = readSessionFilesBounded;
 export function markExported(file,download){return mutate(file.sid,(tx,s)=>{
  const req=tx.objectStore('files').get(file.id);req.onsuccess=()=>{
   const current=req.result;if(!current||current.state!==0)return;
@@ -114,18 +156,12 @@ export async function deleteSession(id){
   tx.onerror=()=>reject(tx.error);
   tx.onabort=()=>reject(tx.error);
   tx.objectStore('sessions').delete(id);
-  const filesStore=tx.objectStore('files');
-  const req=filesStore.getAll();
-  req.onsuccess=()=>{
-   for(const f of req.result){
-    if(f.sid===id)filesStore.delete(f.id);
-   }
-  };
+  tx.objectStore('files').delete(IDBKeyRange.bound(id+'/',id+'/￿'));
  });
 }
 
-export async function sessionBackupBytes(id){
- const files=await allSessionFiles(id);
+export async function sessionBackupBytes(id, existingFiles=null){
+ const files=existingFiles || await allSessionFiles(id);
  let bytes=0;
  for(const f of files){
   if(!f.data)continue;
@@ -144,7 +180,6 @@ export async function sessionBackupBytes(id){
  return bytes;
 }
 
-const mockHandlesMap=new Map();
 export async function saveDirectoryHandle(handle,id=crypto.randomUUID()){
  const db=await database();
  const item={id,handle,name:handle?.name||'Thư mục',updatedAt:new Date().toISOString()};
@@ -152,16 +187,13 @@ export async function saveDirectoryHandle(handle,id=crypto.randomUUID()){
   const tx=db.transaction('destination_handles','readwrite');
   tx.oncomplete=()=>resolve(item);
   tx.onerror=()=>reject(tx.error);
+  tx.onabort=()=>reject(tx.error||new Error('Transaction aborted'));
   try{
    tx.objectStore('destination_handles').put(item);
    tx.objectStore('destination_handles').put({id:'active',activeId:id});
   }catch(e){
-   if(e.name==='DataCloneError'){
-    mockHandlesMap.set(id,handle);
-    mockHandlesMap.set('active',handle);
-    tx.objectStore('destination_handles').put({id,name:handle?.name||'Thư mục',updatedAt:new Date().toISOString(),isMock:true});
-    tx.objectStore('destination_handles').put({id:'active',activeId:id});
-   }else throw e;
+   try{tx.abort();}catch{}
+   reject(e);
   }
  });
 }
@@ -186,7 +218,6 @@ export async function getDirectoryHandle(id){
   req.onsuccess=()=>{
    const res=req.result;
    if(!res)resolve(null);
-   else if(res.isMock&&mockHandlesMap.has(targetId))resolve(mockHandlesMap.get(targetId));
    else resolve(res.handle||null);
   };
   req.onerror=()=>reject(req.error);
@@ -196,7 +227,6 @@ export async function clearDirectoryHandle(id){
  const db=await database();
  if(!db.objectStoreNames.contains('destination_handles'))return;
  const targetId=id||await getActiveDirectoryHandleId();
- if(targetId)mockHandlesMap.delete(targetId);
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('destination_handles','readwrite');
   tx.oncomplete=()=>resolve();
