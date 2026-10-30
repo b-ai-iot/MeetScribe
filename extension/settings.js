@@ -52,10 +52,11 @@ async function init() {
     try {
       const destMod = await import('./destination.mjs').catch(() => null);
       if (destMod && typeof destMod.getStoredDirectoryInfo === 'function') {
-        const info = await destMod.getStoredDirectoryInfo();
+        const queryDestId = new URLSearchParams(window.location.search).get('destinationId');
+        const info = await destMod.getStoredDirectoryInfo(queryDestId || undefined);
         if (info?.name) {
           preloadedHandle = info.handle;
-          $('customDirName').textContent = info.name;
+          $('customDirName').textContent = info.name + (queryDestId ? ' (Phiên đã chọn)' : '');
           $('customDirStatus').textContent = info.hasPermission ? 'Đã cấp quyền ghi' : 'Cần cấp lại quyền truy cập';
           $('customDirStatus').className = `dest-status ${info.hasPermission ? 'granted' : 'revoked'}`;
           if ($('reauthorizeDirBtn')) $('reauthorizeDirBtn').hidden = Boolean(info.hasPermission);

@@ -56,6 +56,10 @@ async function deflateBytes(bytes) {
 }
 
 export async function createZipArchive(entries) {
+  if (entries.length > 65535) {
+    throw new Error(`Số lượng tệp trong ZIP vượt quá giới hạn 65535 tệp (${entries.length}).`);
+  }
+
   const fileRecords = [];
   const encoder = new TextEncoder();
   const { dosDate, dosTime } = dosDateTime();
@@ -65,9 +69,17 @@ export async function createZipArchive(entries) {
 
   for (const entry of entries) {
     const nameBytes = encoder.encode(entry.path);
+    if (nameBytes.length > 65535) {
+      throw new Error(`Tên tệp vượt quá giới hạn 65535 byte: ${entry.path.slice(0, 50)}...`);
+    }
+
     const uncompressedData = entry.data instanceof Uint8Array ? entry.data : encoder.encode(String(entry.data));
     const crc = crc32(uncompressedData);
     const uncompressedSize = uncompressedData.length;
+
+    if (uncompressedSize > 0xFFFFFFFF) {
+      throw new Error(`Kích thước tệp vượt quá giới hạn 4GB của chuẩn ZIP32: ${entry.path}`);
+    }
 
     let method = 0; // Store
     let compressedData = uncompressedData;
@@ -113,6 +125,9 @@ export async function createZipArchive(entries) {
     });
 
     offset += localHeader.length + compressedData.length;
+    if (offset > 0xFFFFFFFF) {
+      throw new Error('Kích thước tệp lưu trữ vượt quá giới hạn 4GB của chuẩn ZIP32.');
+    }
   }
 
   const centralDirOffset = offset;
@@ -131,7 +146,7 @@ export async function createZipArchive(entries) {
     cv.setUint16(14, rec.dosDate, true);
     cv.setUint32(16, rec.crc, true);
     cv.setUint32(20, rec.compressedSize, true);
-    cv.setUint32(24, rec.uncompressedSize, true);
+    cv.setUint24 ? cv.setUint32(24, rec.uncompressedSize, true) : cv.setUint32(24, rec.uncompressedSize, true);
     cv.setUint16(28, rec.nameBytes.length, true);
     cv.setUint16(30, 0, true); // Extra field length
     cv.setUint16(32, 0, true); // File comment length
@@ -143,6 +158,10 @@ export async function createZipArchive(entries) {
 
     parts.push(cdHeader);
     centralDirSize += cdHeader.length;
+  }
+
+  if (centralDirOffset + centralDirSize > 0xFFFFFFFF) {
+    throw new Error('Kích thước bảng mục lục ZIP vượt quá giới hạn 4GB của chuẩn ZIP32.');
   }
 
   // End of central directory record (22 bytes)
@@ -224,21 +243,24 @@ Bao gồm: phụ đề (captions/jsonl), ảnh trình chiếu (images/png), mố
 
 ## Cảnh báo quan trọng khi xử lý bằng AI
 1. **Phụ đề theo mốc thời gian (Snapshots):** Phụ đề được ghi nhận định kỳ từ công cụ nhận diện giọng nói trực tiếp của Google Meet / Zoom. Do tính chất live, có thể xuất hiện từ nhận diện sai hoặc đoạn lặp lại giữa các lần cập nhật liên tiếp.
-2. **Khung hình chia sẻ:** Các tệp trong thư mục \`images/\` là ảnh chụp khi nội dung chia sẻ có sự thay đổi đáng kể, tương ứng với mốc thời gian trong tệp \`.json\` cùng tên.
-3. **Bảo mật và riêng tư:** Dữ liệu này được lưu cục bộ trên máy người dùng, không qua máy chủ trung gian. Khi gửi vào AI, vui lòng tuân thủ quy định bảo mật thông tin nội bộ của bạn.
+2. **Không suy diễn hoặc bịa đặt (No Hallucination):** Tuyệt đối không tự suy diễn, phỏng đoán hoặc bịa đặt các quyết định, người phụ trách, thời hạn (deadlines) nếu không được đề cập rõ trong transcript hoặc ảnh trình chiếu.
+3. **Xử lý phiên gián đoạn (Interrupted Coverage):** Nếu phiên họp có trạng thái gián đoạn (interrupted) hoặc mốc sequence bị ngắt quãng, phải nêu rõ các khoảng thiếu thông tin thay vì tự điền giả định.
+4. **Đối chiếu mốc thời gian hình ảnh:** Các tệp trong thư mục \`images/\` là ảnh chụp khi nội dung chia sẻ có sự thay đổi đáng kể; hãy đối chiếu mốc thời gian trong tệp \`.png.json\` tương ứng với ngữ cảnh phụ đề tại thời điểm đó.
+5. **Bảo mật và riêng tư:** Dữ liệu này được lưu cục bộ trên máy người dùng, không qua máy chủ trung gian. Khi gửi vào AI, vui lòng tuân thủ quy định bảo mật thông tin nội bộ của bạn.
 
 ## Gợi ý câu lệnh mẫu (Prompt for LLM)
 
 \`\`\`markdown
-Bạn là thư ký cuộc họp chuyên nghiệp. Hãy đọc tệp \`transcript.md\` và các metadata trong gói tài liệu này để lập biên bản cuộc họp:
+Bạn là thư ký cuộc họp chuyên nghiệp và trung thực. Hãy đọc tệp \`transcript.md\`, \`session-final.json\` và các ảnh/sự kiện trong gói tài liệu này để lập biên bản cuộc họp:
 
 1. **Tổng quan:** Tóm tắt ngắn gọn mục tiêu cuộc họp và các chủ đề thảo luận chính.
 2. **Nội dung chi tiết theo từng chủ đề:** Tổng hợp các quan điểm, thảo luận và kết luận tương ứng.
-3. **Quyết định đã thống nhất (Decisions):** Danh sách các điểm đã được chốt.
+3. **Quyết định đã thống nhất (Decisions):** Chỉ liệt kê các điểm đã được xác nhận trong cuộc họp.
 4. **Bảng phân công hành động (Action Items):**
    | STT | Nhiệm vụ | Người phụ trách | Thời hạn | Ghi chú |
    |-----|----------|-----------------|----------|---------|
-5. **Vấn đề tồn đọng / Buổi họp tiếp theo:** Những nội dung chưa giải quyết xong.
+   *(Nếu không rõ người phụ trách hoặc thời hạn, ghi rõ "Chưa xác định", tuyệt đối không tự đặt tên)*
+5. **Vấn đề tồn đọng hoặc cần thảo luận tiếp:** Các câu hỏi chưa được giải đáp hoặc các khoảng trống thông tin nếu có gián đoạn.
 \`\`\`
 `;
 }
@@ -265,16 +287,53 @@ export async function buildSessionArchive(session, files, { maxBytes = 500 * 102
     throw new Error('Không thể tạo file ZIP khi phiên họp đang diễn ra. Hãy dừng phiên trước khi xuất ZIP.');
   }
 
-  const archiveEntries = [];
-  const encoder = new TextEncoder();
-
-  // Validate path safety and compute total uncompressed bytes
-  let totalBytes = 0;
+  // Pre-estimate uncompressed bytes incrementally before loading/decoding data
+  let estimatedTotal = 0;
   for (const f of files) {
-    const rawPath = f.name;
-    if (!rawPath || rawPath.startsWith('/') || rawPath.startsWith('\\') || rawPath.includes('..') || /[\x00-\x1f]/.test(rawPath)) {
-      throw new Error(`Đường dẫn tệp không an toàn trong gói lưu trữ: ${rawPath}`);
+    if (f.bytes && typeof f.bytes === 'number') {
+      estimatedTotal += f.bytes;
+    } else if (typeof f.data === 'string') {
+      estimatedTotal += f.isDataURL ? Math.ceil(f.data.length * 0.75) : f.data.length * 2;
+    } else if (f.data instanceof Uint8Array) {
+      estimatedTotal += f.data.length;
     }
+    if (estimatedTotal > maxBytes) {
+      throw new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round(estimatedTotal / (1024 * 1024))}MB > ${Math.round(maxBytes / (1024 * 1024))}MB).`);
+    }
+  }
+
+  const archiveEntries = [];
+  const seenPaths = new Set();
+  const encoder = new TextEncoder();
+  let totalBytes = 0;
+
+  for (const f of files) {
+    let cleanPath = f.name;
+
+    // Strip exact session.folder prefix if present
+    if (session?.folder) {
+      if (cleanPath.startsWith(session.folder + '/')) {
+        cleanPath = cleanPath.slice(session.folder.length + 1);
+      } else if (cleanPath.startsWith(session.folder)) {
+        cleanPath = cleanPath.slice(session.folder.length).replace(/^\/+/, '');
+      }
+    }
+    cleanPath = cleanPath.replace(/^\/+/, '');
+
+    // Validate path safety on the relative cleanPath segments
+    if (!cleanPath || cleanPath.startsWith('/') || cleanPath.startsWith('\\') || /[\x00-\x1f]/.test(cleanPath)) {
+      throw new Error(`Đường dẫn tệp không an toàn trong gói lưu trữ: ${cleanPath}`);
+    }
+
+    const segments = cleanPath.split(/[\\/]/);
+    for (const seg of segments) {
+      if (seg === '.' || seg === '..') {
+        throw new Error(`Đường dẫn tệp không an toàn trong gói lưu trữ: ${cleanPath}`);
+      }
+    }
+
+    if (seenPaths.has(cleanPath)) continue;
+    seenPaths.add(cleanPath);
 
     let bytesData;
     if (f.isDataURL && typeof f.data === 'string') {
@@ -285,13 +344,11 @@ export async function buildSessionArchive(session, files, { maxBytes = 500 * 102
       bytesData = encoder.encode(String(f.data));
     }
 
-    const fileBytes = Math.max(Number(f.bytes) || 0, bytesData.length);
-    totalBytes += fileBytes;
+    totalBytes += bytesData.length;
     if (totalBytes > maxBytes) {
       throw new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round(totalBytes / (1024 * 1024))}MB > ${Math.round(maxBytes / (1024 * 1024))}MB).`);
     }
-    // Strip session folder prefix if present so archive paths are clean and relative to root
-    const cleanPath = rawPath.replace(/^[^\/]+\/[^\/]+\/[^\/]+\//, '').replace(/^\/+/, '') || rawPath;
+
     archiveEntries.push({
       path: cleanPath,
       data: bytesData

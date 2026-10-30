@@ -106,7 +106,9 @@
   const healthWarning=running&&!visible(caption)?'Mất vùng caption. Chọn lại khung phụ đề để tiếp tục.':running&&session?.visual==='ready'&&!rectangle()?'Mất vùng share. Chọn lại vùng share; caption vẫn tiếp tục.':'';
   $('message').textContent=(noticeKind==='error'&&notice?notice:healthWarning||notice)|| (running?(session?.visual==='unavailable'?'Caption đang lưu · chưa lấy được ảnh share.':session?.visual==='ready'&&!rectangle()?'Mất vùng share. Chọn lại vùng share; caption vẫn tiếp tục.':session?.visual==='ready'?'Tự lưu caption và chọn ảnh từ vùng share đã xác nhận.':'Caption tự lưu. Chọn vùng share khi có trình chiếu.'):'Bật phụ đề cuộc họp, kiểm tra vùng caption rồi bắt đầu.');
   $('metrics').textContent=`${session?.count||0} caption · ${session?.images||0} ảnh`;
-  $('storage').textContent=session?.exportError?'Lỗi xuất file · bản dự phòng còn nguyên':session?.pendingExports?`${session.pendingExports} file đang chờ xuất · đã dự phòng`:session?.count?'Đã xuất ra thư mục tải xuống':'Lưu tự động trong thư mục tải xuống';
+  const isCustomDest=session?.destination==='customDirectory';
+  const customTarget=session?.destinationName||'thư mục đã chọn';
+  $('storage').textContent=session?.exportError?'Lỗi xuất file · bản dự phòng còn nguyên':session?.pendingExports?`${session.pendingExports} file đang chờ xuất · đã dự phòng`:session?.count?(isCustomDest?`Đã xuất ra thư mục cục bộ (${customTarget})`:'Đã xuất ra thư mục tải xuống'):(isCustomDest?`Lưu tự động vào ${customTarget}`:'Lưu tự động trong thư mục tải xuống');
   $('path').textContent=session?.folder||'MeetScribe / ngày / tên cuộc họp';
   $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'')||'Cuộc họp của bạn';
   $('share').setAttribute('aria-pressed',String(!!rectangle()));$('clearShare').hidden=!share;

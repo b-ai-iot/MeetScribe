@@ -22,3 +22,8 @@ Also remove implementation jargon 'File System Access API' from settings product
 - Standard ZIP16 entry count/UTF-8 name length and ZIP32 size/offset bounds must throw explanatory errors before wrapping header integers. Add limits tests at function boundary.
 - Enforce maxBytes incrementally BEFORE further data decoding/accumulation; estimate serialized/base64 byte totals before loading whole archive when possible. Current check after accumulating all decoded files does not bound memory.
 - README-for-AI should tell AI not to invent decisions/owners/dates, explicitly flag interrupted/missing coverage, and refer to raw snapshots+image timestamps.
+
+## Task 3 critical integration issue
+- background export-zip uses `btoa(String.fromCharCode(...zipBytes))`; actual Chrome worker has no Buffer and spreading >~100KB array throws RangeError. Any ZIP with slide images likely fails. Use bounded chunks or a Blob/object URL from extension/offscreen document; add real unpacked worker test exporting >=1MiB binary archive and extract downloaded zip with Python.
+- Do not report archive success when downloads.download only returns an id; await complete/interrupted with timeout and show error/retry. Do not silently fallback to Downloads if requested custom directory handle is missing/denied.
+- Current browser-test ZIP has malformed flat names (`part-000001.jsonl`) and duplicated nested finished files due regex prefix stripping. Assert exact expected relative file paths in tests including short legacy session.folder.

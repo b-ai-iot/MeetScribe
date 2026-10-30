@@ -11,13 +11,18 @@ async function render(){
    const status={recording:'Đang thu',stopping:'Đang đóng',completed:'Đã dừng',interrupted:'Gián đoạn'}[s.status]||s.status;
    meta.append(el('span',status,'state'),document.createTextNode(`${new Date(s.createdAt).toLocaleString('vi-VN')} · ${s.count||0} caption · ${s.images||0} ảnh`));
    info.append(title,meta,el('p',s.folder,'path'));
+   if(s.destination==='customDirectory')info.append(el('p',`Lưu cục bộ: ${s.destinationName||'thư mục đã chọn'}`,'meta'));
    if(s.pendingExports)info.append(el('p',`${s.pendingExports} file chờ xuất · dữ liệu đã ở bản dự phòng`,'meta warning'));
    else info.append(el('p','Đã xác nhận xuất các file hiện có.','meta'));
-   if(s.exportError)info.append(el('p','Lỗi tải: '+s.exportError,'meta warning'));
+   if(s.exportError)info.append(el('p','Lỗi lưu: '+s.exportError,'meta warning'));
    if(s.status==='interrupted')info.append(el('p','Phiên có khoảng gián đoạn. Kiểm tra phạm vi caption trước khi lập biên bản.','meta warning'));
    const actions=el('div',undefined,'actions');
    if(s.pendingExports)actions.append(button('Thử xuất lại',async()=>{await command('retry',{sid:s.id});await render();},'retry'));
-   actions.append(button('Mở thư mục',()=>command('show-folder',{sid:s.id})));
+   if(s.destination==='customDirectory'&&s.destinationId&&(s.exportError||s.pendingExports)){
+    actions.append(button('Cấp lại quyền thư mục',()=>window.open('settings.html?destinationId='+encodeURIComponent(s.destinationId))));
+   }
+   if(typeof s.lastDownloadId==='number')actions.append(button('Mở thư mục',()=>command('show-folder',{sid:s.id})));
+   else if(s.destination==='customDirectory')actions.append(button('Vị trí: '+(s.destinationName||'Cục bộ'),()=>alert('Dữ liệu lưu trong thư mục: '+(s.destinationName||'cục bộ')+' / '+s.folder)));
    if(['recording','stopping'].includes(s.status)){
     actions.append(button('Dừng và lưu',async()=>{await command('stop',{sid:s.id});await render();}));
     actions.append(button('Dừng & Tải ZIP',async()=>{await command('export-zip',{sid:s.id,stopFirst:true});await render();}));

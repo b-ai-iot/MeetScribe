@@ -71,6 +71,9 @@ async function start(tab){return commands.run(tab.id,'start',async()=>{
  const currentSettings=await getSettings();
  const isCustom=currentSettings.destination==='customDirectory';
  const activeDestId=isCustom?await store.getActiveDirectoryHandleId():null;
+ if(isCustom&&!activeDestId){
+  throw Error('Chưa chọn thư mục lưu cục bộ. Hãy mở Cài đặt để chọn thư mục trước khi bắt đầu.');
+ }
  const dirInfo=isCustom?await getStoredDirectoryInfo(activeDestId):null;
  const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected',destination:isCustom?'customDirectory':'downloads',destinationId:activeDestId,destinationName:isCustom?(dirInfo?.name||'Thư mục cục bộ'):'Downloads'});
  try{const answer=await sendSessionMessage(chrome,s,'begin',{session:await publicState(s)});if(!answer?.ok)throw Error(answer?.error||'Không thể khởi động bộ thu.');}

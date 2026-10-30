@@ -167,14 +167,35 @@ with zipfile.ZipFile(zip_path, 'r') as zf:
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
-test('archive: rejects unsafe path traversal', async () => {
+test('archive: valid meeting title with dots exports without error', async () => {
+  const session = createSampleSession('completed');
+  session.title = 'Sprint... review & roadmap';
+  session.folder = 'MeetScribe/2026-10-30/Sprint... review--1234';
+
+  const files = [
+    {
+      id: `${session.id}/session.json`,
+      sid: session.id,
+      name: `${session.folder}/session.json`,
+      data: '{"title":"Sprint... review & roadmap"}',
+      mime: 'application/json',
+      isDataURL: false,
+      state: 1
+    }
+  ];
+
+  const zipBytes = await buildSessionArchive(session, files);
+  assert.ok(zipBytes instanceof Uint8Array);
+});
+
+test('archive: rejects path traversal segments like dot-dot after prefix stripping', async () => {
   const session = createSampleSession('completed');
   const files = [
     {
       id: 'bad',
       sid: session.id,
-      name: '../../etc/passwd',
-      data: 'root:x:0:0',
+      name: `${session.folder}/captions/../../secret.txt`,
+      data: 'secret',
       mime: 'text/plain',
       isDataURL: false,
       state: 0
@@ -185,6 +206,32 @@ test('archive: rejects unsafe path traversal', async () => {
     async () => buildSessionArchive(session, files),
     /Đường dẫn tệp không an toàn/
   );
+});
+
+test('archive: enforces entry count and name length integer bounds', async () => {
+  const session = createSampleSession('completed');
+  const longName = 'a'.repeat(65536);
+  const fileWithLongName = {
+    id: 'long',
+    sid: session.id,
+    name: longName,
+    data: 'ok',
+    mime: 'text/plain',
+    isDataURL: false,
+    state: 0
+  };
+
+  await assert.rejects(
+    async () => buildSessionArchive(session, [fileWithLongName]),
+    /Tên tệp vượt quá giới hạn 65535 byte/
+  );
+});
+
+test('archive: README-for-AI cautions against hallucinating and flags missing coverage', () => {
+  const session = createSampleSession('completed');
+  const readme = generateAiReadme(session);
+  assert.ok(readme.includes('Không suy diễn') || readme.includes('Không tự tiện'));
+  assert.ok(readme.includes('gián đoạn') || readme.includes('khoảng thiếu thông tin'));
 });
 
 test('archive: bounded size check rejects oversize archives', async () => {

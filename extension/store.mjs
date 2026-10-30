@@ -127,7 +127,7 @@ export async function getActiveDirectoryHandleId(){
 export async function getDirectoryHandle(id){
  const db=await database();
  if(!db.objectStoreNames.contains('destination_handles'))return null;
- const targetId=id||await getActiveDirectoryHandleId();
+ const targetId = id === undefined ? await getActiveDirectoryHandleId() : id;
  if(!targetId)return null;
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('destination_handles','readonly');
