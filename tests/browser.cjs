@@ -31,6 +31,79 @@ const root=path.resolve(__dirname,'../extension');
   return {error,stillPending,exported:!(await s.pendingFiles('test')).some(x=>x.id===file.id)};
  });
  assert.match(downloads.error,/FILE_FAILED/);assert.equal(downloads.stillPending,true);assert.equal(downloads.exported,true);passed++;console.log('PASS interrupted export retained then retry confirmed complete');
+  const customDirTest=await page.evaluate(async()=>{
+   const s=await import('./store.mjs');
+   const dest=await import('./destination.mjs');
+   const writtenFiles=new Map();
+   const mockHandle={
+    kind:'directory',
+    name:'MyCustomMeetingFolder',
+    perm:'granted',
+    async queryPermission(){return this.perm;},
+    async requestPermission(){return this.perm;},
+    async getDirectoryHandle(name,{create=true}={}){
+     if(!writtenFiles.has(name))writtenFiles.set(name,new Map());
+     const sub=writtenFiles.get(name);
+     return {
+      kind:'directory',
+      name,
+      async getDirectoryHandle(){return this;},
+      async getFileHandle(fn,{create=true}={}){
+       return {
+        kind:'file',
+        name:fn,
+        async createWritable(){
+         return {
+          async write(data){sub.set(fn,data);},
+          async close(){},
+          async abort(){}
+         };
+        }
+       };
+      }
+     };
+    },
+    async getFileHandle(fn,{create=true}={}){
+     return {
+      kind:'file',
+      name:fn,
+      async createWritable(){
+       return {
+        async write(data){writtenFiles.set(fn,data);},
+        async close(){},
+        async abort(){}
+       };
+      }
+     };
+    }
+   };
+   await s.saveDirectoryHandle(mockHandle);
+   const retrievedHandle=await s.getDirectoryHandle();
+   const handlePersisted=retrievedHandle?.name==='MyCustomMeetingFolder';
+
+   await s.createSession({id:'custom-sess',title:'Custom Meeting',folder:'MeetScribe/custom',tabId:9,status:'recording',count:0,lastSequence:0,createdAt:new Date().toISOString(),destination:'customDirectory'});
+   await s.appendCaptions('custom-sess',[{sequence:1,timestamp:'2026-10-30T10:00:00Z',text:'Test caption custom'}]);
+   const files=await s.pendingFiles('custom-sess');
+   const capFile=files.find(f=>f.name.includes('captions/'));
+   await dest.exportFileToDirectory(capFile,retrievedHandle);
+   const pendingAfter=await s.pendingFiles('custom-sess');
+   const captionExported=!pendingAfter.some(f=>f.id===capFile.id);
+
+   mockHandle.perm='denied';
+   let revokedError='';
+   try{
+    const file2=pendingAfter[0];
+    await dest.exportFileToDirectory(file2,mockHandle);
+   }catch(e){revokedError=e.message;}
+
+   const pendingFinal=await s.pendingFiles('custom-sess');
+   return {handlePersisted,captionExported,revokedError,stillHasPending:pendingFinal.length>0};
+  });
+  assert.equal(customDirTest.handlePersisted,true);
+  assert.equal(customDirTest.captionExported,true);
+  assert.match(customDirTest.revokedError,/chưa được cấp quyền ghi/);
+  assert.equal(customDirTest.stillHasPending,true);
+  passed++;console.log('PASS custom directory handle persistence, write adapter, and revoked permission protection');
  const budgets=await page.evaluate(async()=>{
   const s=await import('./store.mjs');await s.createSession({id:'budget',title:'Images',folder:'MeetScribe/budget',tabId:2,status:'recording',count:0,lastSequence:0,createdAt:new Date().toISOString()});
   let rejected=false;for(let i=0;i<31;i++){try{await s.saveImage('budget',{name:`screen-${i}.png`,data:'data:image/png;base64,AAAA',bytes:3,event:{capturedAt:new Date().toISOString()}});}catch{rejected=true;}}

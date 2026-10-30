@@ -1,6 +1,8 @@
 import {VERSION,isSupportedMeeting,meetingPlatform,sessionFolder,validEntries} from './model.mjs';
 import * as store from './store.mjs';
 import {exportFile} from './downloads.mjs';
+import {getSettings} from './settings.mjs';
+import {exportFileToDirectory,getStoredDirectoryInfo} from './destination.mjs';
 import {ended} from './visual.mjs';
 import {mapMeetingRect,sendSessionMessage} from './frames.mjs';
 import {installToolbar} from './install.mjs';
@@ -39,11 +41,23 @@ export async function exportSession(id){
  if(exportLocks.has(id))return exportLocks.get(id);
  const job=(async()=>{
   try{
+   const currentSession=await store.getSession(id);
+   const isCustom=currentSession?.destination==='customDirectory';
+   let dirHandle=null;
+   if(isCustom){
+    dirHandle=await store.getDirectoryHandle();
+    if(!dirHandle){
+     throw Error('Chưa chọn thư mục lưu cục bộ. Mở Cài đặt để chọn thư mục.');
+    }
+   }
    while(true){
    const files=await store.pendingFiles(id);if(!files.length)break;
    // Completion marker is exported after all caption/image/event files.
    files.sort((a,b)=>(a.id===id+'/finished.json'?1:0)-(b.id===id+'/finished.json'?1:0));
-   for(const file of files)await exportFile(file,chrome.downloads);
+   for(const file of files){
+    if(isCustom)await exportFileToDirectory(file,dirHandle);
+    else await exportFile(file,chrome.downloads);
+   }
    }
    const s=await store.getSession(id);await publish(s);return s;
   }catch(e){const s=await store.patchSession(id,{exportError:e.message});await publish(s);throw e;}
@@ -54,7 +68,10 @@ async function start(tab){return commands.run(tab.id,'start',async()=>{
  const current=await active(tab.id);if(current)return current;
  const check=await content(tab.id,'inspect');if(!check?.captionAvailable)throw Error('Bật phụ đề trong cuộc họp rồi chọn vùng caption trước.');
  const id=crypto.randomUUID(),title=(tab.title||'Cuộc họp').replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'').trim();
- const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected'});
+ const currentSettings=await getSettings();
+ const isCustom=currentSettings.destination==='customDirectory';
+ const dirInfo=isCustom?await getStoredDirectoryInfo():null;
+ const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected',destination:isCustom?'customDirectory':'downloads',destinationName:isCustom?(dirInfo?.name||'Thư mục cục bộ'):'Downloads'});
  try{const answer=await sendSessionMessage(chrome,s,'begin',{session:await publicState(s)});if(!answer?.ok)throw Error(answer?.error||'Không thể khởi động bộ thu.');}
  catch(e){await store.patchSession(id,{status:'interrupted',error:e.message});throw e;}
  await event(id,'started');scheduleExport(id);return s;

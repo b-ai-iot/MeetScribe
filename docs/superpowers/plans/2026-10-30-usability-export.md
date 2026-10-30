@@ -29,9 +29,9 @@ Follow the spec's Vietnamese/local-only UI, no host permission expansion, journa
 **Supervisor gate:** Read `docs/superpowers/supervisor-review.md` and fix the verified Task 1 issues with regressions before implementing this task. Codex is reviewing incrementally; read this file at each subsequent task too.
 **Files:** create extension/destination.mjs; modify store.mjs, settings.js, downloads.mjs, background.js, model.mjs and tests/browser.cjs; add destination tests.
 **Interfaces:** consume Task 1 settings; expose export-to-destination abstraction for journal file with per-session destination identity; preserve legacy downloads export.
-- [ ] Add failing tests for cancel, grant/revoke, custom-directory write, retry and persisted handle/session destination pinning.
-- [ ] Implement IndexedDB handle persistence/schema upgrade; picker from explicit settings click, grant feedback and writer adapter. Prevent next-session changes affecting old sessions.
-- [ ] Verify actual custom file writes and handle reload in isolated Chrome; run suite, commit and ledger exact limits.
+- [x] Add failing tests for cancel, grant/revoke, custom-directory write, retry and persisted handle/session destination pinning.
+- [x] Implement IndexedDB handle persistence/schema upgrade; picker from explicit settings click, grant feedback and writer adapter. Prevent next-session changes affecting old sessions.
+- [x] Verify actual custom file writes and handle reload in isolated Chrome; run suite, commit and ledger exact limits.
 
 ### Task 3: ZIP for AI
 **Files:** create extension/archive.mjs and tests/archive.test.mjs; modify store.mjs, background.js, library.js/library.html/library.css; add browser/extension coverage.
