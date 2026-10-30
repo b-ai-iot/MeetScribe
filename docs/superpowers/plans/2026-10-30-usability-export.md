@@ -20,11 +20,13 @@ Follow the spec's Vietnamese/local-only UI, no host permission expansion, journa
 ### Task 1: Persistent settings and usable toolbar
 **Files:** create extension/settings.mjs, extension/settings.html, extension/settings.js, extension/settings.css; modify extension/content.js, overlay.css, background.js, manifest.json, library.html; add tests/settings.test.mjs and browser checks.
 **Interfaces:** settings module supplies defaults, validated opacity/fontSize/toolbarPosition/collapsed/destination and get/save/reset operations used by toolbar and later destination tasks; choose exact signatures and document in ledger before coding.
-- [ ] Write behavioral tests for bounds, reset, persistence and canceled state changes, run and confirm missing behavior.
-- [ ] Implement persistent settings, accessible UI, toolbar settings link and immediate background-only alpha updates, position/compact restore and reset.
-- [ ] Run npm test and targeted browser validation; commit task and update progress ledger with actual results.
+- [x] Write behavioral tests for bounds, reset, persistence and canceled state changes, run and confirm missing behavior.
+- [x] Implement persistent settings, accessible UI, toolbar settings link and immediate background-only alpha updates, position/compact restore and reset.
+- [x] Run npm test and targeted browser validation; commit task and update progress ledger with actual results.
 
 ### Task 2: Arbitrary output directory
+
+**Supervisor gate:** Read `docs/superpowers/supervisor-review.md` and fix the verified Task 1 issues with regressions before implementing this task. Codex is reviewing incrementally; read this file at each subsequent task too.
 **Files:** create extension/destination.mjs; modify store.mjs, settings.js, downloads.mjs, background.js, model.mjs and tests/browser.cjs; add destination tests.
 **Interfaces:** consume Task 1 settings; expose export-to-destination abstraction for journal file with per-session destination identity; preserve legacy downloads export.
 - [ ] Add failing tests for cancel, grant/revoke, custom-directory write, retry and persisted handle/session destination pinning.

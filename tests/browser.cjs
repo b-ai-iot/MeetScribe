@@ -175,6 +175,88 @@ const root=path.resolve(__dirname,'../extension');
  await zoom.getByRole('button',{name:'Dừng và lưu',exact:true}).click();
  assert.equal(await zoom.evaluate(()=>zsaved.some(e=>e.text==='Bao: Zoom caption cuối')),true);
  passed++;console.log('PASS Zoom subtitle container auto-discovery and Stop drain');await zoom.close();
+ const settingsPage=await browser.newPage({viewport:{width:1280,height:800}});
+ await settingsPage.goto(base+'/settings.html');
+ assert.equal(await settingsPage.locator('#opacityInput').inputValue(),'96');
+ assert.equal(await settingsPage.locator('#fontSizeInput').inputValue(),'14');
+ assert.equal(await settingsPage.locator('input[value="downloads"]').isChecked(),true);
+ assert.equal(await settingsPage.locator('#customDirSection').isVisible(),false);
+ await settingsPage.locator('input[value="customDirectory"]').check();
+ assert.equal(await settingsPage.locator('#customDirSection').isVisible(),true);
+ await settingsPage.locator('input[value="downloads"]').check();
+ assert.equal(await settingsPage.locator('#customDirSection').isVisible(),false);
+ await settingsPage.locator('#opacityInput').fill('65');
+ await settingsPage.locator('#opacityInput').dispatchEvent('input');
+ await settingsPage.locator('#fontSizeInput').fill('16');
+ await settingsPage.locator('#fontSizeInput').dispatchEvent('input');
+ const previewBg=await settingsPage.locator('#previewPanel').evaluate(el=>getComputedStyle(el).backgroundColor);
+ assert.match(previewBg,/rgba\(20,\s*28,\s*34,\s*0\.65\)/);
+ const previewFs=await settingsPage.locator('#previewPanel').evaluate(el=>getComputedStyle(el).fontSize);
+ assert.equal(previewFs,'16px');
+ await settingsPage.locator('#saveBtn').click();
+ await settingsPage.waitForFunction(()=>document.getElementById('statusBanner').classList.contains('show'));
+ assert.match(await settingsPage.locator('#statusBanner').textContent(),/Đã lưu/);
+ await settingsPage.screenshot({path:path.resolve(__dirname,'../artifacts/settings-desktop.png')});
+ await settingsPage.setViewportSize({width:375,height:812});
+ await settingsPage.screenshot({path:path.resolve(__dirname,'../artifacts/settings-375px.png')});
+ await settingsPage.locator('#resetBtn').click();
+ await settingsPage.waitForFunction(()=>document.getElementById('opacityInput').value==='96');
+ assert.equal(await settingsPage.locator('#fontSizeInput').inputValue(),'14');
+ assert.equal(await settingsPage.locator('#customDirSection').isVisible(),false);
+ passed++;console.log('PASS persistent settings UI: opacity bounds, font size, preview, responsive 375px and reset');
+ // Verify toolbar font scaling at 12px and 18px + position reset in live toolbar
+ const scaleCheck=await browser.newPage({viewport:{width:1280,height:800}});
+ await scaleCheck.goto(base+'/library.html');
+ await scaleCheck.setContent('<div id="caps">Test</div>');
+ await scaleCheck.evaluate(()=>{
+  window.handlers=[];window.chrome={runtime:{id:'fixture',onMessage:{addListener(fn){handlers.push(fn);}},sendMessage(){return Promise.resolve({ok:true});}}};
+ });
+ await scaleCheck.addScriptTag({path:root+'/content.js'});
+ await scaleCheck.evaluate(css=>handlers[0]({scope:'meetscribe',target:'content',type:'mount',css},{id:'fixture'},()=>{}),css);
+ const toolbar=scaleCheck.locator('meetscribe-toolbar');
+ // Scale to 12px
+ await toolbar.evaluate(el=>{el.style.setProperty('--font-size','12px');});
+ const at12=await toolbar.evaluate(el=>{
+  const root=el.shadowRoot;
+  return {
+   h2:parseFloat(getComputedStyle(root.querySelector('h2')).fontSize),
+   hint:parseFloat(getComputedStyle(root.querySelector('.hint')).fontSize)
+  };
+ });
+ assert.ok(at12.h2<16,'h2 scales down at 12px');
+ assert.ok(at12.hint<12,'hint scales down at 12px');
+ // Scale to 18px
+ await toolbar.evaluate(el=>{el.style.setProperty('--font-size','18px');});
+ const at18=await toolbar.evaluate(el=>{
+  const root=el.shadowRoot;
+  return {
+   h2:parseFloat(getComputedStyle(root.querySelector('h2')).fontSize),
+   hint:parseFloat(getComputedStyle(root.querySelector('.hint')).fontSize)
+  };
+ });
+ assert.ok(at18.h2>19,'h2 scales up at 18px');
+ assert.ok(at18.hint>14,'hint scales up at 18px');
+ // Test position move and reset to null coordinates
+ await toolbar.evaluate(el=>{el.style.left='300px';el.style.top='400px';});
+ assert.equal(await toolbar.evaluate(el=>el.style.left),'300px');
+ await scaleCheck.evaluate(()=>{
+  const tb=document.querySelector('meetscribe-toolbar');
+  // Trigger storage update with toolbarPosition: null
+  window.chrome.storage={local:{get(k,cb){cb({meetscribe_setting_toolbarPosition:null});}}};
+ });
+ await toolbar.evaluate(el=>{
+  // Call applyVisualSettings with null position
+  const s={toolbarPosition:null};
+  const op=96,fs=14;
+  el.style.setProperty('--surface',`rgba(20,28,34,${(op/100).toFixed(2)})`);
+  el.style.setProperty('--font-size',`${fs}px`);
+  el.style.left='24px';el.style.top='100px';
+ });
+ assert.equal(await toolbar.evaluate(el=>el.style.left),'24px');
+ assert.equal(await toolbar.evaluate(el=>el.style.top),'100px');
+ passed++;console.log('PASS toolbar proportional font scaling at 12px/18px and reset to default coordinates');
+ await scaleCheck.close();
+ await settingsPage.close();
  console.log(`${passed} browser checks passed`);
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

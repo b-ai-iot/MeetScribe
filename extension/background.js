@@ -127,6 +127,7 @@ async function receive(msg,sender){
  }
  if(!tab||!isSupportedMeeting(sender.url)||!isSupportedMeeting(tab.url))throw Error('Only authorized Meet or Zoom web tabs may collect');
  if(msg.type==='open-library'){await chrome.tabs.create({url:chrome.runtime.getURL('library.html')});return {};}
+ if(msg.type==='open-settings'){if(chrome.runtime.openOptionsPage)await chrome.runtime.openOptionsPage();else await chrome.tabs.create({url:chrome.runtime.getURL('settings.html')});return {};}
  if(msg.type==='start'){const current=await active(tab.id);if(current&&(sender.frameId??0)!==(current.frameId??0))throw Error('Meeting frame mismatch');frameRoutes.set(tab.id,sender.frameId??0);return {session:await publicState(await start(tab))};}
  let s=msg.sid?await store.getSession(msg.sid):await active(tab.id);
  if(s&&(s.tabId!==tab.id||s.url!==tab.url||(s.frameId??0)!==(sender.frameId??0)))throw Error('Session source mismatch');

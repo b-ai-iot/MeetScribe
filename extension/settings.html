@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MeetScribe · Cài đặt</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <main>
+    <nav>
+      <a class="brand" href="library.html">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M8 3h8l4 4v14H4V3h4m8 0v5h5M8 12h8M8 16h5"/>
+        </svg>
+        MeetScribe
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" href="library.html">Thư viện cuộc họp</a>
+      </div>
+    </nav>
+
+    <header>
+      <p class="eyebrow">TÙY CHỈNH GIAO DIỆN VÀ LƯU TRỮ</p>
+      <h1>Cài đặt MeetScribe</h1>
+      <p class="intro">Tùy biến thanh nổi trên màn hình họp và chọn nơi lưu trữ các phiên ghi chú.</p>
+    </header>
+
+    <div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div>
+
+    <form id="settingsForm">
+      <section class="card">
+        <h2>Giao diện thanh nổi</h2>
+        <p class="desc">Chỉnh độ mờ nền và cỡ chữ hiển thị trên thanh ghi họp. Chữ luôn giữ độ rõ 100%.</p>
+
+        <div class="field">
+          <div class="field-header">
+            <label for="opacityInput">Độ mờ nền thanh nổi</label>
+            <span id="opacityVal" class="value-badge">96%</span>
+          </div>
+          <input type="range" id="opacityInput" name="opacity" min="40" max="100" step="1" value="96" aria-describedby="opacityDesc">
+          <div class="range-labels">
+            <span>40% (Trong suốt hơn)</span>
+            <span>96% (Mặc định)</span>
+            <span>100% (Đậm hoàn toàn)</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <label for="fontSizeInput">Cỡ chữ hiển thị</label>
+            <span id="fontSizeVal" class="value-badge">14px</span>
+          </div>
+          <input type="range" id="fontSizeInput" name="fontSize" min="12" max="18" step="1" value="14" aria-describedby="fontSizeDesc">
+          <div class="range-labels">
+            <span>12px (Nhỏ gọn)</span>
+            <span>14px (Mặc định)</span>
+            <span>18px (Lớn)</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Xem trước giao diện</label>
+          <div class="preview-container">
+            <div id="previewPanel" class="preview-panel">
+              <p><strong>MeetScribe · Đang ghi nhận phụ đề</strong></p>
+              <p class="preview-sub">Phụ đề mẫu: "Chúng tôi đã hoàn thành mục tiêu quý này..."</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Vị trí lưu trữ dữ liệu</h2>
+        <p class="desc">Chọn nơi xuất các tệp caption, ảnh chụp và biên bản cuộc họp.</p>
+
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="destination" value="downloads" checked>
+            <div class="radio-info">
+              <div class="radio-title">Thư mục Tải xuống (Downloads)</div>
+              <div class="radio-desc">Lưu tự động vào thư mục Downloads mặc định của trình duyệt Chrome.</div>
+            </div>
+          </label>
+
+          <label class="radio-option">
+            <input type="radio" name="destination" value="customDirectory">
+            <div class="radio-info">
+              <div class="radio-title">Thư mục cục bộ tùy chọn</div>
+              <div class="radio-desc">Lưu trực tiếp vào thư mục do bạn chỉ định trên máy tính.</div>
+            </div>
+          </label>
+        </div>
+
+        <div id="customDirSection" class="dest-details" hidden>
+          <div>
+            <div><strong>Thư mục đã chọn:</strong> <span id="customDirName">Chưa chọn thư mục</span></div>
+            <div class="dest-status" id="customDirStatus">Chưa cấp quyền ghi</div>
+          </div>
+          <button type="button" id="chooseDirBtn" class="btn-secondary">Chọn thư mục…</button>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary" id="saveBtn">Lưu cài đặt</button>
+        <button type="button" class="btn-secondary" id="resetBtn">Đặt lại mặc định</button>
+      </div>
+    </form>
+
+    <footer>
+      Dữ liệu được lưu trữ trực tiếp trên thiết bị của bạn. MeetScribe không gửi dữ liệu tới máy chủ bên ngoài.
+    </footer>
+  </main>
+  <script type="module" src="settings.js"></script>
+</body>
+</html>

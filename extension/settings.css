@@ -1,0 +1,381 @@
+:root {
+  color-scheme: dark;
+  --bg: #10191f;
+  --surface: #18252d;
+  --surface-panel: rgba(20, 28, 34, 0.96);
+  --line: #3b515f;
+  --text: #eef5f7;
+  --muted: #b2c3cd;
+  --accent: #8ae8ca;
+  --ink: #102d26;
+  --danger: #ffd4cf;
+  --card: #152027;
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+main {
+  max-width: 840px;
+  margin: auto;
+  padding: 40px 24px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.brand svg {
+  color: var(--accent);
+}
+
+.nav-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.16s;
+}
+
+.nav-link:hover, .nav-link:focus-visible {
+  color: var(--text);
+  border-color: var(--line);
+}
+
+header {
+  padding: 32px 0 24px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -1px;
+  margin: 0 0 8px;
+}
+
+.intro {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.status-banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 24px;
+  display: none;
+}
+
+.status-banner.show {
+  display: block;
+}
+
+.status-banner.success {
+  background: #8ae8ca1f;
+  color: var(--accent);
+  border: 1px solid #8ae8ca66;
+}
+
+.status-banner.error {
+  background: #ffd4cf1f;
+  color: var(--danger);
+  border: 1px solid #ffd4cf66;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.card p.desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--text);
+}
+
+.value-badge {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 6px;
+  background: var(--line);
+  border-radius: 4px;
+  outline: none;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.preview-container {
+  background: repeating-linear-gradient(
+    45deg,
+    #1b2830,
+    #1b2830 10px,
+    #131d23 10px,
+    #131d23 20px
+  );
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  margin-top: 16px;
+}
+
+.preview-panel {
+  background: var(--surface-panel);
+  border: 1px solid #63727e88;
+  border-radius: 14px;
+  padding: 16px;
+  color: #f0f5f6;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 8px 24px #0004;
+}
+
+.preview-panel p {
+  margin: 0;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.preview-panel .preview-sub {
+  color: var(--muted);
+  font-size: 0.85em;
+  margin-top: 6px;
+}
+
+.radio-group {
+  display: grid;
+  gap: 12px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 0.16s, background 0.16s;
+}
+
+.radio-option:hover {
+  border-color: #637a88;
+}
+
+.radio-option input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.radio-info {
+  flex: 1;
+}
+
+.radio-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.radio-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dest-details {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #111a20;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dest-status {
+  color: var(--muted);
+}
+
+.dest-status.granted {
+  color: var(--accent);
+}
+
+.dest-status.revoked {
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.16s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+}
+
+.btn-primary:hover {
+  background: #acf6df;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.btn-secondary:hover {
+  background: #ffffff14;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 24px 16px;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .card {
+    padding: 18px 16px;
+  }
+  .dest-details {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 375px) {
+  main {
+    padding: 16px 12px;
+  }
+  .brand {
+    font-size: 19px;
+  }
+}
