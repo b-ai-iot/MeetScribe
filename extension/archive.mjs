@@ -1,3 +1,4 @@
+import {t,messageError,getLanguage,getLocale} from './i18n.mjs';
 import {decodeDataUrlToBytes} from './destination.mjs';
 
 const crcTable = new Uint32Array(256);
@@ -57,7 +58,7 @@ async function deflateBytes(bytes) {
 
 export async function createZipArchive(entries) {
   if (entries.length > 65535) {
-    throw new Error(`Số lượng tệp trong ZIP vượt quá giới hạn 65535 tệp (${entries.length}).`);
+    throw messageError('system.zipEntryCount',{count:entries.length});
   }
 
   const fileRecords = [];
@@ -70,7 +71,7 @@ export async function createZipArchive(entries) {
   for (const entry of entries) {
     const nameBytes = encoder.encode(entry.path);
     if (nameBytes.length > 65535) {
-      throw new Error(`Tên tệp vượt quá giới hạn 65535 byte: ${entry.path.slice(0, 50)}...`);
+      throw messageError('system.zipNameLength',{path:entry.path.slice(0,50)});
     }
 
     const uncompressedData = entry.data instanceof Uint8Array ? entry.data : encoder.encode(String(entry.data));
@@ -78,7 +79,7 @@ export async function createZipArchive(entries) {
     const uncompressedSize = uncompressedData.length;
 
     if (uncompressedSize > 0xFFFFFFFF) {
-      throw new Error(`Kích thước tệp vượt quá giới hạn 4GB của chuẩn ZIP32: ${entry.path}`);
+      throw messageError('system.zip32File',{path:entry.path});
     }
 
     let method = 0; // Store
@@ -126,7 +127,7 @@ export async function createZipArchive(entries) {
 
     offset += localHeader.length + compressedData.length;
     if (offset > 0xFFFFFFFF) {
-      throw new Error('Kích thước tệp lưu trữ vượt quá giới hạn 4GB của chuẩn ZIP32.');
+      throw messageError('system.zip32Archive');
     }
   }
 
@@ -161,7 +162,7 @@ export async function createZipArchive(entries) {
   }
 
   if (centralDirOffset + centralDirSize > 0xFFFFFFFF) {
-    throw new Error('Kích thước bảng mục lục ZIP vượt quá giới hạn 4GB của chuẩn ZIP32.');
+    throw messageError('system.zip32Directory');
   }
 
   // End of central directory record (22 bytes)
@@ -189,21 +190,22 @@ export async function createZipArchive(entries) {
   return result;
 }
 
-export function generateTranscriptMarkdown(session, files) {
+export function generateTranscriptMarkdown(session, files, language = getLanguage()) {
+  const text=(key,params={})=>t(key,params,language);
   const lines = [];
-  lines.push(`# Biên bản ghi nhận cuộc họp: ${session.title || 'Cuộc họp'}`);
+  lines.push('# '+text('system.transcriptTitle',{title:session.title||text('system.meeting')}));
   lines.push('');
-  lines.push(`- **Thời gian bắt đầu:** ${session.createdAt || 'N/A'}`);
-  lines.push(`- **Thời gian kết thúc:** ${session.endedAt || 'N/A'}`);
-  lines.push(`- **Lý do dừng:** ${session.reason || 'user-stop'}`);
-  lines.push(`- **Tổng số lượt cập nhật phụ đề:** ${session.count || 0}`);
-  lines.push(`- **Số ảnh chụp màn hình:** ${session.images || 0}`);
+  lines.push(`- **${text('system.started')}:** ${session.createdAt || 'N/A'}`);
+  lines.push(`- **${text('system.ended')}:** ${session.endedAt || 'N/A'}`);
+  lines.push(`- **${text('system.reason')}:** ${session.reason || 'user-stop'}`);
+  lines.push(`- **${text('system.captionCount')}:** ${session.count || 0}`);
+  lines.push(`- **${text('system.imageCount')}:** ${session.images || 0}`);
   lines.push('');
   lines.push('> [!NOTE]');
-  lines.push('> Nội dung dưới đây là bản ghi nhận phụ đề theo từng mốc thời gian (snapshots) trực tiếp từ cuộc họp.');
-  lines.push('> Đây **không phải bản gỡ băng nguyên văn đã khử trùng lặp**; các mốc thời gian phản ánh những đoạn cập nhật liên tục từ hệ thống nhận dạng giọng nói.');
+  lines.push('> '+text('system.snapshotNote'));
+  lines.push('> '+text('system.snapshotCaution'));
   lines.push('');
-  lines.push('## Dòng thời gian phụ đề');
+  lines.push('## '+text('system.captionTimeline'));
   lines.push('');
 
   const captionFiles = files.filter(f => f.name.includes('captions/') && f.name.endsWith('.jsonl')).sort((a, b) => a.name.localeCompare(b.name));
@@ -223,10 +225,10 @@ export function generateTranscriptMarkdown(session, files) {
   }
 
   if (entries.length === 0) {
-    lines.push('*Không có nội dung phụ đề nào được ghi nhận trong phiên này.*');
+    lines.push('*'+text('system.noCaptions')+'*');
   } else {
     for (const e of entries) {
-      const timeStr = e.timestamp ? new Date(e.timestamp).toLocaleTimeString('vi-VN') : `#${e.sequence}`;
+      const timeStr = e.timestamp ? new Date(e.timestamp).toLocaleTimeString(getLocale(language)) : `#${e.sequence}`;
       lines.push(`- **[${timeStr}]** ${e.text}`);
     }
   }
@@ -235,34 +237,8 @@ export function generateTranscriptMarkdown(session, files) {
   return lines.join('\n');
 }
 
-export function generateAiReadme(session) {
-  return `# Hướng dẫn tổng hợp cuộc họp bằng AI (MeetScribe)
-
-Tệp nén này chứa toàn bộ dữ liệu thô thu thập cục bộ từ cuộc họp: "${session.title || 'Cuộc họp'}".
-Bao gồm: phụ đề (captions/jsonl), ảnh trình chiếu (images/png), mốc sự kiện (events/json), metadata và bản đọc nhanh (transcript.md).
-
-## Cảnh báo quan trọng khi xử lý bằng AI
-1. **Phụ đề theo mốc thời gian (Snapshots):** Phụ đề được ghi nhận định kỳ từ công cụ nhận diện giọng nói trực tiếp của Google Meet / Zoom. Do tính chất live, có thể xuất hiện từ nhận diện sai hoặc đoạn lặp lại giữa các lần cập nhật liên tiếp.
-2. **Không suy diễn hoặc bịa đặt (No Hallucination):** Tuyệt đối không tự suy diễn, phỏng đoán hoặc bịa đặt các quyết định, người phụ trách, thời hạn (deadlines) nếu không được đề cập rõ trong transcript hoặc ảnh trình chiếu.
-3. **Xử lý phiên gián đoạn (Interrupted Coverage):** Nếu phiên họp có trạng thái gián đoạn (interrupted) hoặc mốc sequence bị ngắt quãng, phải nêu rõ các khoảng thiếu thông tin thay vì tự điền giả định.
-4. **Đối chiếu mốc thời gian hình ảnh:** Các tệp trong thư mục \`images/\` là ảnh chụp khi nội dung chia sẻ có sự thay đổi đáng kể; hãy đối chiếu mốc thời gian trong tệp \`.png.json\` tương ứng với ngữ cảnh phụ đề tại thời điểm đó.
-5. **Bảo mật và riêng tư:** Dữ liệu này được lưu cục bộ trên máy người dùng, không qua máy chủ trung gian. Khi gửi vào AI, vui lòng tuân thủ quy định bảo mật thông tin nội bộ của bạn.
-
-## Gợi ý câu lệnh mẫu (Prompt for LLM)
-
-\`\`\`markdown
-Bạn là thư ký cuộc họp chuyên nghiệp và trung thực. Hãy đọc tệp \`transcript.md\`, \`session-final.json\` và các ảnh/sự kiện trong gói tài liệu này để lập biên bản cuộc họp:
-
-1. **Tổng quan:** Tóm tắt ngắn gọn mục tiêu cuộc họp và các chủ đề thảo luận chính.
-2. **Nội dung chi tiết theo từng chủ đề:** Tổng hợp các quan điểm, thảo luận và kết luận tương ứng.
-3. **Quyết định đã thống nhất (Decisions):** Chỉ liệt kê các điểm đã được xác nhận trong cuộc họp.
-4. **Bảng phân công hành động (Action Items):**
-   | STT | Nhiệm vụ | Người phụ trách | Thời hạn | Ghi chú |
-   |-----|----------|-----------------|----------|---------|
-   *(Nếu không rõ người phụ trách hoặc thời hạn, ghi rõ "Chưa xác định", tuyệt đối không tự đặt tên)*
-5. **Vấn đề tồn đọng hoặc cần thảo luận tiếp:** Các câu hỏi chưa được giải đáp hoặc các khoảng trống thông tin nếu có gián đoạn.
-\`\`\`
-`;
+export function generateAiReadme(session, language = getLanguage()) {
+  return t('system.aiReadme',{title:session.title||t('system.meeting',{},language)},language);
 }
 
 export function generateArchiveManifest(session, fileList) {
@@ -273,7 +249,7 @@ export function generateArchiveManifest(session, fileList) {
     createdAt: session.createdAt,
     endedAt: session.endedAt,
     reason: session.reason,
-    version: session.version || '1.2.0',
+    version: session.version || '1.3.0',
     totalFiles: fileList.length,
     files: fileList.map(f => ({
       path: f.path,
@@ -284,7 +260,7 @@ export function generateArchiveManifest(session, fileList) {
 
 export async function buildSessionArchive(session, files, { maxBytes = 500 * 1024 * 1024 } = {}) {
   if (['recording', 'stopping'].includes(session.status)) {
-    throw new Error('Không thể tạo file ZIP khi phiên họp đang diễn ra. Hãy dừng phiên trước khi xuất ZIP.');
+    throw messageError('system.archiveActive');
   }
 
   // Pre-estimate uncompressed bytes incrementally before loading/decoding data
@@ -298,7 +274,7 @@ export async function buildSessionArchive(session, files, { maxBytes = 500 * 102
       estimatedTotal += f.data.length;
     }
     if (estimatedTotal > maxBytes) {
-      throw new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round(estimatedTotal / (1024 * 1024))}MB > ${Math.round(maxBytes / (1024 * 1024))}MB).`);
+      throw messageError('system.archiveSize',{actual:Math.round(estimatedTotal / (1024 * 1024)),limit:Math.round(maxBytes / (1024 * 1024))});
     }
   }
 
@@ -322,13 +298,13 @@ export async function buildSessionArchive(session, files, { maxBytes = 500 * 102
 
     // Validate path safety on the relative cleanPath segments
     if (!cleanPath || cleanPath.startsWith('/') || cleanPath.startsWith('\\') || /[\x00-\x1f]/.test(cleanPath)) {
-      throw new Error(`Đường dẫn tệp không an toàn trong gói lưu trữ: ${cleanPath}`);
+      throw messageError('system.archiveUnsafePath',{path:cleanPath});
     }
 
     const segments = cleanPath.split(/[\\/]/);
     for (const seg of segments) {
       if (seg === '.' || seg === '..') {
-        throw new Error(`Đường dẫn tệp không an toàn trong gói lưu trữ: ${cleanPath}`);
+        throw messageError('system.archiveUnsafePath',{path:cleanPath});
       }
     }
 
@@ -346,7 +322,7 @@ export async function buildSessionArchive(session, files, { maxBytes = 500 * 102
 
     totalBytes += bytesData.length;
     if (totalBytes > maxBytes) {
-      throw new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round(totalBytes / (1024 * 1024))}MB > ${Math.round(maxBytes / (1024 * 1024))}MB).`);
+      throw messageError('system.archiveSize',{actual:Math.round(totalBytes / (1024 * 1024)),limit:Math.round(maxBytes / (1024 * 1024))});
     }
 
     archiveEntries.push({
@@ -374,7 +350,7 @@ export async function buildSessionArchive(session, files, { maxBytes = 500 * 102
   archiveEntries.push({ path: 'manifest.json', data: manifestBytes });
 
   if (totalBytes > maxBytes) {
-    throw new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round(totalBytes / (1024 * 1024))}MB > ${Math.round(maxBytes / (1024 * 1024))}MB).`);
+    throw messageError('system.archiveSize',{actual:Math.round(totalBytes / (1024 * 1024)),limit:Math.round(maxBytes / (1024 * 1024))});
   }
 
   return createZipArchive(archiveEntries);

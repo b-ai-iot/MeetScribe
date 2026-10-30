@@ -1,3 +1,4 @@
+import {t,messageError,errorMessage,loadLanguage,watchLanguage,getMessages} from './i18n.mjs';
 import {VERSION,isSupportedMeeting,meetingPlatform,sessionFolder,validEntries} from './model.mjs';
 import * as store from './store.mjs';
 import {exportFile} from './downloads.mjs';
@@ -9,6 +10,16 @@ import {mapMeetingRect,sendSessionMessage} from './frames.mjs';
 import {installToolbar} from './install.mjs';
 import {CommandQueue} from './commands.mjs';
 
+const applyLanguage=()=>{chrome.action.setTitle?.({title:t('system.actionTitle')})?.catch(()=>{});};
+const messageCodes=new Set(Object.keys(getMessages().vi));
+const knownErrorCode=code=>typeof code==='string'&&messageCodes.has(code)?code:null;
+const languageReady=loadLanguage().then(()=>applyLanguage());
+watchLanguage(applyLanguage);
+function responseError(answer,fallback){
+ if(knownErrorCode(answer?.errorCode))return messageError(answer.errorCode,answer.errorParams||{});
+ return answer?.error||answer?.message?Error(errorMessage(answer)):messageError(fallback);
+}
+
 function bytesToBase64(bytes){
  let binary='';const chunk=0x8000;
  for(let i=0;i<bytes.length;i+=chunk){binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));}
@@ -18,19 +29,19 @@ function bytesToBase64(bytes){
 async function waitForDownload(id,timeoutMs=45000){
  return new Promise((resolve,reject)=>{
   let done=false;
-  const timer=setTimeout(()=>{if(done)return;done=true;try{chrome.downloads.onChanged.removeListener(listener);}catch{}reject(Error('Hết thời gian chờ tải file ZIP.'));},timeoutMs);
+  const timer=setTimeout(()=>{if(done)return;done=true;try{chrome.downloads.onChanged.removeListener(listener);}catch{}reject(messageError('system.zipTimeout'));},timeoutMs);
   const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);try{chrome.downloads.onChanged.removeListener(listener);}catch{}if(err)reject(err);else resolve(id);};
   const listener=delta=>{
    if(delta.id===id){
     if(delta.state?.current==='complete')finish(null);
-    else if(delta.state?.current==='interrupted'||delta.error)finish(Error(`Tải file ZIP bị gián đoạn: ${delta.error?.current||'lỗi mạng'}`));
+    else if(delta.state?.current==='interrupted'||delta.error)finish(messageError('system.zipInterrupted',{detail:delta.error?.current||t('system.networkError')}));
    }
   };
   chrome.downloads.onChanged.addListener(listener);
   chrome.downloads.search({id},items=>{
    if(items?.[0]&&!done){
     if(items[0].state==='complete')finish(null);
-    else if(items[0].state==='interrupted')finish(Error(`Tải file ZIP bị gián đoạn: ${items[0].error}`));
+    else if(items[0].state==='interrupted')finish(messageError('system.zipInterrupted',{detail:items[0].error}));
    }
   });
  });
@@ -52,13 +63,13 @@ async function visualInfo(s){
   return {x:r.left+frame.clientLeft*sx,y:r.top+frame.clientTop*sy,width:frame.clientWidth*sx,height:frame.clientHeight*sy,viewportWidth:innerWidth,viewportHeight:innerHeight};
  }});
  const rect=mapMeetingRect(info.rect,{frameId:s.frameId,directChild:info.directChild,geometry:measurement?.result});
- if(!rect)throw Error('Chưa xác định được vị trí vùng share trong khung Zoom; caption vẫn tiếp tục.');
+ if(!rect)throw messageError('system.sharePosition');
  return {...info,rect,shareAvailable:!!rect};
 } 
 const off=(type,data={})=>chrome.runtime.sendMessage({scope:'meetscribe',target:'offscreen',type,...data});
 async function offscreen(){
  if((await chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT']})).length)return;
- if(!offscreenCreating)offscreenCreating=chrome.offscreen.createDocument({url:'offscreen.html',reasons:['USER_MEDIA'],justification:'Crop confirmed shared content into selected static screenshots; no audio or video files.'}).finally(()=>offscreenCreating=null);
+ if(!offscreenCreating)offscreenCreating=chrome.offscreen.createDocument({url:'offscreen.html',reasons:['USER_MEDIA'],justification:t('system.offscreenJustification')}).finally(()=>offscreenCreating=null);
  await offscreenCreating;
 }
 async function event(id,type,data={}){return store.writeFile(id,`events/${Date.now()}-${crypto.randomUUID().slice(0,8)}.json`,JSON.stringify({timestamp:time(),type,...data},null,2));}
@@ -66,6 +77,7 @@ async function active(tabId){return (await store.listSessions()).find(s=>s.tabId
 async function publicState(s){if(!s)return null;const {captionTail,...rest}=s;return rest;}
 async function publish(s){try{await sendSessionMessage(chrome,s,'status',{session:await publicState(s)});}catch{}}
 export async function exportSession(id){
+ await languageReady;
  if(exportLocks.has(id))return exportLocks.get(id);
  const job=(async()=>{
   try{
@@ -75,7 +87,7 @@ export async function exportSession(id){
    if(isCustom){
     dirHandle=await store.getDirectoryHandle(currentSession.destinationId);
     if(!dirHandle){
-     throw Error('Chưa tìm thấy quyền truy cập thư mục: '+(currentSession.destinationName||'thư mục cục bộ')+'. Mở Cài đặt để cấp lại quyền.');
+     throw messageError('system.directoryMissing',{name:currentSession.destinationName||t('system.localFolder')});
     }
    }
    while(true){
@@ -88,23 +100,23 @@ export async function exportSession(id){
    }
    }
    const s=await store.getSession(id);await publish(s);return s;
-  }catch(e){const s=await store.patchSession(id,{exportError:e.message});await publish(s);throw e;}
+  }catch(e){const s=await store.patchSession(id,{exportError:errorMessage(e),exportErrorCode:knownErrorCode(e.code),exportErrorParams:knownErrorCode(e.code)?e.params||{}:null});await publish(s);throw e;}
  })().finally(()=>exportLocks.delete(id));exportLocks.set(id,job);return job;
 }
 const scheduleExport=id=>exportSession(id).catch(()=>{});
 async function start(tab){return commands.run(tab.id,'start',async()=>{
  const current=await active(tab.id);if(current)return current;
- const check=await content(tab.id,'inspect');if(!check?.captionAvailable)throw Error('Bật phụ đề trong cuộc họp rồi chọn vùng caption trước.');
- const id=crypto.randomUUID(),title=(tab.title||'Cuộc họp').replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'').trim();
+ const check=await content(tab.id,'inspect');if(!check?.captionAvailable)throw messageError('system.captionRequired');
+ const id=crypto.randomUUID(),title=(tab.title||t('system.meeting')).replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'').trim();
  const currentSettings=await getSettings();
  const isCustom=currentSettings.destination==='customDirectory';
  const activeDestId=isCustom?await store.getActiveDirectoryHandleId():null;
  if(isCustom&&!activeDestId){
-  throw Error('Chưa chọn thư mục lưu cục bộ. Hãy mở Cài đặt để chọn thư mục trước khi bắt đầu.');
+  throw messageError('system.directoryRequired');
  }
  const dirInfo=isCustom?await getStoredDirectoryInfo(activeDestId):null;
- const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected',destination:isCustom?'customDirectory':'downloads',destinationId:activeDestId,destinationName:isCustom?(dirInfo?.name||'Thư mục cục bộ'):'Downloads'});
- try{const answer=await sendSessionMessage(chrome,s,'begin',{session:await publicState(s)});if(!answer?.ok)throw Error(answer?.error||'Không thể khởi động bộ thu.');}
+ const s=await store.createSession({id,tabId:tab.id,frameId:frameRoutes.get(tab.id)??0,platform:meetingPlatform(tab.url),url:tab.url,title,folder:sessionFolder(title,new Date(),id.slice(0,8)),createdAt:time(),status:'recording',count:0,lastSequence:0,version:VERSION,noModelCalls:true,audioRecorded:false,videoRecorded:false,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,visual:'not-selected',destination:isCustom?'customDirectory':'downloads',destinationId:activeDestId,destinationName:isCustom?(dirInfo?.name||t('system.localFolderName')):'Downloads'});
+ try{const answer=await sendSessionMessage(chrome,s,'begin',{session:await publicState(s)});if(!answer?.ok)throw responseError(answer,'system.collectorStart');}
  catch(e){await store.patchSession(id,{status:'interrupted',error:e.message});throw e;}
  await event(id,'started');scheduleExport(id);return s;
  });}
@@ -113,7 +125,7 @@ async function stop(s,reason='user-stop',sourceClosed=false){return commands.run
  await store.patchSession(s.id,{status:'stopping'});
  let interruption=sourceClosed;
  if(!sourceClosed){
-  try{const ack=await sendSessionMessage(chrome,s,'end');if(!ack?.ok)throw Error(ack?.error||'Chưa lưu hết caption đang chờ.');}
+  try{const ack=await sendSessionMessage(chrome,s,'end');if(!ack?.ok)throw responseError(ack,'system.captionDrain');}
   catch(e){interruption=true;await event(s.id,'caption-drain-failed',{error:e.message});}
  }
  try{await off('stop',{sid:s.id,final:true});}catch{}
@@ -131,24 +143,25 @@ async function visualStart(s){
  if(s.visual==='ready')return;
  const token=crypto.randomUUID();
  await store.patchSession(s.id,{visualToken:token,visual:'starting'});
- const check=async()=>{const current=await store.getSession(s.id);if(current.status!=='recording'||current.visualToken!==token)throw Error('Đã hủy khởi động ảnh share.');};
+ const check=async()=>{const current=await store.getSession(s.id);if(current.status!=='recording'||current.visualToken!==token)throw messageError('system.visualCancelled');};
  try{
   await offscreen();await check();
   const streamId=await chrome.tabCapture.getMediaStreamId({targetTabId:s.tabId});await check();
   const ack=await off('start',{sid:s.id,tabId:s.tabId,streamId,token});
-  if(!ack?.ok)throw Error(ack?.error||'Không mở được luồng ảnh.');
+  if(!ack?.ok)throw responseError(ack,'system.visualStream');
   await check();
-  const updated=await store.setVisualState(s.id,token,{visual:'ready',visualError:null});
+  const updated=await store.setVisualState(s.id,token,{visual:'ready',visualError:null,visualErrorCode:null,visualErrorParams:null});
   if(updated.visualToken!==token||updated.status!=='recording'){await off('stop',{sid:s.id});return;}
   await event(s.id,'visual-started');
  }catch(e){
-  const updated=await store.setVisualState(s.id,token,{visual:'unavailable',visualError:e.message});
+  const updated=await store.setVisualState(s.id,token,{visual:'unavailable',visualError:errorMessage(e),visualErrorCode:knownErrorCode(e.code),visualErrorParams:knownErrorCode(e.code)?e.params||{}:null});
   if(updated.status!=='recording'||updated.visualToken!==token){await off('stop',{sid:s.id}).catch(()=>{});return;}
-  await event(s.id,'visual-unavailable',{error:e.message});throw Error('Caption vẫn lưu. Chưa lấy được ảnh: '+e.message);
+  await event(s.id,'visual-unavailable',{error:e.message});throw messageError('system.visualUnavailable',{detail:errorMessage(e)});
  }
 }
 chrome.action.onClicked.addListener(tab=>{
  (async()=>{
+  await languageReady;
   if(!isSupportedMeeting(tab.url)){await chrome.tabs.create({url:chrome.runtime.getURL('library.html')});return;}
   await prepare(tab.id);
   const s=await active(tab.id);
@@ -156,23 +169,24 @@ chrome.action.onClicked.addListener(tab=>{
  })().catch(e=>{chrome.action.setBadgeText({tabId:tab.id,text:'!'}).catch(()=>{});console.warn('MeetScribe action:',e.message);});
 });
 async function receive(msg,sender){
- if(sender.id!==chrome.runtime.id)throw Error('Invalid sender');
+ await languageReady;
+ if(sender.id!==chrome.runtime.id)throw messageError('system.invalidSender');
  const lib=sender.url===chrome.runtime.getURL('library.html');
  const visual=sender.url===chrome.runtime.getURL('offscreen.html');
  const tab=sender.tab;
  if(lib){
   if(msg.type==='list')return {sessions:await store.listSessions()};
-  const s=await store.getSession(msg.sid);if(!s)throw Error('Session not found');
+  const s=await store.getSession(msg.sid);if(!s)throw messageError('system.sessionMissing');
   if(msg.type==='retry'){await exportSession(s.id);return {session:await publicState(await store.getSession(s.id))};}
   if(msg.type==='show-folder'){if(s.lastDownloadId)await chrome.downloads.show(s.lastDownloadId);else await chrome.downloads.showDefaultFolder();return {};}
   if(msg.type==='stop'){return {session:await publicState(await stop(s,'library-stop'))};}
   if(msg.type==='rename'){
-   if(!msg.title||typeof msg.title!=='string'||!msg.title.trim())throw Error('Tiêu đề không hợp lệ');
+   if(!msg.title||typeof msg.title!=='string'||!msg.title.trim())throw messageError('system.invalidTitle');
    const updated=await store.renameSession(s.id,msg.title.trim());
    return {session:await publicState(updated)};
   }
   if(msg.type==='delete'){
-   if(['recording','stopping'].includes(s.status))throw Error('Không thể xóa phiên đang ghi hoặc đang lưu.');
+   if(['recording','stopping'].includes(s.status))throw messageError('system.deleteActive');
    await store.deleteSession(s.id);
    return {deleted:true,sid:s.id};
   }
@@ -186,7 +200,7 @@ async function receive(msg,sender){
    let targetSession=s;
    if(['recording','stopping'].includes(targetSession.status)){
     if(msg.stopFirst){targetSession=await stop(targetSession,'zip-stop');}
-    else throw Error('Phiên đang ghi. Hãy dừng phiên trước khi xuất ZIP.');
+    else throw messageError('system.zipRecording');
    }
    const maxBytes=500*1024*1024;
    const files=await store.readSessionFilesBounded(targetSession.id,maxBytes);
@@ -195,9 +209,9 @@ async function receive(msg,sender){
    const zipName=`MeetScribe-${targetSession.createdAt.slice(0,10)}-${safeTitle}-${targetSession.id.slice(0,8)}.zip`;
    if(msg.destination==='customDirectory'||(msg.destination!=='downloads'&&targetSession.destination==='customDirectory')){
     const dirHandle=await store.getDirectoryHandle(targetSession.destinationId);
-    if(!dirHandle)throw Error('Không tìm thấy quyền thư mục lưu cục bộ đã chọn. Cấp lại quyền trong Cài đặt.');
+    if(!dirHandle)throw messageError('system.zipDirectoryMissing');
     const perm=await dirHandle.queryPermission?.({mode:'readwrite'});
-    if(perm!=='granted')throw Error('Thư mục lưu cục bộ chưa được cấp quyền ghi. Cấp lại quyền trong Cài đặt.');
+    if(perm!=='granted')throw messageError('system.zipDirectoryPermission');
     const fh=await dirHandle.getFileHandle(zipName,{create:true});
     await writeToDirectoryHandle(fh,zipBytes);
     return {savedTo:'directory',filename:zipName};
@@ -209,40 +223,40 @@ async function receive(msg,sender){
    await waitForDownload(downloadId);
    return {savedTo:'downloads',downloadId,filename:zipName};
   }
-  throw Error('Unsupported library command');
+  throw messageError('system.libraryCommand');
  }
  if(visual){
-  const s=await store.getSession(msg.sid);if(!s||!['recording','stopping'].includes(s.status)||msg.token&&msg.token!==s.visualToken)throw Error('Visual session not active');
+  const s=await store.getSession(msg.sid);if(!s||!['recording','stopping'].includes(s.status)||msg.token&&msg.token!==s.visualToken)throw messageError('system.visualInactive');
   if(msg.type==='visual-inspect'){const info=await visualInfo(s);return {...info,captionContext:s.captionTail||'',captionAt:s.lastCaptionAt||null};}
   if(msg.type==='visual-frame'){
-   if(typeof msg.data!=='string'||!msg.data.startsWith('data:image/png;base64,')||msg.data.length>30000000||!Number.isFinite(msg.bytes)||msg.bytes<1)throw Error('Invalid image');
+   if(typeof msg.data!=='string'||!msg.data.startsWith('data:image/png;base64,')||msg.data.length>30000000||!Number.isFinite(msg.bytes)||msg.bytes<1)throw messageError('system.invalidImage');
    const stats=await store.saveImage(s.id,{name:msg.name,data:msg.data,bytes:msg.bytes,event:msg.event});
    await publish(await store.getSession(s.id));scheduleExport(s.id);return stats;
   }
   if(msg.type==='visual-event'){await event(s.id,msg.eventType,msg.data||{});return {};}
-  if(msg.type==='visual-lost'){await store.patchSession(s.id,{visual:'unavailable',visualError:msg.error});await event(s.id,'visual-unavailable',{error:msg.error});await publish(await store.getSession(s.id));return {};}
-  throw Error('Unsupported visual command');
+  if(msg.type==='visual-lost'){await store.patchSession(s.id,{visual:'unavailable',visualError:errorMessage(msg),visualErrorCode:knownErrorCode(msg.errorCode),visualErrorParams:knownErrorCode(msg.errorCode)?msg.errorParams||{}:null});await event(s.id,'visual-unavailable',{error:msg.error});await publish(await store.getSession(s.id));return {};}
+  throw messageError('system.visualCommand');
  }
- if(!tab||!isSupportedMeeting(sender.url)||!isSupportedMeeting(tab.url))throw Error('Only authorized Meet or Zoom web tabs may collect');
+ if(!tab||!isSupportedMeeting(sender.url)||!isSupportedMeeting(tab.url))throw messageError('system.authorizedTabs');
  if(msg.type==='open-library'){await chrome.tabs.create({url:chrome.runtime.getURL('library.html')});return {};}
  if(msg.type==='open-settings'){if(chrome.runtime.openOptionsPage)await chrome.runtime.openOptionsPage();else await chrome.tabs.create({url:chrome.runtime.getURL('settings.html')});return {};}
- if(msg.type==='start'){const current=await active(tab.id);if(current&&(sender.frameId??0)!==(current.frameId??0))throw Error('Meeting frame mismatch');frameRoutes.set(tab.id,sender.frameId??0);return {session:await publicState(await start(tab))};}
+ if(msg.type==='start'){const current=await active(tab.id);if(current&&(sender.frameId??0)!==(current.frameId??0))throw messageError('system.frameMismatch');frameRoutes.set(tab.id,sender.frameId??0);return {session:await publicState(await start(tab))};}
  let s=msg.sid?await store.getSession(msg.sid):await active(tab.id);
- if(s&&(s.tabId!==tab.id||s.url!==tab.url||(s.frameId??0)!==(sender.frameId??0)))throw Error('Session source mismatch');
+ if(s&&(s.tabId!==tab.id||s.url!==tab.url||(s.frameId??0)!==(sender.frameId??0)))throw messageError('system.sourceMismatch');
  if(msg.type==='status')return {session:await publicState(s)};
- if(!s)throw Error('Chưa có phiên đang ghi.');
+ if(!s)throw messageError('system.noRecording');
  if(msg.type==='caption'){
-  if(!validEntries(msg.entries))throw Error('Invalid captions');
+  if(!validEntries(msg.entries))throw messageError('system.invalidCaptions');
   const result=await store.appendCaptions(s.id,msg.entries);scheduleExport(s.id);return result;
  }
  if(msg.type==='stop')return {session:await publicState(await stop(s))};
- if(!['recording','stopping'].includes(s.status))throw Error('Phiên đã đóng.');
+ if(!['recording','stopping'].includes(s.status))throw messageError('system.sessionClosed');
  if(msg.type==='visual-start'){await visualStart(s);return {session:await publicState(await store.getSession(s.id))};}
  if(msg.type==='clear-share'){await store.patchSession(s.id,{visual:'not-selected',visualToken:crypto.randomUUID()});await off('stop',{sid:s.id}).catch(()=>{});await event(s.id,'share-cleared');return {};}
  if(msg.type==='mark'){
   await event(s.id,'user-mark',{captionAt:s.lastCaptionAt,captionContext:s.captionTail});
   let result;try{result=await off('mark',{sid:s.id});}catch{}
-  return {saved:!!result?.saved,message:result?.message||'Đã lưu mốc caption; chưa có ảnh share khả dụng.'};
+  return {saved:!!result?.saved,message:result?.message||t('system.markNoImage')};
  }
  if(msg.type==='health'){
   const health=JSON.stringify([msg.captionAvailable,msg.shareAvailable]);
@@ -253,11 +267,11 @@ async function receive(msg,sender){
   if(count>=2)setTimeout(()=>stop(s,'explicit-end-screen').catch(()=>{}),0);
   return {session:await publicState(await store.getSession(s.id))};
  }
- throw Error('Unknown command');
+ throw messageError('system.unknownCommand');
 }
 chrome.runtime.onMessage.addListener((msg,sender,reply)=>{
  if(msg?.scope!=='meetscribe'||msg.target!=='worker')return;
- receive(msg,sender).then(data=>reply({ok:true,...data})).catch(e=>reply({ok:false,error:e.message}));return true;
+ receive(msg,sender).then(data=>reply({ok:true,...data})).catch(e=>reply({ok:false,error:errorMessage(e),errorCode:knownErrorCode(e.code),errorParams:knownErrorCode(e.code)?e.params||{}:null}));return true;
 });
 chrome.tabs.onRemoved.addListener(id=>{frameRoutes.delete(id);active(id).then(s=>s&&stop(s,'meeting-tab-closed',true)).catch(()=>{});});
 chrome.tabs.onUpdated.addListener((id,change)=>{
@@ -266,6 +280,6 @@ chrome.tabs.onUpdated.addListener((id,change)=>{
 chrome.runtime.onInstalled.addListener(()=>chrome.alarms.create('export-retry',{periodInMinutes:1}));
 chrome.runtime.onStartup.addListener(()=>{
  chrome.alarms.create('export-retry',{periodInMinutes:1});
- store.listSessions().then(async sessions=>{for(const s of sessions){if(['recording','stopping'].includes(s.status))await stop(s,'browser-restarted',true);else if(s.pendingExports)scheduleExport(s.id);}}).catch(()=>{});
+ languageReady.then(()=>store.listSessions()).then(async sessions=>{for(const s of sessions){if(['recording','stopping'].includes(s.status))await stop(s,'browser-restarted',true);else if(s.pendingExports)scheduleExport(s.id);}}).catch(()=>{});
 });
-chrome.alarms.onAlarm.addListener(async alarm=>{if(alarm.name!=='export-retry')return;for(const s of await store.listSessions())if(s.pendingExports)scheduleExport(s.id);});
+chrome.alarms.onAlarm.addListener(async alarm=>{if(alarm.name!=='export-retry')return;await languageReady;for(const s of await store.listSessions())if(s.pendingExports)scheduleExport(s.id);});

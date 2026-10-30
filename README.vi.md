@@ -9,13 +9,13 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Giấy_phép-MIT-blue.svg" alt="Giấy phép: MIT" /></a>
-  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.2.0-green.svg" alt="Phiên bản 1.2.0" /></a>
+  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.3.0-green.svg" alt="Phiên bản 1.3.0" /></a>
   <a href="docs/vi/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
 MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ cục bộ (local-first) giúp thu thập phụ đề trực tiếp và ảnh chụp màn hình trình chiếu trong các cuộc họp Google Meet và Zoom bản web. Tiện ích hoạt động hoàn toàn trong trình duyệt của bạn: không ghi âm âm thanh micro, không lưu tệp video và tuyệt đối không thực hiện bất kỳ lệnh gọi API AI hay kết nối máy chủ bên ngoài nào khi đang họp. Bạn nắm toàn quyền kiểm soát dữ liệu và có thể xuất gói ZIP chuẩn bị sẵn cho AI bất cứ lúc nào.
 
-> **Ghi chú ngôn ngữ giao diện:** Giao diện người dùng của tiện ích hiện là tiếng Việt. Bộ tài liệu sử dụng và phát triển có hai bản Anh/Việt tương ứng, giải thích các điều khiển chính bằng nhãn gốc và bản dịch tiếng Anh.
+> **Ghi chú ngôn ngữ giao diện:** Tiện ích hỗ trợ **Tiếng Việt** và **English**. Mở **Cài đặt / Settings → Ngôn ngữ giao diện / Interface language**, chọn ngôn ngữ rồi bấm **Lưu cài đặt / Save settings**. Trang đang mở và thanh nổi cập nhật mà không khởi động lại việc thu. Caption và dữ liệu cuộc họp giữ nguyên ngôn ngữ gốc.
 
 ---
 
@@ -63,13 +63,13 @@ MeetScribe chưa phân phối qua Chrome Web Store và chưa có tệp cài đ�
 3. **Nạp tiện ích chưa giải nén:**
    Bấm **Tải tiện ích đã giải nén** (Load unpacked) và trỏ tới thư mục `extension/` trong kho mã nguồn này.
 4. **Ghim và sử dụng:**
-   Ghim **MeetScribe — Ghi chú cuộc họp** lên thanh tiện ích Chrome. Mở một tab Google Meet hoặc Zoom web, bật phụ đề và bấm biểu tượng MeetScribe để mở thanh điều khiển nổi.
+   Ghim **MeetScribe** (phần tên phụ theo ngôn ngữ Chrome) lên thanh tiện ích Chrome. Mở một tab Google Meet hoặc Zoom web, bật phụ đề và bấm biểu tượng MeetScribe để mở thanh điều khiển nổi.
 
 Để đóng gói tệp ZIP cục bộ khớp với thông tin phiên bản của kho mã nguồn:
 ```bash
 npm run package
 ```
-Lệnh sẽ tạo tệp `dist/MeetScribe-1.2.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
+Lệnh sẽ tạo tệp `dist/MeetScribe-1.3.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
 
 ---
 

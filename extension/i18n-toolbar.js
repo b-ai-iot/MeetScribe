@@ -1,0 +1,40 @@
+(()=>{
+ const messages={
+  controls:['MeetScribe · Bộ điều khiển ghi họp','MeetScribe · Meeting recording controls'],
+  collapse:['Thu nhỏ','Collapse'],currentMeeting:['CUỘC HỌP HIỆN TẠI','CURRENT MEETING'],
+  start:['Bắt đầu ghi','Start recording'],stop:['Dừng và lưu','Stop and save'],preparingEllipsis:['Đang chuẩn bị…','Preparing…'],savingEllipsis:['Đang lưu…','Saving…'],
+  captionRegion:['Vùng caption','Caption region'],shareRegion:['Vùng share','Share region'],mark:['Đánh dấu','Mark'],clearShare:['Ngừng chụp vùng share','Stop capturing the share region'],retry:['Thử lưu và tiếp tục','Retry saving and resume'],rescue:['Cứu caption đang chờ','Recover pending captions'],
+  storageFolder:['Thư mục lưu','Save folder'],settings:['Cài đặt MeetScribe','MeetScribe settings'],library:['Thư viện phiên họp','Meeting library'],move:['Di chuyển thanh điều khiển','Move recording controls'],moveHint:['Kéo hoặc dùng phím mũi tên để di chuyển','Drag or use arrow keys to move'],expand:['Mở rộng MeetScribe','Expand MeetScribe'],
+  reconnect:['Cần kết nối lại','Reconnect required'],check:['Cần kiểm tra','Needs attention'],saving:['Đang lưu phiên','Saving session'],preparing:['Đang chuẩn bị','Preparing'],recording:['Đang ghi','Recording'],waitingCaption:['Chờ caption','Waiting for captions'],lostCaptionStatus:['Mất vùng caption','Caption region lost'],stopped:['Đã dừng','Stopped'],interrupted:['Phiên gián đoạn','Session interrupted'],ready:['Sẵn sàng','Ready'],
+  lostCaption:['Mất vùng caption. Chọn lại khung phụ đề để tiếp tục.','Caption region lost. Select the caption region again to continue.'],
+  lostShare:['Mất vùng share. Chọn lại vùng share; caption vẫn tiếp tục.','Share region lost. Select it again; caption recording continues.'],
+  visualUnavailable:['Caption đang lưu · chưa lấy được ảnh share.','Captions are being saved · shared-screen images are unavailable.'],
+  visualReady:['Tự lưu caption và chọn ảnh từ vùng share đã xác nhận.','Automatically saving captions and selecting images from the confirmed share region.'],
+  captionOnly:['Caption tự lưu. Chọn vùng share khi có trình chiếu.','Captions save automatically. Select a share region when a presentation starts.'],
+  initialHint:['Bật phụ đề cuộc họp, kiểm tra vùng caption rồi bắt đầu.','Enable meeting captions, check the caption region, then start recording.'],
+  metrics:['{captions} caption · {images} ảnh','{captions} captions · {images} images'],
+  exportError:['Lỗi xuất file · bản dự phòng còn nguyên','File export failed · backup preserved'],
+  pendingExports:['{count} file đang chờ xuất · đã dự phòng','{count} files awaiting export · backed up'],
+  exportedCustom:['Đã xuất ra thư mục cục bộ ({folder})','Exported to local folder ({folder})'],exportedDownloads:['Đã xuất ra thư mục tải xuống','Exported to Downloads'],
+  saveCustom:['Lưu tự động vào {folder}','Automatically saving to {folder}'],saveDownloads:['Lưu tự động trong thư mục tải xuống','Automatically saving to Downloads'],selectedFolder:['thư mục đã chọn','selected folder'],
+  defaultPath:['MeetScribe / ngày / tên cuộc họp','MeetScribe / date / meeting title'],defaultTitle:['Cuộc họp của bạn','Your meeting'],liveBadge:['LOCAL · LIVE','LOCAL · LIVE'],privateBadge:['LOCAL · PRIVATE','LOCAL · PRIVATE'],
+  pickCaption:['Chọn khung phụ đề · cuộn để mở rộng vùng · Esc để hủy','Select the caption region · scroll to expand the region · Esc to cancel'],
+  pickShare:['Chọn nội dung màn hình đang chia sẻ · cuộn để mở rộng vùng · Esc để hủy','Select the shared-screen content · scroll to expand the region · Esc to cancel'],
+  pickSmaller:['Chọn khung nhỏ hơn toàn trang để tránh lưu nội dung không liên quan.','Select a region smaller than the whole page to avoid saving unrelated content.'],
+  pickCancelled:['Đã hủy chọn vùng.','Region selection cancelled.'],
+  captionSelected:['Đã chọn phụ đề thủ công. Bấm Bắt đầu khi sẵn sàng.','Caption region selected manually. Press Start recording when ready.'],
+  startBeforeShare:['Bắt đầu ghi caption trước khi bật ảnh share.','Start recording captions before enabling shared-screen images.'],
+  shareSelected:['Đã chọn vùng share; đang tự lọc ảnh theo thay đổi.','Share region selected; automatically filtering images as the content changes.'],
+  rescued:['Đã yêu cầu tải {count} caption đang chờ. Kiểm tra file tải xuống trước khi đóng tab.','Requested download of {count} pending captions. Check the downloaded file before closing this tab.'],
+  resumed:['Đã lưu phần đang chờ và tiếp tục ghi.','Pending captions saved; recording resumed.'],
+  chooseCaption:['Chọn khung phụ đề, sau đó bấm Bắt đầu ghi.','Select the caption region, then press Start recording.'],
+  rescueBeforeStart:['Cứu caption cũ đang chờ trước khi bắt đầu phiên mới.','Recover old pending captions before starting a new session.'],
+  noAcknowledgement:['Chưa nhận xác nhận lưu dữ liệu.','Data saving has not been acknowledged.'],
+  reloaded:['Extension đã được nạp lại. Dữ liệu trước đó còn trong thư viện; cứu caption đang chờ rồi tải lại trang họp khi thuận tiện.','The extension has reloaded. Previous data remains in the library; recover pending captions, then reload the meeting page when convenient.'],
+  bufferLimit:['Caption chờ lưu đã chạm giới hạn an toàn. Cứu dữ liệu đang chờ và kiểm tra thư viện.','Pending captions reached the safety limit. Recover pending data and check the library.'],
+  marked:['Đã đánh dấu thời điểm hiện tại.','Marked the current moment.'],
+  unknownCommand:['Unknown collector command','Unknown collector command']
+ };
+ const vi={},en={};for(const [key,value] of Object.entries(messages)){vi['toolbar.'+key]=value[0];en['toolbar.'+key]=value[1];}
+ globalThis.__meetScribeI18n.registerMessages({vi,en});
+})();

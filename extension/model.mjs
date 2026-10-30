@@ -1,4 +1,4 @@
-export const VERSION='1.2.0';
+export const VERSION='1.3.0';
 export function safeName(value=''){
  let name=String(value).normalize('NFC').replace(/[\x00-\x1f\x7f]+/g,' ').replace(/[<>:"/\\|?*]+/g,'-').replace(/^[.\s-]+|[.\s-]+$/g,'').replace(/\s+/g,' ').slice(0,80).trim();
  if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(name))name='_'+name;

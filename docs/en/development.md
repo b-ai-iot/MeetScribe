@@ -47,7 +47,7 @@ Executes fast Node.js built-in test runner across all `tests/*.test.mjs` files:
 ```bash
 npm test
 ```
-- **Scope (61 tests as of 2026-10-30 snapshot):** Caption candidate heuristics, exclusion filters (chat, roster, toolbar), widget grouping, visibility predicates (opacity and ancestry), scoped IndexedDB range queries, and ZIP structure, CRC and size guards (archive bytes are assembled in memory).
+- **Scope (75 tests as of the 1.3.0 verification snapshot):** Caption candidate heuristics, exclusion filters (chat, roster, toolbar), widget grouping, visibility predicates (opacity and ancestry), scoped IndexedDB range queries, and ZIP structure, CRC and size guards (archive bytes are assembled in memory).
 
 ### 2. Browser Integration Tests (`npm run test:browser`)
 Spawns an isolated real Google Chrome instance running automated DOM verification in `tests/browser.cjs`:
@@ -90,7 +90,7 @@ npm run package
 ```
 This script (`tools/package.py`) validates the manifest and creates:
 ```text
-dist/MeetScribe-1.2.0.zip
+dist/MeetScribe-1.3.0.zip
 ```
 Inside the archive is a self-contained `MeetScribe/` directory with `manifest.json`, background worker, content scripts, and icons.
 
@@ -121,3 +121,11 @@ npm run test:browser
 Before claiming real-world support for a change, manually check a Meet/Zoom web meeting with native captions enabled; toggling/replacing the caption container; correct manual share crop; canceling the OS directory picker without losing the prior setting; selecting a custom folder; reauthorizing after a full Chrome restart; and ZIP recovery after an ordinary export error. Use synthetic meeting content and a disposable profile. Record exactly what was tested, not just the test-suite totals.
 
 The software distribution ZIP includes the canonical [MIT license](../../LICENSE). `private: true` in package.json prevents accidental npm publishing; it does not make the GitHub source private.
+
+## Language regression tests
+
+```sh
+npm run test:language
+```
+
+This runs UI and toolbar checks plus an unpacked-extension VI/EN switching test. On Linux/Windows, set `MEETSCRIBE_TEST_CHROME` as above. Catalog tests compare VI/EN keys and interpolation placeholders.

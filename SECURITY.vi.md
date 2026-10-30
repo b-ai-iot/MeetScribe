@@ -4,7 +4,7 @@
 
 ## Mã được duy trì
 
-Việc duy trì tập trung vào `main` mới nhất (hiện là bản 1.2.0), theo khả năng của người duy trì. Chưa có cam kết thời gian phản hồi. Cập nhật trước khi báo lỗi và ghi commit/phiên bản, phiên bản Chrome, hệ điều hành.
+Việc duy trì tập trung vào `main` mới nhất (hiện là bản 1.3.0), theo khả năng của người duy trì. Chưa có cam kết thời gian phản hồi. Cập nhật trước khi báo lỗi và ghi commit/phiên bản, phiên bản Chrome, hệ điều hành.
 
 ## Báo cáo riêng tư
 

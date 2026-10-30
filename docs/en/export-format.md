@@ -2,7 +2,7 @@
 
 [Tiếng Việt](../vi/export-format.md) · [Documentation](../README.md)
 
-This page describes the files produced by version 1.2.0. Examples are illustrative subsets of the fields written by the [journal](../../extension/store.mjs), [capture pipeline](../../extension/offscreen.js) and [archiver](../../extension/archive.mjs).
+This page describes the files produced by version 1.3.0. Examples are illustrative subsets of the fields written by the [journal](../../extension/store.mjs), [capture pipeline](../../extension/offscreen.js) and [archiver](../../extension/archive.mjs).
 
 ## Session directory
 

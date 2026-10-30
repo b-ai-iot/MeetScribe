@@ -65,14 +65,14 @@ def main():
             elif parsed.fragment and target.suffix == ".md":
                 if unquote(parsed.fragment) not in headings(target):
                     errors.append(f"{page.relative_to(ROOT)}: missing heading: {raw}")
-    for name in ("toolbar.png", "library.png", "settings.png", "library-mobile.png"):
+    for name in ("toolbar.png", "library.png", "settings.png", "library-mobile.png", "toolbar-en.png", "library-en.png", "settings-en.png"):
         path = ROOT / "docs" / "images" / name
         if not path.is_file() or path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
             errors.append(f"Missing or invalid screenshot: docs/images/{name}")
     if errors:
         print("Documentation validation failed:\n" + "\n".join("- " + e for e in errors))
         return 1
-    print(f"Documentation OK: {len(pages)} pages, {links} local links, EN/VI guide parity and 4 PNGs.")
+    print(f"Documentation OK: {len(pages)} pages, {links} local links, EN/VI guide parity and 7 PNGs.")
     return 0
 
 

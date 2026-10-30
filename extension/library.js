@@ -1,3 +1,37 @@
+import { t, setLanguage, getLanguage, getLocale, loadLanguage, applyTranslations, watchLanguage, errorMessage, messageError } from './i18n.mjs';
+const localizedNodes = new Map();
+function localized(node, draw, attribute) {
+  if (attribute) {
+    const attributes = localizedNodes.get(node) || {};
+    attributes[attribute] = draw;
+    localizedNodes.set(node, attributes);
+    node.setAttribute(attribute, draw());
+  } else {
+    const attributes = localizedNodes.get(node) || {};
+    attributes.textContent = draw;
+    localizedNodes.set(node, attributes);
+    node.textContent = draw();
+  }
+  return node;
+}
+const label = (key, params = {}) => () => t(key, typeof params === 'function' ? params() : params);
+function setLabel(node, key, params = {}) { return localized(node, label(key, params)); }
+function setError(node, key, error) { setLabel(node, key, () => ({error: errorMessage(error)})); }
+function clearMessage() { localizedNodes.delete(message); message.textContent = ''; }
+function refreshLanguage(language) {
+  setLanguage(language);
+  document.documentElement.lang = getLanguage();
+  applyTranslations(document);
+  for (const [node, attributes] of localizedNodes) {
+    if (!node.isConnected) { localizedNodes.delete(node); continue; }
+    for (const [attribute, draw] of Object.entries(attributes)) {
+      if (attribute === 'textContent') node.textContent = draw();
+      else node.setAttribute(attribute, draw());
+    }
+  }
+}
+watchLanguage(refreshLanguage);
+
 const list = document.getElementById('sessions');
 const message = document.getElementById('message');
 const searchInput = document.getElementById('searchInput');
@@ -8,18 +42,21 @@ let searchTerm = '';
 
 async function command(type, data = {}) {
   if (!chrome?.runtime?.sendMessage) {
-    throw new Error('Chưa kết nối tiện ích.');
+    throw messageError('ui.notConnected');
   }
   const answer = await chrome.runtime.sendMessage({ scope: 'meetscribe', target: 'worker', type, ...data });
   if (!answer?.ok) {
-    throw new Error(answer?.error || 'Không kết nối được tiện ích.');
+    const error = new Error(answer?.error || t('ui.connectionFailed'));
+    if (answer?.errorCode) { error.code = answer.errorCode; error.params = answer.errorParams || {}; }
+    throw error;
   }
   return answer;
 }
 
 function el(tag, text, cls) {
   const node = document.createElement(tag);
-  if (text !== undefined) node.textContent = text;
+  if (typeof text === 'function') localized(node, text);
+  else if (text !== undefined) node.textContent = text;
   if (cls) node.className = cls;
   return node;
 }
@@ -29,10 +66,10 @@ function button(label, fn, cls) {
   node.onclick = async () => {
     node.disabled = true;
     try {
-      message.textContent = '';
+      clearMessage();
       await fn();
     } catch (e) {
-      message.textContent = e.message;
+      localized(message, () => errorMessage(e));
     } finally {
       node.disabled = false;
     }
@@ -42,13 +79,16 @@ function button(label, fn, cls) {
 
 function formatBytes(bytes) {
   if (!bytes || bytes <= 0) return '0 B';
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  if (bytes < 1024) return new Intl.NumberFormat(getLocale()).format(bytes) + ' B';
+  if (bytes < 1024 * 1024) return new Intl.NumberFormat(getLocale(), {minimumFractionDigits: 1, maximumFractionDigits: 1}).format(bytes / 1024) + ' KB';
+  return new Intl.NumberFormat(getLocale(), {minimumFractionDigits: 1, maximumFractionDigits: 1}).format(bytes / (1024 * 1024)) + ' MB';
 }
 
 async function render() {
   list.replaceChildren();
+  for (const node of localizedNodes.keys()) {
+    if (!node.isConnected) localizedNodes.delete(node);
+  }
   const term = searchTerm.toLowerCase().trim();
   const filtered = allSessions.filter(s => {
     if (!term) return true;
@@ -58,15 +98,15 @@ async function render() {
     return titleMatch || dateMatch || folderMatch;
   });
 
-  document.getElementById('sessionCount').textContent = allSessions.length;
+  localized(document.getElementById('sessionCount'), () => new Intl.NumberFormat(getLocale()).format(allSessions.length));
 
   if (!allSessions.length) {
-    list.append(el('div', 'Chưa có phiên nào. Mở Meet/Zoom web và bấm biểu tượng MeetScribe để bắt đầu.', 'empty'));
+    list.append(el('div', label('ui.empty'), 'empty'));
     return;
   }
 
   if (!filtered.length) {
-    list.append(el('div', `Không tìm thấy cuộc họp nào phù hợp với "${searchTerm}".`, 'empty'));
+    list.append(el('div', label('ui.noResults', {term: searchTerm}), 'empty'));
     return;
   }
 
@@ -77,23 +117,23 @@ async function render() {
 
     // Title row with rename
     const titleRow = el('div', undefined, 'title-row');
-    const title = el('h3', s.title || 'Cuộc họp');
+    const title = el('h3', s.title || label('ui.meeting'));
     title.className = 'session-title';
     titleRow.append(title);
 
     const cardError = el('p', '', 'meta warning error-text card-error');
     cardError.hidden = true;
 
-    const renameBtn = button('Đổi tên', async () => {
-      const newTitle = prompt('Nhập tên hiển thị mới cho cuộc họp:', s.title || '');
+    const renameBtn = button(label('ui.rename'), async () => {
+      const newTitle = prompt(t('ui.renamePrompt'), s.title || '');
       if (newTitle && newTitle.trim() && newTitle.trim() !== s.title) {
         try {
           await command('rename', { sid: s.id, title: newTitle.trim() });
           await loadAndRender();
         } catch (e) {
-          cardError.textContent = 'Lỗi đổi tên: ' + e.message;
+          setError(cardError, 'ui.renameError', e);
           cardError.hidden = false;
-          message.textContent = 'Lỗi đổi tên: ' + e.message;
+          setError(message, 'ui.renameError', e);
           throw e;
         }
       }
@@ -103,28 +143,28 @@ async function render() {
 
     // Metadata & state
     const meta = el('p', undefined, 'meta');
-    const statusMap = { recording: 'Đang thu', stopping: 'Đang đóng', completed: 'Đã dừng', interrupted: 'Gián đoạn' };
-    const status = statusMap[s.status] || s.status;
+    const statusMap = { recording: 'ui.recording', stopping: 'ui.stopping', completed: 'ui.completed', interrupted: 'ui.interrupted' };
+    const status = statusMap[s.status] ? label(statusMap[s.status]) : s.status;
     meta.append(el('span', status, 'state ' + (s.status === 'interrupted' ? 'warning' : '')));
-    meta.append(document.createTextNode(`${new Date(s.createdAt).toLocaleString('vi-VN')} · ${s.count || 0} caption · ${s.images || 0} ảnh`));
+    meta.append(el('span', label('ui.metadata', () => ({date: new Date(s.createdAt).toLocaleString(getLocale()), count: new Intl.NumberFormat(getLocale()).format(s.count || 0), images: new Intl.NumberFormat(getLocale()).format(s.images || 0)}))));
     info.append(meta);
 
     // File path & destination
     info.append(el('p', s.folder, 'path'));
     const isCustom = s.destination === 'customDirectory';
-    info.append(el('p', isCustom ? `Lưu cục bộ: ${s.destinationName || 'thư mục đã chọn'}` : 'Lưu vào: Thư mục tải xuống (Downloads)', 'meta dest-meta'));
+    info.append(el('p', isCustom ? label('ui.localDestination', () => ({name: s.destinationName || t('ui.chosenFolder')})) : label('ui.downloadsDestination'), 'meta dest-meta'));
 
     // Export status
     if (s.exportError) {
-      info.append(el('p', 'Lỗi lưu: ' + s.exportError, 'meta warning'));
+      info.append(el('p', label('ui.exportError', () => ({error: errorMessage({error:s.exportError,errorCode:s.exportErrorCode,errorParams:s.exportErrorParams})})), 'meta warning'));
     } else if (s.pendingExports) {
-      info.append(el('p', `${s.pendingExports} file chờ xuất · dữ liệu đã ở bản dự phòng`, 'meta warning'));
+      info.append(el('p', label('ui.pendingExports', () => ({count: new Intl.NumberFormat(getLocale()).format(s.pendingExports)})), 'meta warning'));
     } else {
-      info.append(el('p', 'Đã xác nhận xuất các file hiện có.', 'meta success'));
+      info.append(el('p', label('ui.exportConfirmed'), 'meta success'));
     }
 
     if (s.status === 'interrupted') {
-      info.append(el('p', 'Phiên có khoảng gián đoạn. Kiểm tra phạm vi caption trước khi lập biên bản.', 'meta warning'));
+      info.append(el('p', label('ui.interruptedWarning'), 'meta warning'));
     }
 
     // Lazy load session details (backup bytes, caption preview, thumbnails)
@@ -132,12 +172,13 @@ async function render() {
     info.append(detailsContainer);
 
     command('session-details', { sid: s.id }).then(details => {
+      if (!detailsContainer.isConnected) return;
       if (details.backupBytes !== undefined) {
-        detailsContainer.append(el('p', `${formatBytes(details.backupBytes)} bản dự phòng cục bộ`, 'meta backup-size'));
+        detailsContainer.append(el('p', label('ui.backupBytes', () => ({size: formatBytes(details.backupBytes)})), 'meta backup-size'));
       }
       if (details.captionTail) {
         const previewBox = el('div', undefined, 'caption-preview');
-        previewBox.append(el('span', 'Trích đoạn caption cuối: ', 'preview-label'));
+        previewBox.append(el('span', label('ui.captionTail'), 'preview-label'));
         const tailText = el('span', details.captionTail.slice(-200), 'preview-text');
         previewBox.append(tailText);
         detailsContainer.append(previewBox);
@@ -147,7 +188,8 @@ async function render() {
         for (const img of details.images) {
           const imgEl = document.createElement('img');
           imgEl.src = img.data;
-          imgEl.alt = img.name || 'Ảnh chụp màn hình chia sẻ';
+          if (img.name) imgEl.alt = img.name;
+          else localized(imgEl, label('ui.screenshot'), 'alt');
           imgEl.className = 'thumb';
           imgEl.loading = 'lazy';
           thumbs.append(imgEl);
@@ -166,44 +208,44 @@ async function render() {
     const actions = el('div', undefined, 'actions');
 
     if (s.pendingExports) {
-      actions.append(button('Thử xuất lại', async () => {
+      actions.append(button(label('ui.retryExport'), async () => {
         try {
           await command('retry', { sid: s.id });
           await loadAndRender();
         } catch (e) {
-          cardError.textContent = 'Lỗi xuất lại: ' + e.message;
+          setError(cardError, 'ui.retryError', e);
           cardError.hidden = false;
-          message.textContent = 'Lỗi xuất lại: ' + e.message;
+          setError(message, 'ui.retryError', e);
           throw e;
         }
       }, 'retry'));
     }
 
     if (s.destination === 'customDirectory' && s.destinationId && (s.exportError || s.pendingExports)) {
-      actions.append(button('Cấp lại quyền thư mục', () => {
+      actions.append(button(label('ui.restoreFolder'), () => {
         window.open('settings.html?destinationId=' + encodeURIComponent(s.destinationId));
       }));
     }
 
     if (typeof s.lastDownloadId === 'number') {
-      actions.append(button('Mở thư mục', () => command('show-folder', { sid: s.id })));
+      actions.append(button(label('ui.openFolder'), () => command('show-folder', { sid: s.id })));
     } else if (s.destination === 'customDirectory') {
-      actions.append(button('Vị trí: ' + (s.destinationName || 'Cục bộ'), () => {
-        alert('Dữ liệu lưu trong thư mục: ' + (s.destinationName || 'cục bộ') + ' / ' + s.folder);
+      actions.append(button(label('ui.location', () => ({name:s.destinationName || t('ui.local')})), () => {
+        alert(t('ui.locationAlert', {name:s.destinationName || t('ui.localLower'),folder:s.folder}));
       }));
     }
 
     const isActive = ['recording', 'stopping'].includes(s.status);
 
     if (isActive) {
-      actions.append(button('Dừng và lưu', async () => {
+      actions.append(button(label('ui.stopSave'), async () => {
         try {
           await command('stop', { sid: s.id });
           await loadAndRender();
         } catch (e) {
-          cardError.textContent = 'Lỗi dừng phiên: ' + e.message;
+          setError(cardError, 'ui.stopError', e);
           cardError.hidden = false;
-          message.textContent = 'Lỗi dừng phiên: ' + e.message;
+          setError(message, 'ui.stopError', e);
           throw e;
         }
       }));
@@ -212,20 +254,20 @@ async function render() {
       const doStopAndZip = async (opts = {}) => {
         if (retryActiveZipBtn) retryActiveZipBtn.hidden = true;
         zipStatus.hidden = false;
-        zipStatus.textContent = 'Đang dừng và đóng gói ZIP...';
+        setLabel(zipStatus, 'ui.stoppingZip');
         zipStatus.className = 'meta zip-status in-progress';
-        message.textContent = '';
+        clearMessage();
         try {
           const res = await command('export-zip', { sid: s.id, stopFirst: true, ...opts });
-          zipStatus.textContent = 'Đã lưu ZIP thành công: ' + (res.filename || '');
+          setLabel(zipStatus, 'ui.zipSaved', {filename:res.filename || ''});
           zipStatus.className = 'meta success zip-status';
           await loadAndRender();
         } catch (e) {
-          zipStatus.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          setError(zipStatus, 'ui.zipError', e);
           zipStatus.className = 'meta warning zip-status error-text';
-          cardError.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          setError(cardError, 'ui.zipError', e);
           cardError.hidden = false;
-          message.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          setError(message, 'ui.zipError', e);
           if (retryActiveZipBtn) {
             retryActiveZipBtn.hidden = false;
             retryActiveZipBtn.disabled = false;
@@ -234,15 +276,15 @@ async function render() {
         }
       };
 
-      actions.append(button('Dừng & Tải ZIP', async () => {
+      actions.append(button(label('ui.stopZip'), async () => {
         await doStopAndZip();
       }, 'zip-btn'));
 
-      actions.append(button('Dừng & Lưu ZIP (Save As...)', async () => {
+      actions.append(button(label('ui.stopZipSaveAs'), async () => {
         await doStopAndZip({ saveAs: true, destination: 'downloads' });
       }, 'zip-save-as-btn'));
 
-      retryActiveZipBtn = button('Thử lại xuất ZIP', async () => {
+      retryActiveZipBtn = button(label('ui.retryZip'), async () => {
         await doStopAndZip();
       }, 'retry zip-retry-btn');
       retryActiveZipBtn.hidden = true;
@@ -252,19 +294,19 @@ async function render() {
       const doExportZip = async (opts = {}) => {
         if (retryZipBtn) retryZipBtn.hidden = true;
         zipStatus.hidden = false;
-        zipStatus.textContent = 'Đang đóng gói và lưu ZIP...';
+        setLabel(zipStatus, 'ui.packagingZip');
         zipStatus.className = 'meta zip-status in-progress';
-        message.textContent = '';
+        clearMessage();
         try {
           const res = await command('export-zip', { sid: s.id, ...opts });
-          zipStatus.textContent = 'Đã lưu ZIP thành công: ' + (res.filename || '');
+          setLabel(zipStatus, 'ui.zipSaved', {filename:res.filename || ''});
           zipStatus.className = 'meta success zip-status';
         } catch (e) {
-          zipStatus.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          setError(zipStatus, 'ui.zipError', e);
           zipStatus.className = 'meta warning zip-status error-text';
-          cardError.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          setError(cardError, 'ui.zipError', e);
           cardError.hidden = false;
-          message.textContent = 'Lỗi xuất ZIP: ' + e.message;
+          setError(message, 'ui.zipError', e);
           if (retryZipBtn) {
             retryZipBtn.hidden = false;
             retryZipBtn.disabled = false;
@@ -275,24 +317,24 @@ async function render() {
 
       const destSelect = document.createElement('select');
       destSelect.className = 'zip-dest-select';
-      destSelect.setAttribute('aria-label', 'Vị trí lưu tệp ZIP');
+      localized(destSelect, label('ui.zipDestination'), 'aria-label');
       const optDefault = document.createElement('option');
       optDefault.value = 'default';
-      optDefault.textContent = isCustom ? `Thư mục phiên (${s.destinationName || 'cục bộ'})` : 'Thư mục Downloads';
+      localized(optDefault, isCustom ? label('ui.sessionDestination', () => ({name:s.destinationName || t('ui.localLower')})) : label('ui.downloadsFolder'));
       destSelect.append(optDefault);
       if (isCustom) {
         const optDl = document.createElement('option');
         optDl.value = 'downloads';
-        optDl.textContent = 'Thư mục Downloads';
+        setLabel(optDl, 'ui.downloadsFolder');
         destSelect.append(optDl);
       }
       const optSaveAs = document.createElement('option');
       optSaveAs.value = 'saveAs';
-      optSaveAs.textContent = 'Hỏi vị trí lưu (Save As...)';
+      setLabel(optSaveAs, 'ui.askSaveAs');
       destSelect.append(optSaveAs);
       actions.append(destSelect);
 
-      const zipBtn = button('Tải ZIP cho AI', async () => {
+      const zipBtn = button(label('ui.downloadZip'), async () => {
         const val = destSelect.value;
         const saveAs = val === 'saveAs';
         const destination = (saveAs || val === 'downloads') ? 'downloads' : (val === 'default' ? undefined : val);
@@ -300,12 +342,12 @@ async function render() {
       }, 'zip-btn');
       actions.append(zipBtn);
 
-      const saveAsBtn = button('Lưu ZIP (Save As...)', async () => {
+      const saveAsBtn = button(label('ui.saveZipAs'), async () => {
         await doExportZip({ saveAs: true, destination: 'downloads' });
       }, 'zip-save-as-btn');
       actions.append(saveAsBtn);
 
-      retryZipBtn = button('Thử lại xuất ZIP', async () => {
+      retryZipBtn = button(label('ui.retryZip'), async () => {
         const val = destSelect.value;
         const saveAs = val === 'saveAs';
         const destination = (saveAs || val === 'downloads') ? 'downloads' : (val === 'default' ? undefined : val);
@@ -315,16 +357,16 @@ async function render() {
       actions.append(retryZipBtn);
 
       // Confirmed deletion ONLY for stopped / completed sessions
-      const delBtn = button('Xóa phiên', async () => {
-        const ok = confirm(`Bạn có chắc chắn muốn xóa phiên họp "${s.title || 'này'}" và toàn bộ dữ liệu dự phòng cục bộ trong Chrome?`);
+      const delBtn = button(label('ui.delete'), async () => {
+        const ok = confirm(t('ui.deleteConfirm', {title:s.title || t('ui.thisMeeting')}));
         if (ok) {
           try {
             await command('delete', { sid: s.id });
             await loadAndRender();
           } catch (e) {
-            cardError.textContent = 'Lỗi xóa phiên: ' + e.message;
+            setError(cardError, 'ui.deleteError', e);
             cardError.hidden = false;
-            message.textContent = 'Lỗi xóa phiên: ' + e.message;
+            setError(message, 'ui.deleteError', e);
             throw e;
           }
         }
@@ -346,7 +388,7 @@ async function loadAndRender() {
     allSessions = res.sessions || [];
     await render();
   } catch (e) {
-    if (message) message.textContent = 'Chưa đọc được thư viện: ' + e.message;
+    if (message) setError(message, 'ui.libraryReadError', e);
   }
 }
 
@@ -370,4 +412,4 @@ if (clearSearchBtn) {
 
 document.getElementById('refresh').onclick = loadAndRender;
 
-loadAndRender();
+loadLanguage().then(language => { refreshLanguage(language); return loadAndRender(); });

@@ -1,6 +1,7 @@
 const {chromium}=require('playwright');
 const http=require('node:http'),fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../extension');
+async function injectI18n(page){for(const file of ['i18n.js','i18n-ui.js','i18n-toolbar.js','i18n-system.js'])await page.addScriptTag({path:root+'/'+file});}
 (async()=>{
  await fs.mkdir(path.resolve(__dirname,'../artifacts'),{recursive:true});
  const server=http.createServer(async(req,res)=>{try{const file=path.join(root,new URL(req.url,'http://test').pathname);if(!file.startsWith(root+'/'))throw Error();res.setHeader('Content-Type',file.endsWith('.mjs')||file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(await fs.readFile(file));}catch{res.writeHead(404).end();}}).listen(0,'127.0.0.1');
@@ -214,7 +215,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   }}};
   window.cmd=(type,data={})=>new Promise(r=>handlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
  });
- await ui.addScriptTag({path:root+'/content.js'});
+ await injectI18n(ui);await ui.addScriptTag({path:root+'/content.js'});
  const css=await fs.readFile(root+'/overlay.css','utf8');await ui.evaluate(css=>cmd('mount',{css}),css);
  await ui.getByRole('button',{name:'Bắt đầu ghi',exact:true}).evaluate(el=>{el.click();el.click();});
  await ui.waitForFunction(()=>starts===1);
@@ -309,7 +310,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   window.zcmd=(type,data={})=>new Promise(r=>zhandlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
  });
  await zoom.addScriptTag({path:root+'/captions.js'});
- await zoom.addScriptTag({path:root+'/content.js'});await zoom.evaluate(css=>zcmd('mount',{css}),css);
+ await injectI18n(zoom);await zoom.addScriptTag({path:root+'/content.js'});await zoom.evaluate(css=>zcmd('mount',{css}),css);
  await zoom.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
  await zoom.locator('.live-transcription-subtitle__box').evaluate(el=>el.innerText='Bao: Zoom caption cuối');
  await zoom.getByRole('button',{name:'Dừng và lưu',exact:true}).click();
@@ -332,7 +333,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   window.mcmd=(type,data={})=>new Promise(r=>mhandlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
  });
  await meet.addScriptTag({path:root+'/captions.js'});
- await meet.addScriptTag({path:root+'/content.js'});
+ await injectI18n(meet);await meet.addScriptTag({path:root+'/content.js'});
  await meet.evaluate(css=>mcmd('mount',{css}),css);
  await meet.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
 
@@ -392,7 +393,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  await scaleCheck.evaluate(()=>{
   window.handlers=[];window.chrome={runtime:{id:'fixture',onMessage:{addListener(fn){handlers.push(fn);}},sendMessage(){return Promise.resolve({ok:true});}}};
  });
- await scaleCheck.addScriptTag({path:root+'/content.js'});
+ await injectI18n(scaleCheck);await scaleCheck.addScriptTag({path:root+'/content.js'});
  await scaleCheck.evaluate(css=>handlers[0]({scope:'meetscribe',target:'content',type:'mount',css},{id:'fixture'},()=>{}),css);
  const toolbar=scaleCheck.locator('meetscribe-toolbar');
  // Scale to 12px

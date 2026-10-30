@@ -32,6 +32,11 @@ jobs:
           export MEETSCRIBE_TEST_CHROME="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
           npm run test:browser
       - run: npm run test:extension
+      - name: VI/EN language regression checks
+        shell: bash
+        run: |
+          export MEETSCRIBE_TEST_CHROME="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
+          npm run test:language
       - run: npm run package
       - name: Verify packaged license
         run: |

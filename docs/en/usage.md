@@ -9,7 +9,7 @@ This comprehensive guide explains how to use MeetScribe during meetings, manage 
 ## Meeting Workflow Overview
 
 <p align="center">
-  <img src="../images/toolbar.png" alt="MeetScribe floating toolbar during a meeting" width="800" /><br />
+  <img src="../images/toolbar-en.png" alt="MeetScribe floating toolbar during a meeting" width="800" /><br />
   <em>MeetScribe floating toolbar during an active meeting (synthetic Google Meet demonstration).</em>
 </p>
 
@@ -25,7 +25,7 @@ Click the **MeetScribe** icon on your Chrome extensions toolbar. A translucent f
 
 ### Step 3: Floating Toolbar Controls
 
-The toolbar interface is in Vietnamese. Below is the exact reference mapping each Vietnamese UI label to its English translation and behavior:
+The toolbar supports Vietnamese and English. The reference below maps both labels to the same action:
 
 | Vietnamese Label | English Translation | Action & Behavior |
 | :--- | :--- | :--- |
@@ -65,7 +65,7 @@ When a participant shares their screen:
 ## Session Library (`library.html`)
 
 <p align="center">
-  <img src="../images/library.png" alt="MeetScribe session library interface" width="800" /><br />
+  <img src="../images/library-en.png" alt="MeetScribe session library interface" width="800" /><br />
   <em>Session library page (synthetic demonstration sessions showing export status, backup size, and ZIP buttons).</em>
 </p>
 
@@ -90,7 +90,7 @@ The library lists all past sessions stored in your browser's IndexedDB backup:
 ## Settings (`settings.html`)
 
 <p align="center">
-  <img src="../images/settings.png" alt="MeetScribe settings page" width="800" /><br />
+  <img src="../images/settings-en.png" alt="MeetScribe settings page" width="800" /><br />
   <em>Settings page showing toolbar appearance controls and storage destination options.</em>
 </p>
 
@@ -109,3 +109,11 @@ For detailed information on exported file formats and AI integration, see [Expor
 ## Narrow-window example
 
 [View the narrow library screenshot](../images/library-mobile.png). This demonstrates responsive layout in desktop Chrome, not support for mobile Chrome extensions. All screenshot content is synthetic; see [provenance](../images/README.md).
+
+## Interface language
+
+Open **Settings → Interface language**, choose **Tiếng Việt** or **English**, then click **Save settings**. Vietnamese is the default for new and existing installations without a saved preference. **Reset to defaults** also restores Vietnamese. Already-open library/settings pages and the meeting toolbar update in place, including status/error text, labels and dates. Caption/share selection, in-memory caption updates and active recording are preserved.
+
+This setting does not change Meet/Zoom's caption language or translate captured captions, titles, folder names or raw JSON fields. Generated transcript/AI instruction headings follow the selected UI language; raw captured content remains intact. Chrome-managed extension installation strings follow the browser locale; the explicit preference controls MeetScribe's own UI and action tooltip.
+
+![Settings in English](../images/settings-en.png)

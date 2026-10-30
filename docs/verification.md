@@ -35,3 +35,13 @@ Luồng ZIP sản phẩm được kiểm tra với dữ liệu nhị phân 1 MiB
 Kết quả tự động không xác nhận hành vi trong cuộc gọi Meet/Zoom thật, hộp chọn thư mục của hệ điều hành hoặc quyền truy cập còn sau khi khởi động lại toàn bộ Chrome. Cần thực hiện checklist thủ công trong hướng dẫn phát triển. Ảnh nội dung chia sẻ là các mẫu được chọn, không phải bản ghi video đầy đủ.
 
 Tài liệu mã nguồn mở có kiểm tra liên kết nội bộ, đối xứng EN/VI và ảnh bằng `npm run docs:check`. Tạo lại ảnh bằng `npm run docs:screenshots`; [nguồn ảnh](images/README.md) giải thích dữ liệu demo. Cấu hình CI nằm trong [ci.yml](../.github/workflows/ci.yml). Có workflow không đồng nghĩa một lần chạy từ xa đã thành công; xem kết quả tại GitHub Actions.
+
+## 1.3.0 language setting / Cài đặt ngôn ngữ
+
+The VI/EN feature adds catalog/interpolation parity tests, preference migration/reset and rapid-change race tests, plus three focused browser/extension checks: `tests/language-ui.cjs`, `tests/language-toolbar.cjs` and `tests/language-extension.cjs`. The unpacked-extension test switches Settings/Library/toolbar while collecting, verifies the final caption batch and structured worker errors, reload/reset persistence, and English ZIP helper text with untouched Vietnamese raw captions. Native DOMException details and nested retained errors have separate regressions.
+
+Tính năng VI/EN bổ sung test đối xứng khóa/biến nội suy, chuyển đổi/đặt lại cấu hình và đua đọc khi đổi nhanh, cùng ba kiểm tra UI/thanh nổi/tiện ích ở các tệp nêu trên. Bài unpacked chuyển ngôn ngữ trong lúc thu, xác minh lô caption cuối, mã lỗi worker, lưu qua tải lại/đặt lại và hướng dẫn ZIP tiếng Anh trong khi caption tiếng Việt giữ nguyên. Lỗi DOMException gốc và lỗi lồng nhau đã lưu có kiểm thử riêng.
+
+Run / Chạy: `npm test`, `npm run test:browser`, `npm run test:extension`, `npm run test:language`, `npm run docs:check`, `npm run package`. Screenshots now include both UI languages; real-call/OS-picker boundaries above remain unchanged. / Ảnh có cả hai ngôn ngữ; giới hạn về cuộc họp thật/hộp chọn thư mục vẫn như trên.
+
+Final local 1.3.0 result / Kết quả cục bộ cuối bản 1.3.0: **75 unit tests, 22 browser checks, legacy extension smoke checks and all three language suites passed**. Documentation validation checked 27 pages, 195 local links and 7 PNG images. Both native locale JSONs, shared catalogs and MIT license were verified in `dist/MeetScribe-1.3.0.zip`. Independent review confirmed native/nested error fixes and consistent invalid-language fallback; visual checks covered English/Vietnamese at desktop and narrow widths. / Rà soát độc lập xác nhận sửa lỗi gốc/lỗi lồng nhau và ngôn ngữ không hợp lệ thống nhất; bố cục được kiểm tra ở cả hai ngôn ngữ, cửa sổ rộng và hẹp.

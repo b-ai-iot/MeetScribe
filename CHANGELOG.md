@@ -10,6 +10,12 @@
 - Add local documentation validation and a GitHub Actions verification workflow.
 - Make browser tests create their output directory in a fresh checkout. No extension UI language or runtime feature change.
 
+## 1.3.0 — 2026-10-30
+
+- Add persisted VI/EN interface language in Settings, with live updates across open pages and an active toolbar.
+- Translate static/dynamic UI, accessible labels, error/recovery messages and generated export helper text; keep captured data unchanged.
+- Add native Chrome locale metadata, migration/reset behavior and regression coverage for live capture, reload, native error details and async preference races.
+
 ## 1.2.0 — 2026-10-30
 
 - Add opacity/font settings, remembered toolbar position/compact mode and reset.

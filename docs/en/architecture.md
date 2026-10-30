@@ -2,7 +2,7 @@
 
 [Tiếng Việt](../vi/architecture.md) · [Documentation](../README.md)
 
-MeetScribe is a Chrome Manifest V3 extension. It runs directly from `extension/` without a production bundler or runtime dependency. The following describes version 1.2.0.
+MeetScribe is a Chrome Manifest V3 extension. It runs directly from `extension/` without a production bundler or runtime dependency. The following describes version 1.3.0.
 
 ## Components and data flow
 

@@ -4,7 +4,7 @@
 
 ## Supported code
 
-Maintenance focuses on the latest `main` (currently version 1.2.0), on a best-effort basis. There is no published response-time commitment. Update before reporting a problem and include the commit/version, Chrome version and operating system.
+Maintenance focuses on the latest `main` (currently version 1.3.0), on a best-effort basis. There is no published response-time commitment. Update before reporting a problem and include the commit/version, Chrome version and operating system.
 
 ## Reporting privately
 

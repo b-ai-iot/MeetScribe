@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MeetScribe · Cài đặt</title>
+  <title data-i18n="ui.settingsTitle">MeetScribe · Cài đặt</title>
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
@@ -16,115 +16,122 @@
         MeetScribe
       </a>
       <div class="nav-links">
-        <a class="nav-link" href="library.html">Thư viện cuộc họp</a>
+        <a class="nav-link" href="library.html" data-i18n="ui.libraryLink">Thư viện cuộc họp</a>
       </div>
     </nav>
 
     <header>
-      <p class="eyebrow">TÙY CHỈNH GIAO DIỆN VÀ LƯU TRỮ</p>
-      <h1>Cài đặt MeetScribe</h1>
-      <p class="intro">Tùy biến thanh nổi trên màn hình họp và chọn nơi lưu trữ các phiên ghi chú.</p>
+      <p class="eyebrow" data-i18n="ui.settingsEyebrow">TÙY CHỈNH GIAO DIỆN VÀ LƯU TRỮ</p>
+      <h1 data-i18n="ui.settingsHeading">Cài đặt MeetScribe</h1>
+      <p class="intro" data-i18n="ui.settingsIntro">Tùy biến thanh nổi trên màn hình họp và chọn nơi lưu trữ các phiên ghi chú.</p>
     </header>
 
     <div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div>
 
     <form id="settingsForm">
       <section class="card">
-        <h2>Giao diện thanh nổi</h2>
-        <p class="desc">Chỉnh độ mờ nền và cỡ chữ hiển thị trên thanh ghi họp. Chữ luôn giữ độ rõ 100%.</p>
+        <h2 data-i18n="ui.language">Ngôn ngữ giao diện</h2>
+        <p class="desc" data-i18n="ui.languageDesc">Chọn ngôn ngữ cho MeetScribe. Phụ đề đã thu và dữ liệu cuộc họp giữ nguyên.</p>
+        <div class="field"><label for="languageInput" data-i18n="ui.language">Ngôn ngữ giao diện</label>
+          <select id="languageInput" name="language"><option value="vi" lang="vi">Tiếng Việt</option><option value="en" lang="en">English</option></select>
+        </div>
+      </section>
+      <section class="card">
+        <h2 data-i18n="ui.appearance">Giao diện thanh nổi</h2>
+        <p class="desc" data-i18n="ui.appearanceDesc">Chỉnh độ mờ nền và cỡ chữ hiển thị trên thanh ghi họp. Chữ luôn giữ độ rõ 100%.</p>
 
         <div class="field">
           <div class="field-header">
-            <label for="opacityInput">Độ mờ nền thanh nổi</label>
+            <label for="opacityInput" data-i18n="ui.opacity">Độ mờ nền thanh nổi</label>
             <span id="opacityVal" class="value-badge">96%</span>
           </div>
           <input type="range" id="opacityInput" name="opacity" min="40" max="100" step="1" value="96" aria-describedby="opacityDesc">
           <div class="range-labels">
-            <span>40% (Trong suốt hơn)</span>
-            <span>96% (Mặc định)</span>
-            <span>100% (Đậm hoàn toàn)</span>
+            <span data-i18n="ui.opacityLow">40% (Trong suốt hơn)</span>
+            <span data-i18n="ui.opacityDefault">96% (Mặc định)</span>
+            <span data-i18n="ui.opacityHigh">100% (Đậm hoàn toàn)</span>
           </div>
         </div>
 
         <div class="field">
           <div class="field-header">
-            <label for="fontSizeInput">Cỡ chữ hiển thị</label>
+            <label for="fontSizeInput" data-i18n="ui.fontSize">Cỡ chữ hiển thị</label>
             <span id="fontSizeVal" class="value-badge">14px</span>
           </div>
           <input type="range" id="fontSizeInput" name="fontSize" min="12" max="18" step="1" value="14" aria-describedby="fontSizeDesc">
           <div class="range-labels">
-            <span>12px (Nhỏ gọn)</span>
-            <span>14px (Mặc định)</span>
-            <span>18px (Lớn)</span>
+            <span data-i18n="ui.fontSmall">12px (Nhỏ gọn)</span>
+            <span data-i18n="ui.fontDefault">14px (Mặc định)</span>
+            <span data-i18n="ui.fontLarge">18px (Lớn)</span>
           </div>
         </div>
 
         <div class="field">
-          <label>Xem trước giao diện</label>
+          <label data-i18n="ui.preview">Xem trước giao diện</label>
           <div class="preview-container">
             <div id="previewPanel" class="preview-panel">
-              <p><strong>MeetScribe · Đang ghi nhận phụ đề</strong></p>
-              <p class="preview-sub">Phụ đề mẫu: "Chúng tôi đã hoàn thành mục tiêu quý này..."</p>
+              <p><strong data-i18n="ui.previewRecording">MeetScribe · Đang ghi nhận phụ đề</strong></p>
+              <p class="preview-sub" data-i18n="ui.previewCaption">Phụ đề mẫu: "Chúng tôi đã hoàn thành mục tiêu quý này..."</p>
             </div>
           </div>
         </div>
       </section>
 
       <section id="sessionRepairSection" class="card" hidden>
-        <h2>Cấp lại quyền thư mục cho phiên họp cũ</h2>
-        <p class="desc">Phiên họp này được ghim lưu vào thư mục cục bộ riêng. Bạn có thể cấp lại quyền ghi mà không thay đổi vị trí lưu mặc định của các phiên mới.</p>
+        <h2 data-i18n="ui.repairHeading">Cấp lại quyền thư mục cho phiên họp cũ</h2>
+        <p class="desc" data-i18n="ui.repairDesc">Phiên họp này được ghim lưu vào thư mục cục bộ riêng. Bạn có thể cấp lại quyền ghi mà không thay đổi vị trí lưu mặc định của các phiên mới.</p>
         <div class="dest-details" style="display:flex!important">
           <div>
-            <div><strong>Thư mục của phiên:</strong> <span id="repairDirName">Đang tải…</span></div>
-            <div class="dest-status" id="repairDirStatus">Đang kiểm tra quyền…</div>
+            <div><strong data-i18n="ui.sessionFolder">Thư mục của phiên:</strong> <span id="repairDirName" data-i18n="ui.loading">Đang tải…</span></div>
+            <div class="dest-status" id="repairDirStatus" data-i18n="ui.checkingPermission">Đang kiểm tra quyền…</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button type="button" id="reauthorizeSessionDirBtn" class="btn-secondary">Cấp lại quyền ghi cho thư mục này</button>
+            <button type="button" id="reauthorizeSessionDirBtn" class="btn-secondary" data-i18n="ui.repairButton">Cấp lại quyền ghi cho thư mục này</button>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <h2>Vị trí lưu trữ dữ liệu</h2>
-        <p class="desc">Chọn nơi xuất các tệp caption, ảnh chụp và biên bản cuộc họp.</p>
+        <h2 data-i18n="ui.storageHeading">Vị trí lưu trữ dữ liệu</h2>
+        <p class="desc" data-i18n="ui.storageDesc">Chọn nơi xuất các tệp caption, ảnh chụp và biên bản cuộc họp.</p>
 
         <div class="radio-group">
           <label class="radio-option">
             <input type="radio" name="destination" value="downloads" checked>
             <div class="radio-info">
-              <div class="radio-title">Thư mục Tải xuống (Downloads)</div>
-              <div class="radio-desc">Lưu tự động vào thư mục Downloads mặc định của trình duyệt Chrome.</div>
+              <div class="radio-title" data-i18n="ui.downloadsChoice">Thư mục Tải xuống (Downloads)</div>
+              <div class="radio-desc" data-i18n="ui.downloadsDesc">Lưu tự động vào thư mục Downloads mặc định của trình duyệt Chrome.</div>
             </div>
           </label>
 
           <label class="radio-option">
             <input type="radio" name="destination" value="customDirectory">
             <div class="radio-info">
-              <div class="radio-title">Thư mục cục bộ tùy chọn</div>
-              <div class="radio-desc">Lưu trực tiếp vào thư mục do bạn chỉ định trên máy tính.</div>
+              <div class="radio-title" data-i18n="ui.customChoice">Thư mục cục bộ tùy chọn</div>
+              <div class="radio-desc" data-i18n="ui.customDesc">Lưu trực tiếp vào thư mục do bạn chỉ định trên máy tính.</div>
             </div>
           </label>
         </div>
 
         <div id="customDirSection" class="dest-details" hidden>
           <div>
-            <div><strong>Thư mục đã chọn:</strong> <span id="customDirName">Chưa chọn thư mục</span></div>
-            <div class="dest-status" id="customDirStatus">Chưa cấp quyền ghi</div>
+            <div><strong data-i18n="ui.selectedFolder">Thư mục đã chọn:</strong> <span id="customDirName" data-i18n="ui.noFolder">Chưa chọn thư mục</span></div>
+            <div class="dest-status" id="customDirStatus" data-i18n="ui.noPermission">Chưa cấp quyền ghi</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button type="button" id="reauthorizeDirBtn" class="btn-secondary" hidden>Cấp lại quyền</button>
-            <button type="button" id="chooseDirBtn" class="btn-secondary">Chọn thư mục…</button>
+            <button type="button" id="reauthorizeDirBtn" class="btn-secondary" hidden data-i18n="ui.reauthorize">Cấp lại quyền</button>
+            <button type="button" id="chooseDirBtn" class="btn-secondary" data-i18n="ui.chooseFolder">Chọn thư mục…</button>
           </div>
         </div>
       </section>
 
       <div class="actions">
-        <button type="submit" class="btn-primary" id="saveBtn">Lưu cài đặt</button>
-        <button type="button" class="btn-secondary" id="resetBtn">Đặt lại mặc định</button>
+        <button type="submit" class="btn-primary" id="saveBtn" data-i18n="ui.save">Lưu cài đặt</button>
+        <button type="button" class="btn-secondary" id="resetBtn" data-i18n="ui.reset">Đặt lại mặc định</button>
       </div>
     </form>
 
-    <footer>
+    <footer data-i18n="ui.settingsFooter">
       Dữ liệu được lưu trữ trực tiếp trên thiết bị của bạn. MeetScribe không gửi dữ liệu tới máy chủ bên ngoài.
     </footer>
   </main>

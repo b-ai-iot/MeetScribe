@@ -18,7 +18,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   const css=await fs.readFile(extension+'/overlay.css','utf8');
   await worker.evaluate(async css=>{
    const [tab]=await chrome.tabs.query({url:'https://meet.google.com/*'});
-   await chrome.scripting.executeScript({target:{tabId:tab.id},files:['content.js']});
+   await chrome.scripting.executeScript({target:{tabId:tab.id},files:['i18n.js','i18n-ui.js','i18n-toolbar.js','i18n-system.js','captions.js','content.js']});
    await chrome.tabs.sendMessage(tab.id,{scope:'meetscribe',target:'content',type:'mount',css});
   },css);
   console.log('Content toolbar mounted');

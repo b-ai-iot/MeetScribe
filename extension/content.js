@@ -1,10 +1,12 @@
 (() => {
+ const i18n=globalThis.__meetScribeI18n;
+ const t=(key,params={})=>i18n.t('toolbar.'+key,params);
  const prior=globalThis.__meetScribe;
  if(prior?.valid())return;
  const recovered=prior?.dispose()||[];
  let caption=null,share=null,captionSource='auto',observer=null,picker=null,session=null,running=false,starting=false,stopping=false,lost=false;
  let buffer=recovered,sequence=0,last='',flushTimer=null,flight=null,healthBusy=false,pendingBytes=0;
- let host=null,root=null,collapsed=false,notice='',noticeKind='info',healthTimer;
+ let host=null,root=null,collapsed=false,notice='',noticeKind='info',healthTimer,refreshPicker=null;
  const visible = el => {
   if (globalThis.__meetScribeCaptions?.isElementVisible) {
    return globalThis.__meetScribeCaptions.isElementVisible(el);
@@ -48,8 +50,8 @@
  async function send(type,data={}){
   try{
    const result=await chrome.runtime.sendMessage({scope:'meetscribe',target:'worker',type,sid:session?.id,...data});
-   if(!result?.ok)throw Error(result?.error||'Chưa nhận xác nhận lưu dữ liệu.');return result;
-  }catch(e){if(/context invalidated/i.test(e.message)){lost=true;clearInterval(healthTimer);fault('Extension đã được nạp lại. Dữ liệu trước đó còn trong thư viện; cứu caption đang chờ rồi tải lại trang họp khi thuận tiện.');}throw e;}
+   if(!result?.ok)throw Error(result?.errorCode||result?.error||result?.message?i18n.errorMessage(result):t('noAcknowledgement'));return result;
+  }catch(e){if(/context invalidated/i.test(e.message)){lost=true;clearInterval(healthTimer);fault(t('reloaded'));}throw e;}
  }
  function discover(){
   if(globalThis.__meetScribeCaptions?.findCaptionContainer){
@@ -75,7 +77,7 @@
   if(!visible(caption))reacquireIfNeeded();
   if(!visible(caption))return;
   const text=caption.innerText?.trim();if(!text)return;if(text===last)return;
-  if(text.length>2000000||buffer.length>=20000||pendingBytes+text.length*2>128*1024*1024){fault('Caption chờ lưu đã chạm giới hạn an toàn. Cứu dữ liệu đang chờ và kiểm tra thư viện.');return;}
+  if(text.length>2000000||buffer.length>=20000||pendingBytes+text.length*2>128*1024*1024){fault(t('bufferLimit'));return;}
   last=text;buffer.push({sequence:++sequence,timestamp:new Date().toISOString(),text,speaker:null});pendingBytes+=text.length*2;
   if(!flushTimer)flushTimer=setTimeout(()=>{flushTimer=null;flush().catch(e=>fault(e.message));},10000);
   if(buffer.length>=100)flush().catch(e=>fault(e.message));
@@ -110,25 +112,26 @@
   const frame=document.createElement('div'),tip=document.createElement('div');
   frame.style.cssText='position:fixed;z-index:2147483646;pointer-events:none;border:3px solid #59e2c0;border-radius:8px;background:#59e2c012;';
   tip.style.cssText='position:fixed;z-index:2147483647;top:16px;left:16px;max-width:calc(100vw - 48px);padding:14px 18px;border-radius:12px;background:#142c29;color:#f0fdfa;font:14px/1.5 system-ui;pointer-events:none;box-shadow:0 8px 32px #0005';
-  tip.textContent=`Chọn ${kind==='caption'?'khung phụ đề':'nội dung màn hình đang chia sẻ'} · cuộn để mở rộng vùng · Esc để hủy`;
+  let tipKey=kind==='caption'?'pickCaption':'pickShare';
+  refreshPicker=()=>{tip.textContent=t(tipKey);};refreshPicker();
   document.documentElement.append(frame,tip);
   const draw=()=>{if(!target)return;const r=target.getBoundingClientRect();Object.assign(frame.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});};
   const move=e=>{if(e.composedPath().includes(host))return;target=e.target;draw();};
   const wheel=e=>{e.preventDefault();if(target?.parentElement){target=target.parentElement;draw();}};
-  const key=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();cleanup();noticeKind='info';notice='Đã hủy chọn vùng.';render();}};
-  const cleanup=()=>{for(const [name,fn] of [['pointermove',move],['click',click],['keydown',key],['wheel',wheel]])document.removeEventListener(name,fn,true);frame.remove();tip.remove();picker=null;};
+  const key=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();cleanup();noticeKind='info';notice=t('pickCancelled');render();}};
+  const cleanup=()=>{for(const [name,fn] of [['pointermove',move],['click',click],['keydown',key],['wheel',wheel]])document.removeEventListener(name,fn,true);frame.remove();tip.remove();picker=null;refreshPicker=null;};
   const click=e=>{
    if(e.composedPath().includes(host))return;
    e.preventDefault();e.stopImmediatePropagation();
-   if(!target||target===document.body||target===document.documentElement){tip.textContent='Chọn khung nhỏ hơn toàn trang để tránh lưu nội dung không liên quan.';return;}
-   if(kind==='caption'){caption=target;captionSource='manual';bind();cleanup();noticeKind='info';notice='Đã chọn phụ đề thủ công. Bấm Bắt đầu khi sẵn sàng.';render();}
-   else {share=target;cleanup();action(async()=>{if(!running)throw Error('Bắt đầu ghi caption trước khi bật ảnh share.');const result=await send('visual-start');setSession(result.session);notice='Đã chọn vùng share; đang tự lọc ảnh theo thay đổi.';});}
+   if(!target||target===document.body||target===document.documentElement){tipKey='pickSmaller';refreshPicker();return;}
+   if(kind==='caption'){caption=target;captionSource='manual';bind();cleanup();noticeKind='info';notice=t('captionSelected');render();}
+   else {share=target;cleanup();action(async()=>{if(!running)throw Error(t('startBeforeShare'));const result=await send('visual-start');setSession(result.session);notice=t('shareSelected');});}
   };
   document.addEventListener('pointermove',move,true);document.addEventListener('wheel',wheel,{capture:true,passive:false});document.addEventListener('click',click,true);document.addEventListener('keydown',key,true);picker=cleanup;
  }
  function rescue(){
   const blob=new Blob([buffer.map(e=>JSON.stringify(e)).join('\n')+'\n'],{type:'application/x-ndjson'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='MeetScribe-caption-recovery-'+new Date().toISOString().replace(/[:.]/g,'-')+'.jsonl';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  notice=`Đã yêu cầu tải ${buffer.length} caption đang chờ. Kiểm tra file tải xuống trước khi đóng tab.`;render();
+  notice=t('rescued',{count:buffer.length});render();
  }
  async function action(fn){try{notice='';noticeKind='info';await fn();}catch(e){notice=e.message;noticeKind='error';}finally{render();}}
  function render(){
@@ -139,27 +142,31 @@
   $('start').disabled=starting||stopping||lost||buffer.length>0&&!running;
   $('stop').disabled=stopping;
   $('retry').hidden=lost||running||!['recording','stopping'].includes(session?.status);$('retry').disabled=stopping;
-  $('startLabel').textContent=starting?'Đang chuẩn bị…':'Bắt đầu ghi';
-  $('stopLabel').textContent=stopping?'Đang lưu…':'Dừng và lưu';
+  i18n.applyTranslations(root);refreshPicker?.();
+  $('startLabel').textContent=t(starting?'preparingEllipsis':'start');
+  $('stopLabel').textContent=t(stopping?'savingEllipsis':'stop');
   $('caption').disabled=lost||stopping;$('share').disabled=!running||stopping||lost;$('mark').disabled=!running||lost||stopping;
   $('rescue').hidden=!notice&&!lost||buffer.length===0&&!lost;
-  const status=lost?'Cần kết nối lại':notice&&noticeKind==='error'?'Cần kiểm tra':stopping?'Đang lưu phiên':starting?'Đang chuẩn bị':running?(visible(caption)?(session?.count?'Đang ghi':'Chờ caption'):'Mất vùng caption'):session?.status==='completed'?'Đã dừng':session?.status==='interrupted'?'Phiên gián đoạn':'Sẵn sàng';
+  const status=t(lost?'reconnect':notice&&noticeKind==='error'?'check':stopping?'saving':starting?'preparing':running?(visible(caption)?(session?.count?'recording':'waitingCaption'):'lostCaptionStatus'):session?.status==='completed'?'stopped':session?.status==='interrupted'?'interrupted':'ready');
   $('status').textContent=status;$('compactText').textContent=status;
   $('dot').dataset.state=lost||notice&&noticeKind==='error'?'error':running?'live':'idle';
-  const healthWarning=running&&!visible(caption)?'Mất vùng caption. Chọn lại khung phụ đề để tiếp tục.':running&&session?.visual==='ready'&&!rectangle()?'Mất vùng share. Chọn lại vùng share; caption vẫn tiếp tục.':'';
-  $('message').textContent=(noticeKind==='error'&&notice?notice:healthWarning||notice)|| (running?(session?.visual==='unavailable'?'Caption đang lưu · chưa lấy được ảnh share.':session?.visual==='ready'&&!rectangle()?'Mất vùng share. Chọn lại vùng share; caption vẫn tiếp tục.':session?.visual==='ready'?'Tự lưu caption và chọn ảnh từ vùng share đã xác nhận.':'Caption tự lưu. Chọn vùng share khi có trình chiếu.'):'Bật phụ đề cuộc họp, kiểm tra vùng caption rồi bắt đầu.');
-  $('metrics').textContent=`${session?.count||0} caption · ${session?.images||0} ảnh`;
+  const healthWarning=running&&!visible(caption)?t('lostCaption'):running&&session?.visual==='ready'&&!rectangle()?t('lostShare'):'';
+  const translatedNotice=i18n.translateMessage(notice);
+  $('message').textContent=(noticeKind==='error'&&notice?translatedNotice:healthWarning||translatedNotice)||t(running?(session?.visual==='unavailable'?'visualUnavailable':session?.visual==='ready'&&!rectangle()?'lostShare':session?.visual==='ready'?'visualReady':'captionOnly'):'initialHint');
+  $('metrics').textContent=t('metrics',{captions:session?.count||0,images:session?.images||0});
   const isCustomDest=session?.destination==='customDirectory';
-  const customTarget=session?.destinationName||'thư mục đã chọn';
-  $('storage').textContent=session?.exportError?'Lỗi xuất file · bản dự phòng còn nguyên':session?.pendingExports?`${session.pendingExports} file đang chờ xuất · đã dự phòng`:session?.count?(isCustomDest?`Đã xuất ra thư mục cục bộ (${customTarget})`:'Đã xuất ra thư mục tải xuống'):(isCustomDest?`Lưu tự động vào ${customTarget}`:'Lưu tự động trong thư mục tải xuống');
-  $('path').textContent=session?.folder||'MeetScribe / ngày / tên cuộc họp';
-  $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'')||'Cuộc họp của bạn';
+  const customTarget=session?.destinationName||t('selectedFolder');
+  $('storage').textContent=session?.exportError?t('exportError'):session?.pendingExports?t('pendingExports',{count:session.pendingExports}):session?.count?(isCustomDest?t('exportedCustom',{folder:customTarget}):t('exportedDownloads')):(isCustomDest?t('saveCustom',{folder:customTarget}):t('saveDownloads'));
+  $('path').textContent=session?.folder||t('defaultPath');
+  $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'')||t('defaultTitle');
   $('share').setAttribute('aria-pressed',String(!!rectangle()));$('clearShare').hidden=!share;
-  $('liveBadge').textContent=active?'LOCAL · LIVE':'LOCAL · PRIVATE';
+  $('liveBadge').textContent=t(active?'liveBadge':'privateBadge');
   clamp();
  }
  function clamp(){if(!host)return;const r=host.getBoundingClientRect();if(r.right>innerWidth-12)host.style.left=Math.max(12,innerWidth-r.width-12)+'px';if(r.left<12)host.style.left='12px';if(r.bottom>innerHeight-12)host.style.top=Math.max(12,innerHeight-r.height-12)+'px';if(r.top<12)host.style.top='12px';}
  function applyVisualSettings(s){
+  i18n.setLanguage(s?.language);
+  if(host)host.setAttribute('lang',i18n.getLanguage());
   if(!host)return;
   const op=typeof s?.opacity==='number'?Math.min(100,Math.max(40,Math.round(s.opacity))):96;
   const fs=typeof s?.fontSize==='number'?Math.min(18,Math.max(12,Math.round(s.fontSize))):14;
@@ -189,21 +196,21 @@
   host=document.createElement('meetscribe-toolbar');host.style.cssText='position:fixed;left:24px;top:100px;z-index:2147483645;max-width:calc(100vw - 24px);';
   root=host.attachShadow({mode:'open'});const style=document.createElement('style');style.textContent=css;root.append(style);
   const box=document.createElement('div');box.innerHTML=`
-  <section id="expanded" class="panel" aria-label="MeetScribe · Bộ điều khiển ghi họp">
-   <header><span class="brand">${icon('note')}<strong>MeetScribe</strong></span><span id="liveBadge" class="badge">LOCAL · PRIVATE</span><button id="collapse" class="icon" aria-label="Thu nhỏ" title="Thu nhỏ">${icon('minus')}</button></header>
-   <div class="meeting"><p class="eyebrow">CUỘC HỌP HIỆN TẠI</p><h2 id="title"></h2></div>
+  <section id="expanded" class="panel" aria-label="MeetScribe · Bộ điều khiển ghi họp" data-i18n-aria-label="toolbar.controls">
+   <header><span class="brand">${icon('note')}<strong>MeetScribe</strong></span><span id="liveBadge" class="badge">LOCAL · PRIVATE</span><button id="collapse" data-i18n-aria-label="toolbar.collapse" data-i18n-title="toolbar.collapse" class="icon" aria-label="Thu nhỏ" title="Thu nhỏ">${icon('minus')}</button></header>
+   <div class="meeting"><p class="eyebrow" data-i18n="toolbar.currentMeeting">CUỘC HỌP HIỆN TẠI</p><h2 id="title"></h2></div>
    <div class="statusline"><span id="dot" class="dot"></span><strong id="status" role="status"></strong><time id="elapsed">00:00</time></div>
    <div class="primary"><button id="start" class="start">${icon('play')}<span id="startLabel">Bắt đầu ghi</span></button><button id="stop" class="stop" hidden>${icon('stop')}<span id="stopLabel">Dừng và lưu</span></button></div>
-   <div class="tools"><button id="caption">${icon('caption')}<span>Vùng caption</span></button><button id="share" aria-pressed="false">${icon('screen')}<span>Vùng share</span></button><button id="mark">${icon('mark')}<span>Đánh dấu</span></button></div>
-   <p id="message" class="hint" role="status"></p><button id="clearShare" class="textbutton" hidden>Ngừng chụp vùng share</button>
-   <button id="retry" class="rescue" hidden>Thử lưu và tiếp tục</button><button id="rescue" class="rescue" hidden>${icon('download')} Cứu caption đang chờ</button>
+   <div class="tools"><button id="caption">${icon('caption')}<span data-i18n="toolbar.captionRegion">Vùng caption</span></button><button id="share" aria-pressed="false">${icon('screen')}<span data-i18n="toolbar.shareRegion">Vùng share</span></button><button id="mark">${icon('mark')}<span data-i18n="toolbar.mark">Đánh dấu</span></button></div>
+   <p id="message" class="hint" role="status"></p><button id="clearShare" data-i18n="toolbar.clearShare" class="textbutton" hidden>Ngừng chụp vùng share</button>
+   <button id="retry" data-i18n="toolbar.retry" class="rescue" hidden>Thử lưu và tiếp tục</button><button id="rescue" class="rescue" hidden>${icon('download')} <span data-i18n="toolbar.rescue">Cứu caption đang chờ</span></button>
    <div class="saved"><span id="metrics">0 caption · 0 ảnh</span><span id="storage"></span></div>
-   <footer><span id="path" title="Thư mục lưu"></span><button id="settings" class="icon" aria-label="Cài đặt MeetScribe" title="Cài đặt MeetScribe">${icon('settings')}</button><button id="library" class="icon" aria-label="Thư viện phiên họp" title="Thư viện phiên họp">${icon('folder')}</button><button id="move" class="icon" aria-label="Di chuyển thanh điều khiển" title="Kéo hoặc dùng phím mũi tên để di chuyển">${icon('move')}</button></footer>
-  </section><button id="compact" class="compact" aria-label="Mở rộng MeetScribe" hidden>${icon('note')}<span id="compactText">Sẵn sàng</span>${icon('arrow')}</button>`;root.append(box);document.documentElement.append(host);
+   <footer><span id="path" data-i18n-title="toolbar.storageFolder" title="Thư mục lưu"></span><button id="settings" data-i18n-aria-label="toolbar.settings" data-i18n-title="toolbar.settings" class="icon" aria-label="Cài đặt MeetScribe" title="Cài đặt MeetScribe">${icon('settings')}</button><button id="library" data-i18n-aria-label="toolbar.library" data-i18n-title="toolbar.library" class="icon" aria-label="Thư viện phiên họp" title="Thư viện phiên họp">${icon('folder')}</button><button id="move" data-i18n-aria-label="toolbar.move" data-i18n-title="toolbar.moveHint" class="icon" aria-label="Di chuyển thanh điều khiển" title="Kéo hoặc dùng phím mũi tên để di chuyển">${icon('move')}</button></footer>
+  </section><button id="compact" data-i18n-aria-label="toolbar.expand" class="compact" aria-label="Mở rộng MeetScribe" hidden>${icon('note')}<span id="compactText">Sẵn sàng</span>${icon('arrow')}</button>`;root.append(box);document.documentElement.append(host);
   $('collapse').onclick=()=>{collapsed=true;saveCollapsedState(true);render();};$('compact').onclick=()=>{collapsed=false;saveCollapsedState(false);render();};
   $('start').onclick=()=>action(async()=>{
    if(starting||running)return;starting=true;render();
-   try{caption=visible(caption)?caption:discover();if(!caption){pick('caption');throw Error('Chọn khung phụ đề, sau đó bấm Bắt đầu ghi.');}
+   try{caption=visible(caption)?caption:discover();if(!caption){pick('caption');throw Error(t('chooseCaption'));}
     const result=await send('start');setSession(result.session);
    }finally{starting=false;}
   });
@@ -217,14 +224,14 @@
   $('share').onclick=()=>pick('share');
   $('mark').onclick=()=>action(async()=>{snapshot();await flush();const result=await send('mark');notice=result.message;});
   $('clearShare').onclick=()=>action(async()=>{share=null;await send('clear-share');if(session)session.visual='not-selected';});
-  $('retry').onclick=()=>action(async()=>{await flush();if(session?.status==='recording'){running=true;bind();}notice='Đã lưu phần đang chờ và tiếp tục ghi.';});
+  $('retry').onclick=()=>action(async()=>{await flush();if(session?.status==='recording'){running=true;bind();}notice=t('resumed');});
   $('settings').onclick=()=>action(()=>send('open-settings'));
   $('library').onclick=()=>action(()=>send('open-library'));$('rescue').onclick=rescue;
   $('move').onkeydown=e=>{const movement={ArrowLeft:[-24,0],ArrowRight:[24,0],ArrowUp:[0,-24],ArrowDown:[0,24]}[e.key];if(movement){e.preventDefault();const r=host.getBoundingClientRect();host.style.left=r.x+movement[0]+'px';host.style.top=r.y+movement[1]+'px';clamp();savePosition();}};
   $('move').onpointerdown=e=>{e.preventDefault();const b=host.getBoundingClientRect(),x=e.clientX,y=e.clientY;const move=p=>{host.style.left=b.x+p.clientX-x+'px';host.style.top=b.y+p.clientY-y+'px';clamp();};const up=()=>{document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);savePosition();};document.addEventListener('pointermove',move);document.addEventListener('pointerup',up);};
   try{if(chrome?.storage?.local){
-   const load=()=>{chrome.storage.local.get(['meetscribe_settings','meetscribe_setting_opacity','meetscribe_setting_fontSize','meetscribe_setting_toolbarPosition','meetscribe_setting_collapsed'],res=>{
-    const s={opacity:res.meetscribe_setting_opacity??res.meetscribe_settings?.opacity,fontSize:res.meetscribe_setting_fontSize??res.meetscribe_settings?.fontSize,toolbarPosition:res.meetscribe_setting_toolbarPosition!==undefined?res.meetscribe_setting_toolbarPosition:res.meetscribe_settings?.toolbarPosition,collapsed:res.meetscribe_setting_collapsed??res.meetscribe_settings?.collapsed};
+   const load=()=>{chrome.storage.local.get(['meetscribe_settings','meetscribe_setting_opacity','meetscribe_setting_fontSize','meetscribe_setting_toolbarPosition','meetscribe_setting_collapsed','meetscribe_setting_language'],res=>{
+    const s={language:res.meetscribe_setting_language!==undefined?res.meetscribe_setting_language:res.meetscribe_settings?.language,opacity:res.meetscribe_setting_opacity??res.meetscribe_settings?.opacity,fontSize:res.meetscribe_setting_fontSize??res.meetscribe_settings?.fontSize,toolbarPosition:res.meetscribe_setting_toolbarPosition!==undefined?res.meetscribe_setting_toolbarPosition:res.meetscribe_settings?.toolbarPosition,collapsed:res.meetscribe_setting_collapsed??res.meetscribe_settings?.collapsed};
     applyVisualSettings(s);render();
    });};
    load();
@@ -240,7 +247,7 @@
    if(msg.type==='inspect')return inspect();
    if(msg.type==='begin'){
     if(running&&session?.id===msg.session.id)return {};
-    if(buffer.length)throw Error('Cứu caption cũ đang chờ trước khi bắt đầu phiên mới.');
+    if(buffer.length)throw Error(t('rescueBeforeStart'));
     setSession(msg.session,true);sequence=session.lastSequence||0;running=true;lost=false;notice='';last='';bind(true);render();return {};
    }
    if(msg.type==='end'){reacquireIfNeeded();snapshot();running=false;observer?.disconnect();picker?.();await flush();render();return {};}
@@ -251,7 +258,7 @@
     }
     return {ok:true,captionAvailable:visible(caption)};
    }
-   throw Error('Unknown collector command');
+   throw Error(t('unknownCommand'));
   })().then(data=>reply({ok:true,...data})).catch(e=>{notice=e.message;render();reply({ok:false,error:e.message});});return true;
  };
  chrome.runtime.onMessage.addListener(handler);

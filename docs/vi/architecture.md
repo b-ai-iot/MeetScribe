@@ -2,7 +2,7 @@
 
 [English](../en/architecture.md) · [Tài liệu](../README.md)
 
-MeetScribe là tiện ích Chrome Manifest V3. Mã trong `extension/` chạy trực tiếp, không cần bundler sản phẩm hoặc thư viện runtime. Nội dung dưới đây mô tả bản 1.2.0.
+MeetScribe là tiện ích Chrome Manifest V3. Mã trong `extension/` chạy trực tiếp, không cần bundler sản phẩm hoặc thư viện runtime. Nội dung dưới đây mô tả bản 1.3.0.
 
 ## Thành phần và luồng dữ liệu
 

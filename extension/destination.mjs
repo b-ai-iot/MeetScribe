@@ -1,3 +1,4 @@
+import {messageError} from './i18n.mjs';
 import * as store from './store.mjs';
 import {saveSettings} from './settings.mjs';
 
@@ -27,7 +28,7 @@ export function decodeDataUrlToBytes(dataUrl) {
   if (typeof Buffer !== 'undefined') {
     return new Uint8Array(Buffer.from(base64, 'base64'));
   }
-  throw new Error('No binary base64 decoder available');
+  throw messageError('system.base64Decoder');
 }
 
 export async function writeToDirectoryHandle(fileHandle, data, mime = 'application/json', isDataURL = false) {
@@ -70,7 +71,7 @@ export async function verifyDirectoryPermission(dirHandle, { request = false } =
 export async function exportFileToDirectory(file, dirHandle) {
   const granted = await verifyDirectoryPermission(dirHandle);
   if (!granted) {
-    throw new Error('Thư mục lưu cục bộ chưa được cấp quyền ghi. Mở Cài đặt để cấp lại quyền.');
+    throw messageError('system.directoryPermission');
   }
 
   const fileHandle = await getFileHandleByPath(dirHandle, file.name, { create: true });
@@ -81,7 +82,7 @@ export async function exportFileToDirectory(file, dirHandle) {
 
 export async function requestCustomDirectory(windowObj = globalThis) {
   if (!windowObj.showDirectoryPicker) {
-    throw new Error('Trình duyệt không hỗ trợ chọn thư mục cục bộ (File System Access API).');
+    throw messageError('system.directoryUnsupported');
   }
   const handle = await windowObj.showDirectoryPicker({ mode: 'readwrite' });
 
@@ -94,7 +95,7 @@ export async function requestCustomDirectory(windowObj = globalThis) {
     await writable.close();
     await handle.removeEntry(verifyName);
   } catch (e) {
-    throw new Error(`Thư mục đã chọn không cho phép ghi: ${e.message}`);
+    throw messageError('system.directoryNotWritable',{detail:e.message});
   }
 
   const destId = crypto.randomUUID();
@@ -113,7 +114,7 @@ export async function reauthorizeDirectoryHandle(handle) {
   if (!handle) {
     handle = await store.getDirectoryHandle();
   }
-  if (!handle) throw new Error('Chưa có thư mục nào được lưu.');
+  if (!handle) throw messageError('system.noDirectory');
   const granted = await verifyDirectoryPermission(handle, { request: true });
   return {
     name: handle.name,

@@ -47,7 +47,7 @@ Sử dụng bộ chạy kiểm thử tích hợp sẵn của Node.js cho toàn b
 ```bash
 npm test
 ```
-- **Phạm vi (61 bài kiểm thử tại mốc ngày 2026-10-30):** Thuật toán chấm điểm ứng viên phụ đề, bộ lọc loại trừ (chat, danh sách người họp, thanh công cụ), gom cụm widget, kiểm tra độ mờ (opacity) và chuỗi tổ tiên hiển thị, truy vấn phân vùng IndexedDB không quét toàn bộ cơ sở dữ liệu, và giới hạn kích thước con trỏ đóng gói ZIP.
+- **Phạm vi (75 bài kiểm thử tại mốc ngày 2026-10-30):** Thuật toán chấm điểm ứng viên phụ đề, bộ lọc loại trừ (chat, danh sách người họp, thanh công cụ), gom cụm widget, kiểm tra độ mờ (opacity) và chuỗi tổ tiên hiển thị, truy vấn phân vùng IndexedDB không quét toàn bộ cơ sở dữ liệu, và giới hạn kích thước con trỏ đóng gói ZIP.
 
 ### 2. Kiểm thử trình duyệt tích hợp (`npm run test:browser`)
 Khởi tạo một phiên Google Chrome thật hoàn toàn độc lập để chạy kịch bản DOM tự động trong `tests/browser.cjs`:
@@ -90,7 +90,7 @@ npm run package
 ```
 Tập lệnh (`tools/package.py`) sẽ kiểm tra tính hợp lệ của manifest và tạo tệp:
 ```text
-dist/MeetScribe-1.2.0.zip
+dist/MeetScribe-1.3.0.zip
 ```
 Bên trong tệp nén là thư mục `MeetScribe/` độc lập chứa đầy đủ `manifest.json`, worker nền, các tệp script giao diện và thư mục biểu tượng `icons/`.
 
@@ -121,3 +121,11 @@ npm run test:browser
 Trước khi khẳng định thay đổi hoạt động trong thực tế, cần kiểm tra thủ công cuộc họp Meet/Zoom web đã bật phụ đề; bật/tắt/thay khung caption; cắt đúng vùng share thủ công; hủy hộp chọn thư mục mà vẫn giữ cấu hình cũ; chọn thư mục tùy ý; cấp lại quyền sau khi khởi động lại toàn bộ Chrome; và cứu ZIP sau lỗi xuất thông thường. Dùng nội dung giả lập và hồ sơ tạm. Ghi rõ đã kiểm tra gì, không chỉ tổng số test.
 
 ZIP phân phối phần mềm có [giấy phép MIT](../../LICENSE) chuẩn. `private: true` trong package.json ngăn vô tình phát hành lên npm; không làm mã nguồn GitHub thành riêng tư.
+
+## Kiểm thử ngôn ngữ
+
+```sh
+npm run test:language
+```
+
+Lệnh chạy kiểm tra UI/thanh nổi cùng bài chuyển VI/EN trên tiện ích unpacked. Trên Linux/Windows, đặt `MEETSCRIBE_TEST_CHROME` như trên. Unit test đối chiếu khóa VI/EN và các biến nội suy của bộ dịch.

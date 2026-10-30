@@ -10,6 +10,12 @@
 - Thêm kiểm tra tài liệu cục bộ và workflow xác minh GitHub Actions.
 - Cho bộ test trình duyệt tự tạo thư mục kết quả trong checkout mới. Không đổi ngôn ngữ giao diện hay tính năng runtime.
 
+## 1.3.0 — 2026-10-30
+
+- Thêm lựa chọn giao diện VI/EN lưu bền trong Cài đặt, cập nhật trang đang mở và thanh nổi đang thu.
+- Dịch UI tĩnh/động, nhãn hỗ trợ tiếp cận, thông báo lỗi/phục hồi và phần hướng dẫn sinh khi xuất; không đổi dữ liệu đã thu.
+- Thêm metadata ngôn ngữ gốc của Chrome, chuyển đổi cấu hình/đặt lại và kiểm thử việc thu đang chạy, tải lại, chi tiết lỗi gốc cùng đua đọc cấu hình.
+
 ## 1.2.0 — 2026-10-30
 
 - Thêm cài đặt độ mờ/cỡ chữ, nhớ vị trí/trạng thái thu nhỏ và đặt lại thanh nổi.

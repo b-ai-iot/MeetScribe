@@ -27,7 +27,7 @@ button:disabled{opacity:.5;cursor:wait}
 .search-bar input:focus{outline:3px solid var(--accent);outline-offset:2px}
 #message{color:#ffd4cf;font-size:13px}
 #sessions{display:grid;gap:12px}
-.session{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:1fr auto;gap:16px}
+.session{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 .title-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .session h3{font-size:16px;margin:0;font-weight:550;overflow-wrap:anywhere}
 .rename-btn{min-height:32px;padding:4px 10px;font-size:11px;border-color:var(--line);color:var(--muted)}
@@ -43,7 +43,8 @@ button:disabled{opacity:.5;cursor:wait}
 .preview-text{font-style:italic;overflow-wrap:anywhere}
 .thumbnails{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .thumb{width:100px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:#000}
-.session .actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.session-info{min-width:0}
+.session .actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start}
 .retry{background:var(--accent);color:#102d26;border-color:var(--accent)}
 .retry:hover{background:#acf6df}
 .danger{color:#ff8e85;border-color:#ff8e8544}

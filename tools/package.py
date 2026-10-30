@@ -4,7 +4,7 @@ import json
 root = Path(__file__).resolve().parents[1]
 source = root / 'extension'
 manifest = json.loads((source / 'manifest.json').read_text())
-for file in ['background.js', 'content.js', 'offscreen.html', 'offscreen.js', 'library.html', 'library.js', 'overlay.css']:
+for file in ['background.js', 'content.js', 'offscreen.html', 'offscreen.js', 'library.html', 'library.js', 'overlay.css', 'settings.html', 'settings.js', 'i18n.js', 'i18n.mjs', 'i18n-ui.js', 'i18n-toolbar.js', 'i18n-system.js', '_locales/vi/messages.json', '_locales/en/messages.json']:
     if not (source / file).is_file():
         raise SystemExit(f'Missing required file: {file}')
 out = root / 'dist'

@@ -1,3 +1,4 @@
+import {t,messageError} from './i18n.mjs';
 import {validEntries} from './model.mjs';
 let opening;
 export function database(){return opening ||= new Promise((resolve,reject)=>{
@@ -19,7 +20,7 @@ function addFile(tx,s,name,data,mime='application/json',isDataURL=false){
 }
 async function mutate(id,fn){const db=await database();return new Promise((resolve,reject)=>{
  const tx=db.transaction(['sessions','files'],'readwrite',{durability:'strict'});let result;
- tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Local journal transaction aborted'));
+ tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||messageError('system.journalAborted'));
  const req=tx.objectStore('sessions').get(id);req.onsuccess=()=>{
   const s=req.result;if(!s){tx.abort();return;}
   try{result=fn(tx,s);tx.objectStore('sessions').put(s);}catch(e){reject(e);tx.abort();}
@@ -34,12 +35,12 @@ export async function createSession(s){const db=await database();return new Prom
 });}
 export function patchSession(id,patch){return mutate(id,(_tx,s)=>Object.assign(s,patch));}
 export function appendCaptions(id,entries){
- if(!validEntries(entries))return Promise.reject(Error('Invalid caption batch'));
+ if(!validEntries(entries))return Promise.reject(messageError('system.invalidBatch'));
  return mutate(id,(tx,s)=>{
-  if(s.status!=='recording'&&s.status!=='stopping')throw Error('Session is not collecting');
+  if(s.status!=='recording'&&s.status!=='stopping')throw messageError('system.notCollecting');
   const fresh=entries.filter(e=>e.sequence>s.lastSequence);
   if(!fresh.length)return {count:s.count,lastSequence:s.lastSequence};
-  if(fresh[0].sequence!==s.lastSequence+1)throw Error('Caption sequence gap');
+  if(fresh[0].sequence!==s.lastSequence+1)throw messageError('system.sequenceGap');
   s.fileIndex++;s.count+=fresh.length;s.lastSequence=fresh.at(-1).sequence;s.lastCaptionAt=fresh.at(-1).timestamp;
   s.captionTail=fresh.at(-1).text.slice(-1500);
   addFile(tx,s,`captions/part-${String(s.fileIndex).padStart(6,'0')}.jsonl`,fresh.map(e=>JSON.stringify(e)).join('\n')+'\n','application/octet-stream');
@@ -47,13 +48,13 @@ export function appendCaptions(id,entries){
  });
 }
 export function writeFile(id,name,data,mime='application/json',isDataURL=false){
- if(!/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_.-]+$/.test(name)||name.includes('..'))return Promise.reject(Error('Invalid journal path'));
+ if(!/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_.-]+$/.test(name)||name.includes('..'))return Promise.reject(messageError('system.journalPath'));
  return mutate(id,(tx,s)=>addFile(tx,s,name,data,mime,isDataURL));
 }
 export function saveImage(id,{name,data,bytes,event}){return mutate(id,(tx,s)=>{
- if(!['recording','stopping'].includes(s.status))throw Error('Session is no longer collecting images');
+ if(!['recording','stopping'].includes(s.status))throw messageError('system.imageCollectingEnded');
  const now=Date.now();s.imageTimes=(s.imageTimes||[]).filter(t=>now-t<3600000);
- if(s.images>=120||s.imageTimes.length>=30||s.imageBytes+bytes>104857600)throw Error('Image budget exceeded');
+ if(s.images>=120||s.imageTimes.length>=30||s.imageBytes+bytes>104857600)throw messageError('system.imageBudget');
  addFile(tx,s,'images/'+name,data,'image/png',true);
  addFile(tx,s,'images/'+name+'.json',JSON.stringify(event,null,2));
  s.images++;s.imageTimes.push(now);s.imageBytes+=bytes;return {images:s.images,imageBytes:s.imageBytes};
@@ -99,7 +100,7 @@ export async function readSessionFilesBounded(id, maxBytes = 500 * 1024 * 1024){
     fileBytes=f.data.byteLength;
    }
    if(totalBytes+fileBytes>maxBytes){
-    reject(new Error(`Kích thước tệp nén vượt quá giới hạn an toàn (${Math.round((totalBytes+fileBytes)/(1024*1024))}MB > ${Math.round(maxBytes/(1024*1024))}MB).`));
+    reject(messageError('system.archiveSize',{actual:Math.round((totalBytes+fileBytes)/(1024*1024)),limit:Math.round(maxBytes/(1024*1024))}));
     return;
    }
    totalBytes+=fileBytes;
@@ -114,7 +115,7 @@ export function markExported(file,download){return mutate(file.sid,(tx,s)=>{
  const req=tx.objectStore('files').get(file.id);req.onsuccess=()=>{
   const current=req.result;if(!current||current.state!==0)return;
   current.state=1;current.downloadId=download.id;current.absolutePath=download.filename;current.data=file.data;
-  tx.objectStore('files').put(current);s.pendingExports=Math.max(0,s.pendingExports-1);s.lastDownloadId=download.id;s.exportError=null;
+  tx.objectStore('files').put(current);s.pendingExports=Math.max(0,s.pendingExports-1);s.lastDownloadId=download.id;s.exportError=null;s.exportErrorCode=null;s.exportErrorParams=null;
   tx.objectStore('sessions').put(s);
  };
 });}
@@ -136,7 +137,7 @@ export function finalizeSession(id,{interrupted=false,reason,endedAt=new Date().
 }
 
 export function renameSession(id, title){
- if(!title||typeof title!=='string'||!title.trim())throw Error('Tiêu đề không hợp lệ');
+ if(!title||typeof title!=='string'||!title.trim())throw messageError('system.invalidTitle');
  return mutate(id,(_tx,s)=>{
   s.title=title.trim();
   return s;
@@ -147,7 +148,7 @@ export async function deleteSession(id){
  const s=await getSession(id);
  if(!s)return;
  if(['recording','stopping'].includes(s.status)){
-  throw Error('Không thể xóa phiên đang ghi âm hoặc đang lưu.');
+  throw messageError('system.deleteActiveLegacy');
  }
  const db=await database();
  return new Promise((resolve,reject)=>{
@@ -182,12 +183,12 @@ export async function sessionBackupBytes(id, existingFiles=null){
 
 export async function saveDirectoryHandle(handle,id=crypto.randomUUID()){
  const db=await database();
- const item={id,handle,name:handle?.name||'Thư mục',updatedAt:new Date().toISOString()};
+ const item={id,handle,name:handle?.name||t('system.folder'),updatedAt:new Date().toISOString()};
  return new Promise((resolve,reject)=>{
   const tx=db.transaction('destination_handles','readwrite');
   tx.oncomplete=()=>resolve(item);
   tx.onerror=()=>reject(tx.error);
-  tx.onabort=()=>reject(tx.error||new Error('Transaction aborted'));
+  tx.onabort=()=>reject(tx.error||messageError('system.transactionAborted'));
   try{
    tx.objectStore('destination_handles').put(item);
    tx.objectStore('destination_handles').put({id:'active',activeId:id});

@@ -41,7 +41,7 @@ Do MeetScribe là dự án mã nguồn mở chưa đưa lên Chrome Web Store v�
 
 5. **Ghim tiện ích lên thanh công cụ:**
    - Bấm vào biểu tượng mảnh ghép (Tiện ích) trên thanh công cụ Chrome.
-   - Tìm dòng **MeetScribe — Ghi chú cuộc họp** và bấm vào biểu tượng chiếc ghim để tiện ích luôn hiển thị.
+   - Tìm dòng **MeetScribe** (phần tên phụ theo ngôn ngữ Chrome) và bấm vào biểu tượng chiếc ghim để tiện ích luôn hiển thị.
 
 ---
 
@@ -57,9 +57,9 @@ Nếu bạn muốn tạo một gói nén ZIP chuẩn để lưu trữ hoặc chu
    *(Hoặc chạy trực tiếp: `python3 tools/package.py`)*
 3. Kết quả đóng gói sẽ nằm tại:
    ```text
-   dist/MeetScribe-1.2.0.zip
+   dist/MeetScribe-1.3.0.zip
    ```
-4. Giải nén tệp `MeetScribe-1.2.0.zip`, bạn sẽ nhận được thư mục `MeetScribe/` hoàn chỉnh chứa `manifest.json`.
+4. Giải nén tệp `MeetScribe-1.3.0.zip`, bạn sẽ nhận được thư mục `MeetScribe/` hoàn chỉnh chứa `manifest.json`.
 5. Thực hiện theo các bước 2–5 ở trên và trỏ **Tải tiện ích đã giải nén** vào thư mục `MeetScribe/` vừa giải nén.
 
 ---

@@ -1,9 +1,12 @@
+import {normalizeLanguage} from './i18n.mjs';
+
 export const DEFAULT_SETTINGS = Object.freeze({
   opacity: 96,
   fontSize: 14,
   toolbarPosition: null,
   collapsed: false,
-  destination: 'downloads'
+  destination: 'downloads',
+  language: 'vi'
 });
 
 export const SETTINGS_KEY = 'meetscribe_settings';
@@ -13,7 +16,8 @@ export const SETTING_KEYS = Object.freeze({
   fontSize: 'meetscribe_setting_fontSize',
   toolbarPosition: 'meetscribe_setting_toolbarPosition',
   collapsed: 'meetscribe_setting_collapsed',
-  destination: 'meetscribe_setting_destination'
+  destination: 'meetscribe_setting_destination',
+  language: 'meetscribe_setting_language'
 });
 
 export function surfaceRgba(opacityPercent) {
@@ -49,7 +53,8 @@ export function validateSettings(input = {}) {
     fontSize,
     toolbarPosition,
     collapsed,
-    destination
+    destination,
+    language: normalizeLanguage(source.language)
   };
 }
 
@@ -91,7 +96,8 @@ export async function getSettings(storageApi) {
     fontSize: data[SETTING_KEYS.fontSize] ?? legacy.fontSize ?? DEFAULT_SETTINGS.fontSize,
     toolbarPosition: data[SETTING_KEYS.toolbarPosition] !== undefined ? data[SETTING_KEYS.toolbarPosition] : (legacy.toolbarPosition !== undefined ? legacy.toolbarPosition : DEFAULT_SETTINGS.toolbarPosition),
     collapsed: data[SETTING_KEYS.collapsed] ?? legacy.collapsed ?? DEFAULT_SETTINGS.collapsed,
-    destination: data[SETTING_KEYS.destination] ?? legacy.destination ?? DEFAULT_SETTINGS.destination
+    destination: data[SETTING_KEYS.destination] ?? legacy.destination ?? DEFAULT_SETTINGS.destination,
+    language: data[SETTING_KEYS.language] !== undefined ? data[SETTING_KEYS.language] : (legacy.language ?? DEFAULT_SETTINGS.language)
   };
 
   return validateSettings(raw);
@@ -137,6 +143,10 @@ export async function saveSettings(patch, storageApi) {
     toStore[SETTING_KEYS.destination] = patch.destination === 'customDirectory' ? 'customDirectory' : 'downloads';
   }
 
+  if ('language' in patch) {
+    toStore[SETTING_KEYS.language] = normalizeLanguage(patch.language);
+  }
+
   // Also maintain legacy combined key for any consumers
   const current = await getSettings(storageApi);
   const merged = validateSettings({ ...current, ...patch });
@@ -155,6 +165,7 @@ export async function resetSettings(storageApi) {
     [SETTING_KEYS.toolbarPosition]: defaults.toolbarPosition,
     [SETTING_KEYS.collapsed]: defaults.collapsed,
     [SETTING_KEYS.destination]: defaults.destination,
+    [SETTING_KEYS.language]: defaults.language,
     [SETTINGS_KEY]: defaults
   };
   await storage.set(toStore);

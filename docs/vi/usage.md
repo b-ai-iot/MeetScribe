@@ -25,7 +25,7 @@ Bấm vào biểu tượng **MeetScribe** trên thanh tiện ích Chrome. Thanh 
 
 ### Bước 3: Các nút điều khiển trên thanh nổi
 
-Giao diện tiện ích hoàn toàn bằng tiếng Việt. Bảng dưới đây giải thích chi tiết chức năng và hành vi của từng nút:
+Giao diện hỗ trợ tiếng Việt và tiếng Anh. Bảng dưới đối chiếu hai nhãn cho cùng một thao tác:
 
 | Tên nút trên giao diện | Ý nghĩa tiếng Anh | Chức năng & Hành vi cụ thể |
 | :--- | :--- | :--- |
@@ -109,3 +109,11 @@ Thư viện liệt kê toàn bộ các cuộc họp đã ghi được lưu trong
 ## Ví dụ cửa sổ hẹp
 
 [Xem ảnh thư viện cửa sổ hẹp](../images/library-mobile.png). Đây là bố cục co giãn trong Chrome máy tính, không phải hỗ trợ tiện ích Chrome trên điện thoại. Toàn bộ nội dung ảnh là giả lập; xem [nguồn ảnh](../images/README.md).
+
+## Ngôn ngữ giao diện
+
+Mở **Cài đặt → Ngôn ngữ giao diện**, chọn **Tiếng Việt** hoặc **English**, rồi bấm **Lưu cài đặt**. Tiếng Việt là mặc định cho bản cài mới và bản cũ chưa có lựa chọn. **Đặt lại mặc định** cũng khôi phục tiếng Việt. Thư viện/cài đặt đang mở và thanh nổi cập nhật tại chỗ, gồm trạng thái/lỗi, nhãn và cách hiển thị ngày. Vùng caption/share, caption đang chờ ghi và phiên đang thu được giữ nguyên.
+
+Lựa chọn này không đổi ngôn ngữ phụ đề của Meet/Zoom hoặc dịch caption đã thu, tiêu đề, tên thư mục hay trường JSON thô. Tiêu đề trong transcript/hướng dẫn AI theo ngôn ngữ giao diện; nội dung gốc giữ nguyên. Tên tiện ích ở màn hình cài đặt do Chrome quản lý theo ngôn ngữ trình duyệt; lựa chọn riêng áp dụng cho UI MeetScribe và tooltip biểu tượng.
+
+![Cài đặt bằng tiếng Anh](../images/settings-en.png)

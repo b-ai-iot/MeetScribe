@@ -9,13 +9,13 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.2.0-green.svg" alt="Version 1.2.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.3.0-green.svg" alt="Version 1.3.0" /></a>
   <a href="docs/en/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
 MeetScribe is an independent, local-first Chrome extension that captures live captions and shared-screen slides during Google Meet and Zoom web sessions. It operates entirely in your browser: no audio recording, no video file recording, and zero AI or external network calls during meetings. You choose where to export portable ZIP archives for later analysis.
 
-> **UI Language Note:** The extension user interface is currently in Vietnamese. The documentation is fully bilingual (English and Vietnamese) and explains the main Vietnamese control labels alongside English translations.
+> **UI Language Note:** The extension supports **Tiếng Việt** and **English**. Open **Cài đặt / Settings → Ngôn ngữ giao diện / Interface language**, choose a language, and click **Lưu cài đặt / Save settings**. Existing open pages and the toolbar update without restarting capture. Captions and meeting data stay in their original language.
 
 ---
 
@@ -33,17 +33,17 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/toolbar.png" alt="MeetScribe floating toolbar on Google Meet demo" width="800" /><br />
+  <img src="docs/images/toolbar-en.png" alt="MeetScribe floating toolbar on Google Meet demo" width="800" /><br />
   <em>Floating toolbar overlay during a meeting session (synthetic Google Meet caption demonstration).</em>
 </p>
 
 <p align="center">
-  <img src="docs/images/library.png" alt="MeetScribe session library page" width="800" /><br />
+  <img src="docs/images/library-en.png" alt="MeetScribe session library page" width="800" /><br />
   <em>Session library page (<code>library.html</code>) showing search, session cards, export status, and ZIP options.</em>
 </p>
 
 <p align="center">
-  <img src="docs/images/settings.png" alt="MeetScribe settings page" width="800" /><br />
+  <img src="docs/images/settings-en.png" alt="MeetScribe settings page" width="800" /><br />
   <em>Settings page (<code>settings.html</code>) with opacity slider, font size preview, and local directory configuration.</em>
 </p>
 
@@ -63,13 +63,13 @@ MeetScribe is not distributed through the Chrome Web Store and provides no prebu
 3. **Load Unpacked Extension:**
    Click **Load unpacked** and select the `extension/` directory inside this repository.
 4. **Pin and Use:**
-   Pin **MeetScribe — Ghi chú cuộc họp** to your toolbar. Open a Google Meet or Zoom web tab, turn on native captions, and click the MeetScribe icon to display the floating controls.
+   Pin **MeetScribe** (the subtitle follows Chrome’s language) to your toolbar. Open a Google Meet or Zoom web tab, turn on native captions, and click the MeetScribe icon to display the floating controls.
 
 To create a local zip package matching the repository manifest, run:
 ```bash
 npm run package
 ```
-This outputs `dist/MeetScribe-1.2.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
+This outputs `dist/MeetScribe-1.3.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
 
 ---
 

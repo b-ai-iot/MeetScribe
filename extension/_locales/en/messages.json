@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "MeetScribe — Meeting notes"
+  },
+  "extensionDescription": {
+    "message": "Capture native captions and selected shared-screen images on Google Meet / Zoom web. Local storage, ZIP export and VI/EN interface."
+  },
+  "actionTitle": {
+    "message": "MeetScribe · Open meeting toolbar"
+  }
+}

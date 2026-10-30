@@ -41,7 +41,7 @@ Because MeetScribe is an open-source project without a Chrome Web Store listing 
 
 5. **Pin to Chrome Toolbar:**
    - Click the jigsaw puzzle icon (Extensions) on Chrome's toolbar.
-   - Locate **MeetScribe — Ghi chú cuộc họp** and click the pin icon to keep it visible.
+   - Locate **MeetScribe** (the subtitle follows Chrome’s language) and click the pin icon to keep it visible.
 
 ---
 
@@ -57,9 +57,9 @@ If you want to create a clean zip archive for distribution or offline installati
    *(Or run directly: `python3 tools/package.py`)*
 3. The script generates:
    ```text
-   dist/MeetScribe-1.2.0.zip
+   dist/MeetScribe-1.3.0.zip
    ```
-4. Extract `MeetScribe-1.2.0.zip` to your desired location. It contains a self-contained `MeetScribe/` folder with `manifest.json`.
+4. Extract `MeetScribe-1.3.0.zip` to your desired location. It contains a self-contained `MeetScribe/` folder with `manifest.json`.
 5. Follow steps 2–5 above, pointing **Load unpacked** to the extracted `MeetScribe/` folder.
 
 ---

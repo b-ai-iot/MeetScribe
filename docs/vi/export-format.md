@@ -2,7 +2,7 @@
 
 [English](../en/export-format.md) · [Tài liệu](../README.md)
 
-Trang này mô tả tệp do bản 1.2.0 tạo ra. Ví dụ chỉ gồm một số trường minh họa có trong [journal](../../extension/store.mjs), [luồng ảnh](../../extension/offscreen.js) và [bộ đóng gói](../../extension/archive.mjs).
+Trang này mô tả tệp do bản 1.3.0 tạo ra. Ví dụ chỉ gồm một số trường minh họa có trong [journal](../../extension/store.mjs), [luồng ảnh](../../extension/offscreen.js) và [bộ đóng gói](../../extension/archive.mjs).
 
 ## Thư mục phiên
 
