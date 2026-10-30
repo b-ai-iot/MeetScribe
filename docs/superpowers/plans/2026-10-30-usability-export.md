@@ -43,9 +43,9 @@ Follow the spec's Vietnamese/local-only UI, no host permission expansion, journa
 ### Task 4: Automatic native-caption discovery/recovery
 **Files:** create focused caption detector script/module compatible with content-script injection; modify content.js/install.mjs; extend browser tests and Meet/Zoom fixtures.
 **Interfaces:** detector returns region/confidence/ambiguous status; collector preserves explicit manual selection and safely rebinds automatic sources.
-- [ ] Add failing DOM tests: known Meet/Zoom selectors, hidden parent/connected node, replacement/reopen, ambiguous logs/chat and excluded toolbar.
-- [ ] Implement candidate ranking, clear detection feedback, optional highlight/sample, automatic reacquisition and manual fallback without full-page capture.
-- [ ] Verify caption batch ordering/stop drain still pass; commit and ledger.
+- [x] Add failing DOM tests: known Meet/Zoom selectors, hidden parent/connected node, replacement/reopen, ambiguous logs/chat and excluded toolbar.
+- [x] Implement candidate ranking, clear detection feedback, optional highlight/sample, automatic reacquisition and manual fallback without full-page capture.
+- [x] Verify caption batch ordering/stop drain still pass; commit and ledger.
 
 ### Task 5: Session library and full verification
 **Files:** modify library.js/library.html/library.css, store.mjs, background.js, README.md, docs/verification.md, package/manifest versions; add behavioral tests/browser scenarios.

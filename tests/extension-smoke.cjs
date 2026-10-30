@@ -46,6 +46,33 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   await page.screenshot({path:artifacts+'/extension-real-smoke.png'});
   await lib.reload();await lib.getByRole('heading',{name:'Enfarm smoke test',exact:true}).waitFor();
   await lib.screenshot({path:artifacts+'/library-desktop.png',fullPage:true});
+
+  // Trigger production export-zip from library UI
+  const zipBtn = lib.locator('.zip-btn').first();
+  await zipBtn.click();
+  let zipItem;
+  for (let i = 0; i < 40; i++) {
+   const items = await worker.evaluate(() => chrome.downloads.search({limit: 30}));
+   zipItem = items.find(d => d.filename.endsWith('.zip') && d.state === 'complete');
+   if (zipItem) break;
+   await new Promise(r => setTimeout(r, 250));
+  }
+  assert.ok(zipItem, 'ZIP download completed from library UI');
+  const {execFileSync} = require('node:child_process');
+  const pyOut = execFileSync('python3', ['-c', `
+import sys, zipfile
+archive = sys.argv[1]
+with zipfile.ZipFile(archive) as z:
+    names = z.namelist()
+    assert 'transcript.md' in names
+    assert 'README-for-AI.md' in names
+    assert 'manifest.json' in names
+    assert any(n.endswith('.jsonl') for n in names)
+    assert z.testzip() is None
+    print('PASS unpacked extension production ZIP export verified by Python zipfile')
+`, zipItem.filename], {encoding: 'utf8'});
+  console.log(pyOut.trim());
+
   await fs.writeFile(artifacts+'/extension-smoke-result.json',JSON.stringify({session:complete.s,downloads:complete.downloads.map(({filename,state})=>({filename,state})),pageErrors,workerErrors:errors},null,2));
   console.log('PASS real unpacked extension: content -> service worker -> IndexedDB -> confirmed actual Downloads files -> library');
   const zoom=await context.newPage();const zoomErrors=[];zoom.on('pageerror',e=>zoomErrors.push(e.message));

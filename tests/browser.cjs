@@ -308,12 +308,54 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   }}};
   window.zcmd=(type,data={})=>new Promise(r=>zhandlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
  });
+ await zoom.addScriptTag({path:root+'/captions.js'});
  await zoom.addScriptTag({path:root+'/content.js'});await zoom.evaluate(css=>zcmd('mount',{css}),css);
  await zoom.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
  await zoom.locator('.live-transcription-subtitle__box').evaluate(el=>el.innerText='Bao: Zoom caption cuối');
  await zoom.getByRole('button',{name:'Dừng và lưu',exact:true}).click();
  assert.equal(await zoom.evaluate(()=>zsaved.some(e=>e.text==='Bao: Zoom caption cuối')),true);
  passed++;console.log('PASS Zoom subtitle container auto-discovery and Stop drain');await zoom.close();
+
+ const meet=await browser.newPage();await meet.goto(base+'/library.html');
+ await meet.setContent(`<!doctype html><html><body>
+  <div id="chat" class="chat-container" role="log" aria-label="Tin nhắn trong cuộc trò chuyện">Alice: Đừng lưu cái này</div>
+  <div id="meet-caps" aria-label="Phụ đề" style="position:fixed;bottom:80px;left:50px;width:600px;height:60px">Nguyễn Văn A: Caption đầu tiên</div>
+ </body></html>`);
+ await meet.evaluate(()=>{
+  window.mhandlers=[];window.msaved=[];const session={id:'meet-test',title:'Meet caption check',status:'recording',count:0,images:0,createdAt:new Date().toISOString()};
+  window.chrome={runtime:{id:'fixture',onMessage:{addListener(fn){mhandlers.push(fn);}},async sendMessage(msg){
+   if(msg.type==='start'){await new Promise(r=>mhandlers[0]({scope:'meetscribe',target:'content',type:'begin',session},{id:'fixture'},r));return {ok:true,session};}
+   if(msg.type==='caption'){msaved.push(...msg.entries);return {ok:true,count:msaved.length};}
+   if(msg.type==='stop'){await new Promise(r=>mhandlers[0]({scope:'meetscribe',target:'content',type:'end'},{id:'fixture'},r));return {ok:true,session:{...session,status:'completed'}};}
+   return {ok:true,session};
+  }}};
+  window.mcmd=(type,data={})=>new Promise(r=>mhandlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
+ });
+ await meet.addScriptTag({path:root+'/captions.js'});
+ await meet.addScriptTag({path:root+'/content.js'});
+ await meet.evaluate(css=>mcmd('mount',{css}),css);
+ await meet.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
+
+ assert.equal(await meet.evaluate(()=>msaved.some(e=>e.text.includes('Đừng lưu cái này'))),false);
+ const highlightRes=await meet.evaluate(()=>mcmd('highlight-caption',{durationMs:1000}));
+ assert.equal(highlightRes.captionAvailable,true);
+
+ await meet.evaluate(()=>{
+  document.getElementById('meet-caps').remove();
+  const newCaps=document.createElement('div');
+  newCaps.id='meet-caps-2';
+  newCaps.setAttribute('aria-label','Phụ đề');
+  newCaps.style.cssText='position:fixed;bottom:80px;left:50px;width:600px;height:60px;';
+  newCaps.innerText='Trần Thị B: Caption sau khi re-render';
+  document.body.appendChild(newCaps);
+ });
+
+ await meet.evaluate(()=>mcmd('inspect'));
+ await meet.locator('#meet-caps-2').evaluate(el=>el.innerText='Trần Thị B: Caption sau khi re-render kết thúc');
+ await meet.getByRole('button',{name:'Dừng và lưu',exact:true}).click();
+
+ assert.equal(await meet.evaluate(()=>msaved.some(e=>e.text.includes('Caption sau khi re-render'))),true);
+ passed++;console.log('PASS Meet caption discovery, replacement reacquisition, chat exclusion and highlight');await meet.close();
  const settingsPage=await browser.newPage({viewport:{width:1280,height:800}});
  await settingsPage.goto(base+'/settings.html');
  assert.equal(await settingsPage.locator('#opacityInput').inputValue(),'96');

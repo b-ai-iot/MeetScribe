@@ -2,7 +2,7 @@
  const prior=globalThis.__meetScribe;
  if(prior?.valid())return;
  const recovered=prior?.dispose()||[];
- let caption=null,share=null,observer=null,picker=null,session=null,running=false,starting=false,stopping=false,lost=false;
+ let caption=null,share=null,captionSource='auto',observer=null,picker=null,session=null,running=false,starting=false,stopping=false,lost=false;
  let buffer=recovered,sequence=0,last='',flushTimer=null,flight=null,healthBusy=false,pendingBytes=0;
  let host=null,root=null,collapsed=false,notice='',noticeKind='info',healthTimer;
  const visible=el=>el?.isConnected&&el.getBoundingClientRect().width>0&&el.getBoundingClientRect().height>0&&getComputedStyle(el).visibility!=='hidden'&&getComputedStyle(el).display!=='none';
@@ -27,10 +27,28 @@
   }catch(e){if(/context invalidated/i.test(e.message)){lost=true;clearInterval(healthTimer);fault('Extension đã được nạp lại. Dữ liệu trước đó còn trong thư viện; cứu caption đang chờ rồi tải lại trang họp khi thuận tiện.');}throw e;}
  }
  function discover(){
+  if(globalThis.__meetScribeCaptions?.findCaptionContainer){
+   const res=globalThis.__meetScribeCaptions.findCaptionContainer(document);
+   return res.container;
+  }
   return [...document.querySelectorAll('#live-transcription-subtitle,.live-transcription-subtitle__box,.live-transcription-subtitle,.transcript-container__transcripts,.transcript-container,[role="log"][aria-label*="transcript" i],div[aria-label="Phụ đề"],div[aria-label="Captions"],[role="log"][aria-label*="caption" i]')].find(visible)||null;
  }
+ function reacquireIfNeeded(){
+  if(captionSource==='manual'){
+   return visible(caption)?caption:null;
+  }
+  if(visible(caption))return caption;
+  const next=discover();
+  if(next&&next!==caption){
+   caption=next;captionSource='auto';
+   if(running)bind();
+  }
+  return visible(caption)?caption:null;
+ }
  function snapshot(){
-  if(!running||!visible(caption))return;
+  if(!running)return;
+  if(!visible(caption))reacquireIfNeeded();
+  if(!visible(caption))return;
   const text=caption.innerText?.trim();if(!text){last='';return;}if(text===last)return;
   if(text.length>2000000||buffer.length>=20000||pendingBytes+text.length*2>128*1024*1024){fault('Caption chờ lưu đã chạm giới hạn an toàn. Cứu dữ liệu đang chờ và kiểm tra thư viện.');return;}
   last=text;buffer.push({sequence:++sequence,timestamp:new Date().toISOString(),text,speaker:null});pendingBytes+=text.length*2;
@@ -61,7 +79,7 @@
   if(right<=x||bottom<=y)return null;
   return {x:x/innerWidth,y:y/innerHeight,w:(right-x)/innerWidth,h:(bottom-y)/innerHeight,key:share.tagName+':'+Math.round(r.width)+':'+Math.round(r.height),confirmedBy:'user-selection'};
  }
- function inspect(){if(!visible(caption)&&!caption?.isConnected){const next=discover();if(next&&next!==caption){caption=next;bind();}}return {sid:session?.id,directChild:window.parent===window.top,sourcePath:location.origin+location.pathname,captionAvailable:visible(caption),shareAvailable:!!rectangle(),rect:rectangle()};}
+ function inspect(){reacquireIfNeeded();return {sid:session?.id,directChild:window.parent===window.top,sourcePath:location.origin+location.pathname,captionAvailable:visible(caption),shareAvailable:!!rectangle(),rect:rectangle()};}
  function pick(kind){
   picker?.();let target=null;
   const frame=document.createElement('div'),tip=document.createElement('div');
@@ -78,7 +96,7 @@
    if(e.composedPath().includes(host))return;
    e.preventDefault();e.stopImmediatePropagation();
    if(!target||target===document.body||target===document.documentElement){tip.textContent='Chọn khung nhỏ hơn toàn trang để tránh lưu nội dung không liên quan.';return;}
-   if(kind==='caption'){caption=target;bind();cleanup();noticeKind='info';notice='Đã chọn phụ đề. Bấm Bắt đầu khi sẵn sàng.';render();}
+   if(kind==='caption'){caption=target;captionSource='manual';bind();cleanup();noticeKind='info';notice='Đã chọn phụ đề thủ công. Bấm Bắt đầu khi sẵn sàng.';render();}
    else {share=target;cleanup();action(async()=>{if(!running)throw Error('Bắt đầu ghi caption trước khi bật ảnh share.');const result=await send('visual-start');setSession(result.session);notice='Đã chọn vùng share; đang tự lọc ảnh theo thay đổi.';});}
   };
   document.addEventListener('pointermove',move,true);document.addEventListener('wheel',wheel,{capture:true,passive:false});document.addEventListener('click',click,true);document.addEventListener('keydown',key,true);picker=cleanup;
@@ -165,7 +183,13 @@
    }finally{starting=false;}
   });
   $('stop').onclick=()=>action(async()=>{if(stopping)return;stopping=true;render();try{const result=await send('stop');setSession(result.session);}finally{stopping=false;}});
-  $('caption').onclick=()=>pick('caption');$('share').onclick=()=>pick('share');
+  $('caption').onclick=()=>{
+   if(visible(caption)&&globalThis.__meetScribeCaptions?.highlightCaptionRegion){
+    globalThis.__meetScribeCaptions.highlightCaptionRegion(caption,2000);
+   }
+   pick('caption');
+  };
+  $('share').onclick=()=>pick('share');
   $('mark').onclick=()=>action(async()=>{snapshot();await flush();const result=await send('mark');notice=result.message;});
   $('clearShare').onclick=()=>action(async()=>{share=null;await send('clear-share');if(session)session.visual='not-selected';});
   $('retry').onclick=()=>action(async()=>{await flush();if(session?.status==='recording'){running=true;bind();}notice='Đã lưu phần đang chờ và tiếp tục ghi.';});
@@ -196,6 +220,12 @@
    }
    if(msg.type==='end'){snapshot();running=false;observer?.disconnect();picker?.();await flush();render();return {};}
    if(msg.type==='status'){setSession(msg.session);if(!['recording','stopping'].includes(session?.status)){running=false;observer?.disconnect();}render();return {};}
+   if(msg.type==='highlight-caption'){
+    if(visible(caption)&&globalThis.__meetScribeCaptions?.highlightCaptionRegion){
+     globalThis.__meetScribeCaptions.highlightCaptionRegion(caption,msg.durationMs||2000);
+    }
+    return {ok:true,captionAvailable:visible(caption)};
+   }
    throw Error('Unknown collector command');
   })().then(data=>reply({ok:true,...data})).catch(e=>{notice=e.message;render();reply({ok:false,error:e.message});});return true;
  };

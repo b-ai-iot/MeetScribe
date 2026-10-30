@@ -2,11 +2,39 @@ import {VERSION,isSupportedMeeting,meetingPlatform,sessionFolder,validEntries} f
 import * as store from './store.mjs';
 import {exportFile} from './downloads.mjs';
 import {getSettings} from './settings.mjs';
-import {exportFileToDirectory,getStoredDirectoryInfo} from './destination.mjs';
+import {exportFileToDirectory,getStoredDirectoryInfo,writeToDirectoryHandle} from './destination.mjs';
+import {buildSessionArchive} from './archive.mjs';
 import {ended} from './visual.mjs';
 import {mapMeetingRect,sendSessionMessage} from './frames.mjs';
 import {installToolbar} from './install.mjs';
 import {CommandQueue} from './commands.mjs';
+
+function bytesToBase64(bytes){
+ let binary='';const chunk=0x8000;
+ for(let i=0;i<bytes.length;i+=chunk){binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));}
+ return btoa(binary);
+}
+
+async function waitForDownload(id,timeoutMs=45000){
+ return new Promise((resolve,reject)=>{
+  let done=false;
+  const timer=setTimeout(()=>{if(done)return;done=true;try{chrome.downloads.onChanged.removeListener(listener);}catch{}reject(Error('Hết thời gian chờ tải file ZIP.'));},timeoutMs);
+  const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);try{chrome.downloads.onChanged.removeListener(listener);}catch{}if(err)reject(err);else resolve(id);};
+  const listener=delta=>{
+   if(delta.id===id){
+    if(delta.state?.current==='complete')finish(null);
+    else if(delta.state?.current==='interrupted'||delta.error)finish(Error(`Tải file ZIP bị gián đoạn: ${delta.error?.current||'lỗi mạng'}`));
+   }
+  };
+  chrome.downloads.onChanged.addListener(listener);
+  chrome.downloads.search({id},items=>{
+   if(items?.[0]&&!done){
+    if(items[0].state==='complete')finish(null);
+    else if(items[0].state==='interrupted')finish(Error(`Tải file ZIP bị gián đoạn: ${items[0].error}`));
+   }
+  });
+ });
+}
 const commands=new CommandQueue(),exportLocks=new Map(),endStates=new Map();let offscreenCreating;const frameRoutes=new Map();
 const time=()=>new Date().toISOString();
 const content=async(tabId,type,data={})=>{
@@ -139,22 +167,23 @@ async function receive(msg,sender){
     else throw Error('Phiên đang ghi. Hãy dừng phiên trước khi xuất ZIP.');
    }
    const files=await store.allSessionFiles(targetSession.id);
-   const {buildSessionArchive}=await import('./archive.mjs');
    const zipBytes=await buildSessionArchive(targetSession,files);
    const safeTitle=(targetSession.title||'Cuoc-hop').replace(/[\\/:*?"<>|]/g,'-').slice(0,50);
    const zipName=`MeetScribe-${targetSession.createdAt.slice(0,10)}-${safeTitle}-${targetSession.id.slice(0,8)}.zip`;
-   if(msg.destination==='customDirectory'&&targetSession.destination==='customDirectory'){
+   if(msg.destination==='customDirectory'||(msg.destination!=='downloads'&&targetSession.destination==='customDirectory')){
     const dirHandle=await store.getDirectoryHandle(targetSession.destinationId);
-    if(dirHandle){
-     const {writeToDirectoryHandle}=await import('./destination.mjs');
-     const fh=await dirHandle.getFileHandle(zipName,{create:true});
-     await writeToDirectoryHandle(fh,zipBytes);
-     return {savedTo:'directory',filename:zipName};
-    }
+    if(!dirHandle)throw Error('Không tìm thấy quyền thư mục lưu cục bộ đã chọn. Cấp lại quyền trong Cài đặt.');
+    const perm=await dirHandle.queryPermission?.({mode:'readwrite'});
+    if(perm!=='granted')throw Error('Thư mục lưu cục bộ chưa được cấp quyền ghi. Cấp lại quyền trong Cài đặt.');
+    const fh=await dirHandle.getFileHandle(zipName,{create:true});
+    await writeToDirectoryHandle(fh,zipBytes);
+    return {savedTo:'directory',filename:zipName};
    }
-   const b64=typeof Buffer!=='undefined'?Buffer.from(zipBytes).toString('base64'):btoa(String.fromCharCode(...zipBytes));
+   const b64=bytesToBase64(zipBytes);
    const dataUrl=`data:application/zip;base64,${b64}`;
-   const downloadId=await chrome.downloads.download({url:dataUrl,filename:zipName,saveAs:Boolean(msg.saveAs),conflictAction:'uniquify'});
+   const saveAs=msg.saveAs!==undefined?Boolean(msg.saveAs):false;
+   const downloadId=await chrome.downloads.download({url:dataUrl,filename:zipName,saveAs,conflictAction:'uniquify'});
+   await waitForDownload(downloadId);
    return {savedTo:'downloads',downloadId,filename:zipName};
   }
   throw Error('Unsupported library command');

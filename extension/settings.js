@@ -53,6 +53,9 @@ async function init() {
       const destMod = await import('./destination.mjs').catch(() => null);
       if (destMod && typeof destMod.getStoredDirectoryInfo === 'function') {
         const queryDestId = new URLSearchParams(window.location.search).get('destinationId');
+        if (queryDestId) {
+          $('customDirSection').hidden = false;
+        }
         const info = await destMod.getStoredDirectoryInfo(queryDestId || undefined);
         if (info?.name) {
           preloadedHandle = info.handle;
