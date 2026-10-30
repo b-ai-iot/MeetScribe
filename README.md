@@ -1,111 +1,103 @@
 # MeetScribe
 
-Extension Chrome độc lập để thu caption và chọn ảnh chia sẻ trên Google Meet và Zoom web. Giao diện tiếng Việt, thanh điều khiển kính mờ nổi trên trang họp, hoàn toàn không gọi API AI từ tiện ích (người dùng tự mang gói ZIP sang các mô hình AI bên ngoài).
+[Tiếng Việt](README.vi.md) · **English**
 
-Mã nguồn nằm trong repository này; thư mục nạp vào Chrome là `extension/`.
-Không sửa Local Collector 0.1.2, skill ghi-meeting, dữ liệu hay cấu hình extension cũ. Đây là tiện ích mới với cơ sở dữ liệu riêng.
+<p align="center">
+  <img src="extension/icons/128.png" width="96" height="96" alt="MeetScribe logo" />
+</p>
 
-## Cài lần đầu
+<p align="center">
+  <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.2.0-green.svg" alt="Version 1.2.0" /></a>
+  <a href="docs/en/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
+</p>
 
-1. Mở `chrome://extensions`, bật **Developer mode**.
-2. Chọn **Load unpacked** và trỏ đến thư mục **extension** bên trong dự án MeetScribe. Nếu dùng ZIP, giải nén rồi chọn thư mục chứa `manifest.json`.
-3. Ghim **MeetScribe — Ghi chú cuộc họp** trên thanh tiện ích Chrome.
-4. Trên tab Google Meet hoặc Zoom web, bật phụ đề rồi bấm biểu tượng MeetScribe để mở thanh nổi.
+MeetScribe is an independent, local-first Chrome extension that captures live captions and shared-screen slides during Google Meet and Zoom web sessions. It operates entirely in your browser: no audio recording, no video file recording, and zero AI or external network calls during meetings. You choose where to export portable ZIP archives for later analysis.
 
-Bản này cài thành tiện ích mới, không dùng nút Reload của tiện ích Local Collector cũ. Khi thử, dừng phiên cũ trước để tránh hai bộ thu cùng hoạt động.
+> **UI Language Note:** The extension user interface is currently in Vietnamese. The documentation is fully bilingual (English and Vietnamese) and explains the main Vietnamese control labels alongside English translations.
 
-## Dùng khi họp
+---
 
-- **Bắt đầu ghi**: tự nhận khung có nhãn Phụ đề/Captions khi có thể. Nếu chưa nhận được, chọn **Vùng caption**, rê chuột vào đúng khung phụ đề và click. Cuộn để chọn khung cha, Esc để hủy. Sau đó bấm Bắt đầu.
-- **Vùng share**: khi có nội dung trình chiếu, chọn đúng nội dung được chia sẻ, không chọn camera hay toàn trang. Bộ thu xin quyền lấy hình từ tab và bắt đầu lọc ảnh. Nếu không lấy được hình, caption vẫn tiếp tục và giao diện báo rõ.
-- **Đánh dấu**: lưu mốc caption hiện tại và thử lưu ảnh share quan trọng. Nếu slide đã có ảnh, giữ ảnh cũ và ghi lại mốc thảo luận.
-- Nút dấu trừ thu nhỏ thanh. Biểu tượng bốn hướng kéo di chuyển được; dùng Tab tới nút rồi phím mũi tên cũng di chuyển được.
-- **Dừng và lưu**: lưu hết caption chờ, dừng luồng ảnh, chốt phiên và xuất file. Nếu tải thất bại, vào **Thư viện phiên họp → Thử xuất lại**. Trạng thái xuất và bản dự phòng được hiển thị riêng.
-- Nếu mất kết nối tạm thời, dùng **Thử lưu và tiếp tục**. Nếu extension đã reload và ngữ cảnh bị vô hiệu hóa, dùng **Cứu caption đang chờ**, kiểm tra file tải xong, rồi tải lại tab Meet và mở phiên mới. File cứu là ngoại lệ tải qua trình duyệt, có thể hiện hộp lưu tùy Chrome.
+## Key Features
 
-Không cần giữ một trang bộ thu riêng. Giữ tab họp mở và máy thức; nguồn phụ đề, quyền tab và tình trạng máy quyết định phạm vi thu. Tự dừng dựa trên thông báo kết thúc rõ ràng qua hai lần kiểm tra; im lặng không được coi là hết họp. Đóng/đổi trang ghi là gián đoạn nguồn.
+- **DOM-Native Caption Capture:** Captures live captions from official Google Meet and Zoom web DOM elements with automatic reacquisition and journaled IndexedDB persistence. Speaker names can remain in raw text; the structured `speaker` field is currently `null`.
+- **Smart Slide Sampling:** Captures user-confirmed presentation areas (15-second sample, minimum 30-second interval, perceptual deduplication via dHash64/color/region) without saving full video streams.
+- **Flexible Local Storage:** Exports files automatically to Chrome's default `Downloads/MeetScribe/...` directory or to any custom folder chosen via the File System Access API.
+- **AI-Ready ZIP Export:** Generates self-contained packages containing raw snapshots, slides, metadata, `transcript.md` (timestamped reading copy), and `README-for-AI.md` (structured instructions for external LLMs).
+- **Session Management Library:** Search previous meetings by title or date, safely rename display titles, inspect local backup sizes, preview captions/slides, and re-export failed downloads.
+- **Customizable Toolbar:** Translucent floating overlay with adjustable opacity (40–100%), scalable font size (12–18px), drag-and-drop repositioning, keyboard arrow controls, and compact mode.
 
-## Lưu ở đâu?
+---
 
-Mặc định, Chrome dùng Downloads:
+## Screenshots
 
+<p align="center">
+  <img src="docs/images/toolbar.png" alt="MeetScribe floating toolbar on Google Meet demo" width="800" /><br />
+  <em>Floating toolbar overlay during a meeting session (synthetic Google Meet caption demonstration).</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/library.png" alt="MeetScribe session library page" width="800" /><br />
+  <em>Session library page (<code>library.html</code>) showing search, session cards, export status, and ZIP options.</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/settings.png" alt="MeetScribe settings page" width="800" /><br />
+  <em>Settings page (<code>settings.html</code>) with opacity slider, font size preview, and local directory configuration.</em>
+</p>
+
+---
+
+## Quickstart
+
+MeetScribe is not distributed through the Chrome Web Store and provides no prebuilt release assets yet. You load it directly from source:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/b-ai-iot/MeetScribe.git
+   cd MeetScribe
+   ```
+2. **Open Extensions in Chrome:**
+   Navigate to `chrome://extensions/` and enable **Developer mode** in the top right.
+3. **Load Unpacked Extension:**
+   Click **Load unpacked** and select the `extension/` directory inside this repository.
+4. **Pin and Use:**
+   Pin **MeetScribe — Ghi chú cuộc họp** to your toolbar. Open a Google Meet or Zoom web tab, turn on native captions, and click the MeetScribe icon to display the floating controls.
+
+To create a local zip package matching the repository manifest, run:
+```bash
+npm run package
 ```
-Downloads/MeetScribe/2026-10-29/Tên cuộc họp--150627--a1b2c3d4/
-  session.json
-  captions/part-000001.jsonl
-  captions/part-000002.jsonl
-  images/screen-001-....png
-  images/screen-001-....png.json
-  events/....json
-  session-final.json
-  finished.json
-```
+This outputs `dist/MeetScribe-1.2.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
 
-Nếu anh đã đổi thư mục tải mặc định trong Chrome, thư mục MeetScribe nằm dưới vị trí đó. Tiện ích dùng đường dẫn tương đối của Chrome Downloads, không ép đường dẫn tuyệt đối của máy và không yêu cầu chọn thư mục mỗi lần. Tên được làm sạch, giữ tiếng Việt, thêm giờ/giây và mã phiên để tránh ghi đè cuộc họp khác.
+---
 
-Caption được gom tối đa 100 bản cập nhật/lô, thường xả mỗi 10 giây. Chỉ xóa lô khỏi hàng đợi sau khi giao dịch IndexedDB thành công. Các phần JSONL không thay đổi sau khi tạo; nối theo tên part để đọc toàn bộ dữ liệu thô. Snapshot chứa phần chồng và câu được sửa: không nối máy móc thành lời nói mới. Timestamp là lúc bộ thu nhìn thấy caption, không phải thời điểm âm thanh gốc. Chưa nhận dạng chắc người nói thì để `speaker: null`.
+## Scope & Honest Limitations
 
-Bản dự phòng vẫn nằm trong hồ sơ Chrome sau khi xuất. Lượt tải chỉ được đánh dấu thành công sau khi Chrome báo complete; khi bị lỗi, dữ liệu chưa xuất vẫn được giữ để thử lại. **Không gỡ tiện ích/xóa hồ sơ khi chưa kiểm tra dữ liệu đã xuất.** Thư viện hiện chưa có chức năng xóa bản dự phòng.
+- **Platforms:** Supports Google Meet and Zoom on desktop Google Chrome (116+). The Zoom desktop application is **not** supported.
+- **Native Captions Required:** Captions must be activated within the meeting interface. MeetScribe captures DOM text; it does not record microphone audio or perform speech-to-text transcription.
+- **Mouse Selection:** Initial caption and share-screen region pickers require mouse interaction (hover, scroll to expand parent, click to select, Esc to cancel). Toolbar movement supports both mouse dragging and keyboard arrows.
+- **Testing Boundaries:** Automated test suites run against synthetic DOM fixtures and platform OPFS handles. Testing does not substitute for real meeting environments or the native OS directory picker dialog.
 
-## Ảnh share
+---
 
-- Lấy mẫu 15 giây, thông thường cách ít nhất 30 giây giữa các ảnh.
-- So sánh dHash64, sai khác màu RGB và vùng 8×8; loại ảnh gần trùng, trỏ lại ảnh cũ khi slide lặp lại.
-- Chờ thêm một mẫu để giữ thay đổi nhỏ nhưng ổn định; không suy luận nội dung chữ bằng AI/OCR.
-- Giới hạn 30 ảnh trong một giờ, 120 ảnh/phiên, 100 MiB ảnh; được kiểm tra thêm trong giao dịch lưu để không vượt khi bật/tắt luồng ảnh.
-- Lưu timestamp, vùng ảnh, caption gần đó và lý do giữ ảnh trong file JSON bên cạnh PNG.
-- Dùng luồng video tab tạm trong bộ nhớ; không xin âm thanh, không lưu tệp video.
-- Mất/ẩn/thay khung share → giao diện yêu cầu chọn lại; không tiếp tục khẳng định đang lưu ảnh từ vùng cũ.
+## Documentation
 
-## Báo cáo Word
+Explore the comprehensive bilingual documentation in the [`docs/`](docs/README.md) directory:
 
-Dừng chỉ lưu dữ liệu. Khi cần, yêu cầu tổng hợp thư mục phiên thành meeting note/Word. Cung cấp cả `captions/`, `images/`, `events/` và metadata. Việc tổng hợp bằng mô hình chỉ bắt đầu khi anh yêu cầu; tiện ích không tự gọi agent hoặc gửi dữ liệu đi.
+- [Installation Guide](docs/en/installation.md) · Step-by-step setup, requirements, and permissions
+- [Usage Guide](docs/en/usage.md) · Toolbar buttons, caption/share selection, and meeting workflows
+- [Export Format](docs/en/export-format.md) · Directory layout, JSONL schema, and AI ZIP specifications
+- [Privacy & Security](docs/en/privacy.md) · Local-first architecture, zero analytics, and permission audit
+- [Development & Testing](docs/en/development.md) · Environment setup, Playwright tests, and packaging
+- [Troubleshooting](docs/en/troubleshooting.md) · Solutions for common caption, permission, and export issues
+- [Architecture](docs/en/architecture.md) · System design, service worker, content scripts, and data flow
 
-## Phát triển và kiểm thử
+---
 
-Chrome 116+, Node.js 20+, Python3 để đóng gói. Tiện ích không có thư viện chạy ngoài, không cần build khi Load unpacked.
+## Contributing & License
 
-```
-npm install
-npm test
-npx playwright install chromium
-npm run test:browser
-npm run test:extension
-python3 tools/package.py
-```
+Contributions are welcome in both English and Vietnamese. Please review [CONTRIBUTING.md](CONTRIBUTING.md) and our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before submitting issues or pull requests. For vulnerability disclosures, refer to [SECURITY.md](SECURITY.md).
 
-Nếu dùng thư viện Playwright có sẵn của Codex, đặt NODE_PATH tới thư mục node_modules của runtime. Kiểm thử DOM mặc định dùng Google Chrome tại `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`; có thể đặt `MEETSCRIBE_TEST_CHROME`. Smoke test dùng Chrome for Testing riêng. Chạy test không dùng hồ sơ Chrome cá nhân.
-
-Smoke test tạo bản sao test-only thêm quyền host Meet để inject trang Meet mô phỏng mà không bấm thanh công cụ Chrome; gói sản phẩm chỉ có activeTab. Vì vậy smoke test không thay thế thử quyền từ thao tác bấm extension trong một Google Meet thật.
-
-Xem `docs/verification.md` để biết chính xác các kiểm thử đã chạy và phần cần thử thực tế.
-
-## Giới hạn của bản đầu
-
-Google Meet và Zoom bản web trên Chrome; không hỗ trợ ứng dụng Zoom desktop. Chọn vùng hiện dùng chuột, trong khi các nút điều khiển/di chuyển hỗ trợ bàn phím. Không thể phục hồi caption chưa từng xuất hiện trong DOM hoặc chưa được thu trước khi tab bị đóng/máy tắt. Chrome hoặc chính sách doanh nghiệp có thể chặn tải hoặc tab capture; tiện ích phải hiển thị lỗi và giữ bản dự phòng.
-
-## Cập nhật 1.1.0 — Tiện ích và Xuất file cầm tay (2026-10-30)
-
-- **Cài đặt & Thanh điều khiển**:
-  - Tùy chỉnh độ mờ nền thanh nổi 40–100% (chỉ đổi alpha nền, giữ chữ luôn rõ), cỡ chữ 12–18px với tỷ lệ co giãn đồng bộ toàn bộ thành phần, ghi nhớ vị trí và trạng thái thu nhỏ. Có nút khôi phục mặc định (96%, 14px, góc trên trái).
-- **Lưu thư mục cục bộ tùy chọn**:
-  - Cho phép chọn thư mục bất kỳ trên máy thông qua trang Cài đặt; lưu trữ handle bền vững trong IndexedDB `meetscribe-local-v1` (store `destination_handles`).
-  - Ghim đích lưu theo từng phiên họp: thay đổi cấu hình thư mục cho các phiên sau không làm lệch đường dẫn của phiên cũ. Có nút cấp lại quyền khi trình duyệt yêu cầu xác thực lại.
-- **Tải ZIP cầm tay cho AI**:
-  - Xuất gói ZIP chuẩn từ toàn bộ tệp nhật ký (cả tệp đã xuất và tệp chờ), bao gồm `transcript.md` (chứa các mốc phụ đề theo thời gian), `README-for-AI.md` (chỉ dẫn chống bịa đặt và prompt lập biên bản họp) và `manifest.json`.
-  - Gói ZIP đã được kiểm tra bằng Python `zipfile`, gồm dữ liệu nhị phân 1 MiB và tên/nội dung tiếng Việt.
-- **Tự động nhận diện & Khôi phục phụ đề**:
-  - Nhận diện phụ đề Google Meet và Zoom bằng các bộ chọn ngữ nghĩa và vùng hiển thị; nghiêm ngặt loại trừ khung trò chuyện (chat), danh sách người tham gia, thanh công cụ và toàn bộ trang.
-  - Gom cụm ứng viên theo widget và ưu tiên vùng bao ngoài để không mất tên người nói; cảnh báo mơ hồ nếu có hai vùng cạnh tranh điểm số cao; khôi phục tự động khi cuộc họp render lại thẻ phụ đề mà không reset số thứ tự hoặc phát cảnh báo sai; giữ trạng thái chọn thủ công khi người dùng đã chỉ định.
-- **Thư viện phiên họp & Quản lý**:
-  - Tìm kiếm cuộc họp theo tên hoặc ngày tạo; đổi tên hiển thị an toàn mà không làm đổi đường dẫn tệp trên đĩa; xem trước trích đoạn caption cuối và ảnh thu nhỏ; hiển thị dung lượng bản dự phòng cục bộ; xóa phiên họp đã dừng sau khi người dùng xác nhận rõ ràng; bảo vệ các phiên đang ghi không thể bị xóa nhầm; an toàn chống XSS.
-- **Kiểm thử**: 61 unit tests, 22 browser checks trong Chrome thật, kiểm thử tiện ích unpacked với Python zipfile verification. Xem chi tiết tại `docs/verification.md`.
-
-## Dùng các tính năng 1.2.0
-
-- Mở **Cài đặt** từ thanh nổi hoặc thư viện. Chỉnh độ mờ nền/cỡ chữ, bấm **Lưu cài đặt**; **Đặt lại mặc định** khôi phục cả vị trí và chế độ thu nhỏ.
-- Chọn **Thư mục cục bộ tùy chọn → Chọn thư mục…**, cấp quyền ghi và lưu cài đặt. Thay đổi áp dụng cho phiên mới; phiên cũ giữ thư mục đã chọn lúc bắt đầu. Khi cần, dùng **Cấp lại quyền thư mục** ở phiên bị lỗi.
-- Sau khi dừng, vào thư viện chọn **Tải ZIP cho AI** hoặc **Lưu ZIP (Save As...)**. Gói gồm caption thô, ảnh, sự kiện, metadata, `transcript.md`, `README-for-AI.md` và manifest. Tiện ích không tự gửi gói lên AI.
-- Bật phụ đề của Meet/Zoom. Tiện ích tự tìm và tìm lại khung phụ đề; dùng **Vùng caption** để chọn thủ công nếu không xác định chắc chắn.
-
-Kiểm thử tự động dùng trang họp mô phỏng và directory handle OPFS trong hồ sơ Chrome riêng. Hộp chọn thư mục thật của hệ điều hành, quyền còn lại sau khi khởi động lại Chrome và DOM của cuộc họp Meet/Zoom thực tế cần được kiểm tra trực tiếp khi sử dụng.
+MeetScribe is licensed under the [MIT License](LICENSE). Copyright &copy; 2026 MeetScribe contributors.

@@ -1,0 +1,50 @@
+name: Feature Request · Đề xuất tính năng
+description: Suggest an enhancement or new feature for MeetScribe · Đề xuất cải tiến hoặc tính năng mới
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an improvement! You may fill out this form in English or Vietnamese.
+        *Cảm ơn bạn đã đề xuất cải tiến! Bạn có thể điền biểu mẫu này bằng tiếng Anh hoặc tiếng Việt.*
+
+        > **Core Constraint Reminder · Lưu ý về nguyên tắc cốt lõi:**
+        > MeetScribe is strictly 100% local-first and zero-telemetry. Proposed features must not require remote servers, third-party analytics, or automatic background AI API calls during meetings.
+        > *MeetScribe tuyệt đối ưu tiên lưu trữ cục bộ 100% và không thu thập dữ liệu. Đề xuất tính năng không được yêu cầu máy chủ trung gian, mã theo dõi bên thứ ba hoặc tự ý gọi API AI ngầm khi đang họp.*
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement · Vấn đề gặp phải
+      description: Is your feature request related to a problem? A clear description of the pain point or use case.
+      placeholder: "I find it difficult to... / Tôi gặp khó khăn khi..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution · Giải pháp đề xuất
+      description: A clear and concise description of what you want to happen. · Mô tả chi tiết giải pháp hoặc tính năng mong muốn.
+      placeholder: "Describe how the feature would work... / Mô tả cách tính năng sẽ hoạt động..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered · Các giải pháp thay thế đã cân nhắc
+      description: Any alternative solutions or workarounds you have considered. · Các giải pháp tình thế bạn đã thử qua.
+      placeholder: "I also thought about... / Tôi cũng đã cân nhắc..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: local_first
+    attributes:
+      label: Local-First & Privacy Impact · Ảnh hưởng tới tính cục bộ và riêng tư
+      description: How does this proposal uphold MeetScribe's local-first, zero-telemetry architecture?
+      placeholder: "This feature keeps all data in Chrome storage / on local disk by..."
+    validations:
+      required: false

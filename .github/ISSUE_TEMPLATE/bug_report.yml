@@ -1,0 +1,77 @@
+name: Bug Report · Báo cáo lỗi
+description: File a bug report for MeetScribe · Báo cáo sự cố khi sử dụng MeetScribe
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve MeetScribe! You may fill out this form in English or Vietnamese.
+        *Cảm ơn bạn đã đóng góp cho MeetScribe! Bạn có thể điền biểu mẫu này bằng tiếng Anh hoặc tiếng Việt.*
+
+        > **Privacy Warning · Cảnh báo riêng tư:**
+        > Do NOT attach confidential meeting data, sensitive personal information, or screenshots showing real-meeting private transcripts. Use synthetic or redacted text if attaching samples.
+        > *TUYỆT ĐỐI KHÔNG đính kèm dữ liệu cuộc họp mật, thông tin cá nhân nhạy cảm hoặc ảnh chụp chứa phụ đề thật. Vui lòng sử dụng văn bản mô phỏng hoặc che mờ thông tin.*
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment & Versions · Môi trường & Phiên bản
+      description: Operating System, Chrome version, and MeetScribe version (e.g. macOS 14.5, Chrome 124, MeetScribe 1.2.0).
+      placeholder: "e.g. macOS 14.5 / Chrome 124 / MeetScribe 1.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Meeting Platform · Nền tảng cuộc họp
+      description: Where did the issue occur? · Sự cố xảy ra trên nền tảng nào?
+      options:
+        - "Google Meet (meet.google.com)"
+        - "Zoom Web Client (app.zoom.us/wc)"
+        - "Session Library (library.html)"
+        - "Settings Page (settings.html)"
+        - "Other / Khác"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description · Mô tả sự cố
+      description: A clear and concise description of the bug. · Mô tả ngắn gọn, rõ ràng về lỗi gặp phải.
+      placeholder: "Describe what went wrong... / Mô tả hiện tượng lỗi..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce · Các bước tái hiện
+      description: Step-by-step instructions to reproduce the behavior. · Các bước để tái hiện lỗi.
+      placeholder: |
+        1. Open meeting on ...
+        2. Turn on captions ...
+        3. Click toolbar button ...
+        4. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior · Hành vi kỳ vọng
+      description: What did you expect to happen? · Bạn kỳ vọng điều gì sẽ xảy ra?
+      placeholder: "What should have happened... / Lẽ ra điều gì phải diễn ra..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Status · Thông báo lỗi / Trạng thái
+      description: Any error banner text, card status, or Chrome console messages (ensure all sensitive data is redacted).
+      placeholder: "e.g. Status message on toolbar, card-error message, or console error..."
+    validations:
+      required: false

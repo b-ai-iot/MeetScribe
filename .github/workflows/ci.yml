@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run docs:check
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: DOM and browser checks
+        shell: bash
+        run: |
+          export MEETSCRIBE_TEST_CHROME="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
+          npm run test:browser
+      - run: npm run test:extension
+      - run: npm run package
+      - name: Verify packaged license
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, zipfile
+          version = json.loads(pathlib.Path('package.json').read_text())['version']
+          with zipfile.ZipFile(f'dist/MeetScribe-{version}.zip') as archive:
+              assert archive.testzip() is None
+              assert archive.read('MeetScribe/LICENSE') == pathlib.Path('LICENSE').read_bytes()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meetscribe-extension
+          path: dist/*.zip

@@ -11,6 +11,7 @@ out = root / 'dist'
 out.mkdir(exist_ok=True)
 target = out / f'MeetScribe-{manifest["version"]}.zip'
 with ZipFile(target, 'w', ZIP_DEFLATED) as archive:
+    archive.write(root / 'LICENSE', 'MeetScribe/LICENSE')
     for file in sorted(source.rglob('*')):
         if file.is_file() and not file.name.startswith('.'):
             archive.write(file, 'MeetScribe/' + str(file.relative_to(source)))
