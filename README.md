@@ -1,6 +1,6 @@
 # MeetScribe
 
-Extension Chrome độc lập để thu caption và chọn ảnh chia sẻ trên Google Meet và Zoom web. Giao diện tiếng Việt, thanh điều khiển kính mờ nổi trên trang họp, không gọi AI trong quá trình thu.
+Extension Chrome độc lập để thu caption và chọn ảnh chia sẻ trên Google Meet và Zoom web. Giao diện tiếng Việt, thanh điều khiển kính mờ nổi trên trang họp, hoàn toàn không gọi API AI từ tiện ích (người dùng tự mang gói ZIP sang các mô hình AI bên ngoài).
 
 Mã nguồn dự án: `/Users/baopham/Desktop/ENFARM/3.Software/MeetScribe`.
 Không sửa Local Collector 0.1.2, skill ghi-meeting, dữ liệu hay cấu hình extension cũ. Đây là tiện ích mới với cơ sở dữ liệu riêng.

@@ -485,6 +485,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
       return { ok: true, deleted: true };
      }
      if (msg.type === 'export-zip') {
+      (window.__recordedZipMessages = window.__recordedZipMessages || []).push(msg);
       if (window.__mockFailZip) return { ok: false, error: 'disk failure' };
       return { ok: true, savedTo: msg.saveAs ? 'saveAs' : 'downloads', filename: 'export-test.zip' };
      }
@@ -590,6 +591,49 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  assert.equal(await saveAsBtn.count(), 1);
  await saveAsBtn.click();
  await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
+
+ // Regression: CUSTOM-directory session with dropdown SaveAs sends destination: 'downloads' and saveAs: true (both primary and retry)
+ await libPage.evaluate(async () => {
+  const store = await import('./store.mjs');
+  await store.createSession({
+   id: 'session-custom-saveas',
+   title: 'Họp lưu thư mục tùy chỉnh',
+   folder: 'MeetScribe/2026-10-30/Họp Tùy Chỉnh',
+   status: 'completed',
+   createdAt: '2026-10-30T09:00:00Z',
+   count: 5,
+   images: 0,
+   destination: 'customDirectory',
+   destinationName: 'TaiLieuHop'
+  });
+  await store.writeFile('session-custom-saveas', 'captions/part-000001.jsonl', '{"text":"custom"}\n');
+  await store.finalizeSession('session-custom-saveas', { reason: 'done' });
+ });
+ await libPage.reload();
+ await libPage.locator('#searchInput').waitFor();
+
+ const customCard = libPage.locator('[data-sid="session-custom-saveas"]');
+ await customCard.locator('.zip-dest-select').selectOption('saveAs');
+ await libPage.evaluate(() => { window.__recordedZipMessages = []; });
+ await customCard.locator('.zip-btn').click();
+ await libPage.waitForFunction(() => (window.__recordedZipMessages || []).length > 0);
+ const primaryMsg = await libPage.evaluate(() => window.__recordedZipMessages[window.__recordedZipMessages.length - 1]);
+ assert.equal(primaryMsg.saveAs, true);
+ assert.equal(primaryMsg.destination, 'downloads');
+
+ // After failure, retry also sends destination: 'downloads' and saveAs: true
+ await libPage.evaluate(() => { window.__mockFailZip = true; window.__recordedZipMessages = []; });
+ await customCard.locator('.zip-btn').click();
+ await libPage.waitForFunction(() => document.querySelector('[data-sid="session-custom-saveas"] .zip-status')?.textContent.includes('disk failure'));
+ const customRetryBtn = customCard.locator('.zip-retry-btn');
+ assert.equal(await customRetryBtn.isVisible(), true);
+
+ await libPage.evaluate(() => { window.__mockFailZip = false; window.__recordedZipMessages = []; });
+ await customRetryBtn.click();
+ await libPage.waitForFunction(() => (window.__recordedZipMessages || []).length > 0);
+ const retryMsg = await libPage.evaluate(() => window.__recordedZipMessages[window.__recordedZipMessages.length - 1]);
+ assert.equal(retryMsg.saveAs, true);
+ assert.equal(retryMsg.destination, 'downloads');
 
  // Regression: rename mutation error is propagated to UI instead of silently swallowed
  await libPage.evaluate(() => { window.__mockFailRename = true; });

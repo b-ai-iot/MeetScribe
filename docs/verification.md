@@ -33,7 +33,7 @@ Phiên sửa đổi giám sát cuối cùng (final supervised repair pass) đã 
   - Đang nén/lưu: hiển thị `Đang đóng gói và lưu ZIP...` (class `.in-progress`).
   - Thành công: hiển thị `Đã lưu ZIP thành công: <tên tệp>` (class `.success`).
   - Thất bại: hiển thị `Lỗi xuất ZIP: <thông báo lỗi>` (class `.error-text`) và hiển thị nút `Thử lại xuất ZIP` (`.zip-retry-btn`) đã được kích hoạt.
-- **Tùy chọn Save As và Lựa chọn Vị trí lưu**: Cung cấp thẻ chọn vị trí lưu (`.zip-dest-select`) và nút `Lưu ZIP (Save As...)` (`.zip-save-as-btn`) kích hoạt hộp thoại lưu của hệ điều hành thông qua `{ saveAs: true, destination: 'downloads' }`.
+- **Tùy chọn Save As và Lựa chọn Vị trí lưu**: Cung cấp thẻ chọn vị trí lưu (`.zip-dest-select`) và nút `Lưu ZIP (Save As...)` (`.zip-save-as-btn`). Đảm bảo cả lựa chọn Save As từ dropdown ở nút xuất chính và nút thử lại sau lỗi đều gửi `{ saveAs: true, destination: 'downloads' }`, kích hoạt hộp thoại lưu của hệ điều hành thay vì ghi vào thư mục tùy chỉnh của phiên.
 
 ### 2.4. Khôi phục quyền thư mục phiên cũ độc lập với cấu hình Downloads
 - **Mục phục hồi riêng biệt trong Cài đặt**: Thêm thẻ `#sessionRepairSection` độc lập trong `extension/settings.html`.
@@ -73,5 +73,5 @@ Phiên sửa đổi giám sát cuối cùng (final supervised repair pass) đã 
    - Trong môi trường thực tế, việc chọn thư mục ngoài yêu cầu tương tác trực tiếp của người dùng trên trang `settings.html`.
 3. **Phụ thuộc hoàn toàn vào phụ đề chữ hiển thị (Native Captions Only)**:
    - Tiện ích chỉ trích xuất phụ đề khi cuộc họp có bật phụ đề và phụ đề xuất hiện trên DOM. Không ghi âm âm thanh micro và không thu nhận tiếng nói nếu không có phụ đề chữ.
-4. **Không gọi API AI bên thứ ba trực tiếp**:
-   - Tiện ích hoạt động 100% offline và cục bộ trong trình duyệt; việc tích hợp AI được thực hiện bằng cách xuất tệp ZIP độc lập và cung cấp cho người dùng mang sang các mô hình AI theo nhu cầu.
+4. **Không gọi API AI từ tiện ích (No AI Calls by Extension)**:
+   - Bản thân tiện ích mở rộng hoàn toàn không thực hiện bất kỳ lệnh gọi API AI hay kết nối mạng bên ngoài nào. Việc xử lý hoặc phân tích bằng AI (nếu có) do người dùng chủ động mang gói tệp ZIP độc lập sang các mô hình AI bên ngoài theo quy trình riêng của họ; tiện ích không tự nhận là xử lý AI ngoại tuyến.

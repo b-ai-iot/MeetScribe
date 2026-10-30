@@ -295,7 +295,7 @@ async function render() {
       const zipBtn = button('Tải ZIP cho AI', async () => {
         const val = destSelect.value;
         const saveAs = val === 'saveAs';
-        const destination = val === 'downloads' ? 'downloads' : (val === 'default' ? undefined : val);
+        const destination = (saveAs || val === 'downloads') ? 'downloads' : (val === 'default' ? undefined : val);
         await doExportZip({ saveAs, destination });
       }, 'zip-btn');
       actions.append(zipBtn);
@@ -308,7 +308,7 @@ async function render() {
       retryZipBtn = button('Thử lại xuất ZIP', async () => {
         const val = destSelect.value;
         const saveAs = val === 'saveAs';
-        const destination = val === 'downloads' ? 'downloads' : (val === 'default' ? undefined : val);
+        const destination = (saveAs || val === 'downloads') ? 'downloads' : (val === 'default' ? undefined : val);
         await doExportZip({ saveAs, destination });
       }, 'retry zip-retry-btn');
       retryZipBtn.hidden = true;
