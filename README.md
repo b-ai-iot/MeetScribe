@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.3.0-green.svg" alt="Version 1.3.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.3.1-green.svg" alt="Version 1.3.1" /></a>
   <a href="docs/en/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
@@ -51,7 +51,7 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 
 ## Quickstart
 
-Download `MeetScribe-1.3.0.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
+Download `MeetScribe-1.3.1.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
 
 To install from source instead:
 
@@ -71,7 +71,7 @@ To create a local zip package matching the repository manifest, run:
 ```bash
 npm run package
 ```
-This outputs `dist/MeetScribe-1.3.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
+This outputs `dist/MeetScribe-1.3.1.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
 
 ---
 

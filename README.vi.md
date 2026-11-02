@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Giấy_phép-MIT-blue.svg" alt="Giấy phép: MIT" /></a>
-  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.3.0-green.svg" alt="Phiên bản 1.3.0" /></a>
+  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.3.1-green.svg" alt="Phiên bản 1.3.1" /></a>
   <a href="docs/vi/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
@@ -51,7 +51,7 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 
 ## Bắt đầu nhanh
 
-Tải `MeetScribe-1.3.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
+Tải `MeetScribe-1.3.1.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
 
 Hoặc cài trực tiếp từ mã nguồn:
 
@@ -71,7 +71,7 @@ Hoặc cài trực tiếp từ mã nguồn:
 ```bash
 npm run package
 ```
-Lệnh sẽ tạo tệp `dist/MeetScribe-1.3.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
+Lệnh sẽ tạo tệp `dist/MeetScribe-1.3.1.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
 
 ---
 

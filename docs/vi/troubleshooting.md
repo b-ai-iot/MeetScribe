@@ -76,3 +76,7 @@ Bộ thu hiện luôn ghi `speaker: null`, không phân tích danh tính ngườ
 
 ### Vấn đề: Không kéo được thanh nổi bằng chuột
 - **Cách khắc phục:** Sử dụng phím điều hướng trên bàn phím. Nhấn phím `Tab` cho đến khi tiêu điểm chuyển đến biểu tượng di chuyển (`Di chuyển thanh điều khiển`), sau đó dùng các phím mũi tên (`Lên`, `Xuống`, `Trái`, `Phải`) để điều chỉnh vị trí thanh nổi đến vị trí mong muốn.
+
+## Lỗi khởi tạo bản dịch thanh điều khiển
+
+Nếu Chrome báo `Cannot read properties of undefined (reading 't')` hoặc `applyTranslations`, cập nhật v1.3.1 trở lên rồi tải lại tiện ích ở `chrome://extensions`. Mở lại MeetScribe trên tab họp. Bộ cài kiểm tra tài nguyên ngôn ngữ cục bộ và từ chối dùng lại thanh điều khiển cũ; không thay bộ thu có thể đang ghi. Nếu reload tiện ích làm context cũ mất hiệu lực, tải lại tab họp trước khi mở lại; xuất caption đang chờ nếu còn cứu được trước khi tải lại. Tiện ích không tự reload cuộc họp.

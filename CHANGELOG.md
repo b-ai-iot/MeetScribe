@@ -2,6 +2,13 @@
 
 [Tiếng Việt](CHANGELOG.vi.md) · [README](README.md)
 
+## 1.3.1 — 2026-11-02
+
+- Prevent toolbar callbacks from retaining a missing or partial translation engine (`t` / `applyTranslations` errors).
+- Load the language engine before its catalogs and verify readiness in the selected meeting frame before installing content callbacks.
+- Detect retained v1.3.0 instances before mounting and request an explicit meeting-tab reload after stopping/saving; do not replace a collector or discard pending captions. Require an acknowledged mount instead of reporting false success.
+- Add dependency-failure, legacy preservation and repeated-mount regression coverage, including real unpacked-extension VI/EN capture tests.
+
 ## 1.3.0 — 2026-10-30
 
 - First packaged GitHub release, with deterministic extension ZIP, SHA-256 checksums and bilingual release workflow.

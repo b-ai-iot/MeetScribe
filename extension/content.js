@@ -1,5 +1,8 @@
 (() => {
  const i18n=globalThis.__meetScribeI18n;
+ // Never retain a collector whose callbacks captured an absent/partial translator.
+ // A later install can safely retry after loading the dependencies.
+ if(!['t','applyTranslations','setLanguage','getLanguage','errorMessage','translateMessage'].every(key=>typeof i18n?.[key]==='function'))return {ok:false,error:'MeetScribe translation dependencies are not ready'};
  const t=(key,params={})=>i18n.t('toolbar.'+key,params);
  const prior=globalThis.__meetScribe;
  if(prior?.valid())return;
@@ -272,5 +275,5 @@
  const clockTimer=setInterval(()=>{if(!root||!session?.createdAt)return;const seconds=Math.max(0,Math.floor(((session.endedAt?Date.parse(session.endedAt):Date.now())-Date.parse(session.createdAt))/1000));$('elapsed').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');},1000);
  const resize=()=>clamp();window.addEventListener('resize',resize);
  const unload=e=>{if(running||buffer.length||stopping){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',unload);
- globalThis.__meetScribe={valid:connected,dispose(){clearInterval(healthTimer);clearInterval(clockTimer);clearTimeout(flushTimer);observer?.disconnect();picker?.();host?.remove();try{chrome.runtime.onMessage.removeListener(handler);}catch{}try{if(storageListener)chrome.storage.onChanged.removeListener(storageListener);}catch{}window.removeEventListener('resize',resize);window.removeEventListener('beforeunload',unload);return buffer;}};
+ globalThis.__meetScribe={bootstrapReady:true,valid:connected,dispose(){clearInterval(healthTimer);clearInterval(clockTimer);clearTimeout(flushTimer);observer?.disconnect();picker?.();host?.remove();try{chrome.runtime.onMessage.removeListener(handler);}catch{}try{if(storageListener)chrome.storage.onChanged.removeListener(storageListener);}catch{}window.removeEventListener('resize',resize);window.removeEventListener('beforeunload',unload);return buffer;}};
 })();

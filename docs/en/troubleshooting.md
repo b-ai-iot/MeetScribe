@@ -76,3 +76,7 @@ The current collector always writes `speaker: null`; it does not parse a structu
 
 ### Issue: Cannot drag toolbar using mouse
 - **Solution:** Use keyboard controls. Press `Tab` repeatedly until the move handle icon (`Di chuyển thanh điều khiển`) is focused, then use the keyboard arrow keys (`Up`, `Down`, `Left`, `Right`) to reposition the toolbar anywhere on your screen.
+
+## Toolbar translation initialization errors
+
+If Chrome reports `Cannot read properties of undefined (reading 't')` or `applyTranslations`, update to v1.3.1 or later and reload the extension at `chrome://extensions`. Reopen MeetScribe on the meeting tab. The installer checks local language assets and refuses to reuse an older toolbar; it never replaces a collector that may be recording. If the context was invalidated by an extension reload, refresh the meeting tab before reopening; export any recoverable pending captions first. No meeting reload is performed automatically.
