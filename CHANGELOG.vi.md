@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) · [README](README.vi.md)
 
+## 1.3.1 — 2026-11-02
+
+- Chặn callback thanh điều khiển giữ bộ dịch bị thiếu hoặc khởi tạo dở dang (lỗi `t` / `applyTranslations`).
+- Nạp bộ ngôn ngữ trước danh mục bản dịch, kiểm tra sẵn sàng trong đúng frame cuộc họp rồi mới cài callback thu caption.
+- Nhận diện instance v1.3.0 còn lưu trước khi mở, yêu cầu tải lại tab sau khi dừng/lưu; không thay bộ thu hoặc loại bỏ caption đang chờ. Bắt buộc nhận xác nhận mở thành công.
+- Thêm kiểm thử thiếu dependency, giữ nguyên instance cũ và mở lại nhiều lần, gồm thu caption VI/EN với tiện ích unpacked thật.
+
 ## 1.3.0 — 2026-10-30
 
 - GitHub release đóng gói đầu tiên, có ZIP ổn định, checksum SHA-256 và workflow phát hành song ngữ.

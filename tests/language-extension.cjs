@@ -11,6 +11,11 @@ const root=path.resolve(__dirname,'..');
   const manifest=JSON.parse(await fs.readFile(extension+'/manifest.json','utf8'));
   manifest.host_permissions=['https://meet.google.com/*','https://app.zoom.us/*'];
   await fs.writeFile(extension+'/manifest.json',JSON.stringify(manifest));
+  // Reproduce v1.3.0's retained callback with an undefined translator.
+  const contentSource=await fs.readFile(extension+'/content.js','utf8');
+  const legacySource=contentSource.replace(/ const i18n=globalThis\.__meetScribeI18n;[\s\S]*? const t=/, ' const i18n=undefined;\n const t=').replace('bootstrapReady:true,','');
+  assert.notEqual(legacySource,contentSource);
+  await fs.writeFile(extension+'/legacy-content.js',legacySource);
   const profile=path.join(scratch,'profile');await fs.mkdir(profile+'/Default',{recursive:true});
   await fs.writeFile(profile+'/Default/Preferences',JSON.stringify({download:{default_directory:path.join(scratch,'downloads'),prompt_for_download:false}}));
   context=await chromium.launchPersistentContext(profile,{headless:true,channel:'chromium',viewport:{width:1440,height:960},acceptDownloads:true,
@@ -25,7 +30,26 @@ const root=path.resolve(__dirname,'..');
   const library=await context.newPage();await library.goto(base+'/library.html');
   await settings.locator('#languageInput').waitFor();assert.equal(await settings.locator('#languageInput').inputValue(),'vi');
   await settings.getByRole('heading',{name:'Cài đặt MeetScribe',exact:true}).waitFor();
+  await library.evaluate(async()=>{
+   const [tab]=await chrome.tabs.query({url:'https://meet.google.com/*'});
+   // A dependency-free injection must not retain a collector.
+   await chrome.scripting.executeScript({target:{tabId:tab.id},files:['content.js']});
+   const [probe]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:()=>!!globalThis.__meetScribe});
+   if(probe.result)throw Error('Missing dependencies retained an invalid collector');
+   // Simulate an already-open tab holding the original broken v1.3.0 closure.
+   await chrome.scripting.executeScript({target:{tabId:tab.id},files:['legacy-content.js']});
+   let error='';
+   try{await (await import('./install.mjs')).installToolbar(chrome,tab.id);}catch(e){error=e.message;}
+   if(!/older toolbar.*reload/i.test(error))throw Error('Legacy toolbar must require an explicit safe reload: '+error);
+  });
+  // Refresh only this synthetic test tab; production never reloads a user's meeting.
+  await meeting.reload();
   await library.evaluate(async()=>{const [tab]=await chrome.tabs.query({url:'https://meet.google.com/*'});await (await import('./install.mjs')).installToolbar(chrome,tab.id);});
+  await meeting.getByRole('button',{name:'Bắt đầu ghi',exact:true}).waitFor();
+  assert.deepEqual(errors,[]);
+  // A second click must reuse the repaired collector, with no duplicate listeners.
+  await library.evaluate(async()=>{const [tab]=await chrome.tabs.query({url:'https://meet.google.com/*'});await (await import('./install.mjs')).installToolbar(chrome,tab.id);});
+  console.log('PASS real isolated-world bootstrap: absent translator is rejected; legacy collector is preserved until explicit reload; fresh toolbar remounts');
   await meeting.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
   await meeting.getByRole('button',{name:'Dừng và lưu',exact:true}).waitFor();
   await library.locator('#refresh').click();await library.locator('.session-title').waitFor();

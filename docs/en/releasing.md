@@ -31,7 +31,7 @@ sha256sum --check SHA256SUMS.txt
 shasum -a 256 -c SHA256SUMS.txt
 ```
 
-On Windows PowerShell, run `Get-FileHash .\MeetScribe-1.3.0.zip -Algorithm SHA256` and compare its hash with `SHA256SUMS.txt`.
+On Windows PowerShell, run `Get-FileHash .\MeetScribe-1.3.1.zip -Algorithm SHA256` and compare its hash with `SHA256SUMS.txt`.
 
 ## Recovery
 
