@@ -4,7 +4,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   opacity: 96,
   fontSize: 14,
   toolbarPosition: null,
-  collapsed: false,
+  collapsed: true,
   destination: 'downloads',
   language: 'vi'
 });
@@ -45,7 +45,7 @@ export function validateSettings(input = {}) {
     }
   }
 
-  const collapsed = Boolean(source.collapsed);
+  const collapsed = typeof source.collapsed === 'boolean' ? source.collapsed : DEFAULT_SETTINGS.collapsed;
   const destination = source.destination === 'customDirectory' ? 'customDirectory' : 'downloads';
 
   return {

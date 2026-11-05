@@ -18,7 +18,7 @@ test('language setting defaults to VI and accepts exactly VI/EN',()=>{
 
 test('old installs preserve other preferences and dedicated language overrides legacy',async()=>{
   const old=storage({meetscribe_settings:{opacity:72,fontSize:16}});
-  assert.deepEqual(await getSettings(old),{opacity:72,fontSize:16,toolbarPosition:null,collapsed:false,destination:'downloads',language:'vi'});
+  assert.deepEqual(await getSettings(old),{opacity:72,fontSize:16,toolbarPosition:null,collapsed:true,destination:'downloads',language:'vi'});
   const mixed=storage({meetscribe_settings:{language:'en'},meetscribe_setting_language:'vi'});
   assert.equal((await getSettings(mixed)).language,'vi');
   const invalid=storage({meetscribe_settings:{language:'en'},meetscribe_setting_language:null});
@@ -33,4 +33,9 @@ test('language persists independently during concurrent preference saves and res
   await resetSettings(data);
   assert.equal((await getSettings(data)).language,'vi');
   assert.equal((await getSettings(data)).opacity,96);
+});
+
+test('explicit legacy expanded preference survives the new compact default',async()=>{
+  const previous=storage({meetscribe_settings:{collapsed:false},meetscribe_setting_collapsed:false});
+  assert.equal((await getSettings(previous)).collapsed,false);
 });

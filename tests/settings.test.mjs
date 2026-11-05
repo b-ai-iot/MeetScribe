@@ -49,7 +49,7 @@ test('settings bounds: clamps opacity 40-100 and font size 12-18', () => {
   const defaults = validateSettings({});
   assert.equal(defaults.opacity, 96);
   assert.equal(defaults.fontSize, 14);
-  assert.equal(defaults.collapsed, false);
+  assert.equal(defaults.collapsed, true);
   assert.equal(defaults.toolbarPosition, null);
   assert.equal(defaults.destination, 'downloads');
 });
