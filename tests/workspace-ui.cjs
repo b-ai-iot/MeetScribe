@@ -29,6 +29,12 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
    assert.equal(await page.locator('nav a[href="library.html"]').count(),2,'Brand and library navigation remain reachable');
    assert.equal(await page.locator('nav a[href="settings.html"]').count(),1,'Settings navigation remains reachable');
   }
+  for(const [selected,status] of [['18','15.3px'],['12','10.2px'],['14','11.9px']]){
+   await settings.locator('#fontSizeInput').fill(selected);
+   assert.equal(await settings.locator('#previewPanel').evaluate(n=>getComputedStyle(n).fontSize),selected+'px','expanded preview follows selected font');
+   assert.equal(await settings.locator('.preview-state span').evaluate(n=>getComputedStyle(n).fontSize),status,'compact preview follows live status font scaling');
+   assert.equal(await settings.locator('.preview-state time').evaluate(n=>getComputedStyle(n).fontSize),'12px','compact timer keeps its readable fixed size');
+  }
   await settings.locator('#opacityInput').fill('55');
   assert.match(await settings.locator('#formStatus').textContent(),/chưa lưu/i,'Unsaved changes get persistent feedback');
   await settings.evaluate(()=>window.changeLanguage('en'));

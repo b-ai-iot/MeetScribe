@@ -9,10 +9,14 @@ async function fixture(preferences={},viewport={width:1440,height:900}){
  await page.setContent('<html><title>Meet - Weekly planning</title><body><div aria-label="Captions" id="caps" style="position:fixed;left:10px;bottom:15px;width:220px;height:70px">Alice: first caption</div></body></html>');
  await page.evaluate(preferences=>{
   window.handlers=[];window.storageHandlers=[];window.saved=preferences;window.persisted=[];window.commandLog=[];
+  window.windowListeners=new Map();
+  const add=window.addEventListener.bind(window),remove=window.removeEventListener.bind(window);
+  window.addEventListener=(type,fn,options)=>{if(!windowListeners.has(type))windowListeners.set(type,new Set());windowListeners.get(type).add(fn);add(type,fn,options);};
+  window.removeEventListener=(type,fn,options)=>{windowListeners.get(type)?.delete(fn);remove(type,fn,options);};
   const session={id:'floating',title:'Weekly planning',folder:'MeetScribe/test',status:'recording',count:0,images:0,pendingExports:0,createdAt:new Date(Date.now()-65000).toISOString(),lastSequence:0,visual:'not-selected',destination:'downloads'};
   window.cmd=(type,data={})=>new Promise(resolve=>handlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},resolve));
   window.setPreferences=async values=>{Object.assign(saved,values);for(const fn of storageHandlers)fn(Object.fromEntries(Object.entries(values).map(([key,newValue])=>[key,{newValue}])),'local');await new Promise(r=>setTimeout(r,0));};
-  window.chrome={storage:{local:{get(keys,cb){cb({...saved});},set:async values=>setPreferences(values)},onChanged:{addListener(fn){storageHandlers.push(fn);},removeListener(){}}},runtime:{id:'fixture',onMessage:{addListener(fn){handlers.push(fn);},removeListener(){}},async sendMessage(msg){
+  window.chrome={storage:{local:{get(keys,cb){cb({...saved});},set:async values=>setPreferences(values)},onChanged:{addListener(fn){storageHandlers.push(fn);},removeListener(fn){const i=storageHandlers.indexOf(fn);if(i>=0)storageHandlers.splice(i,1);}}},runtime:{id:'fixture',onMessage:{addListener(fn){handlers.push(fn);},removeListener(fn){const i=handlers.indexOf(fn);if(i>=0)handlers.splice(i,1);}},async sendMessage(msg){
    commandLog.push(msg.type);
    if(msg.type==='open-settings'&&window.failSettings)return {ok:false,error:'FILE_FAILED: local backup preserved'};
    if(msg.type==='start'){await cmd('begin',{session});return {ok:true,session};}
@@ -143,6 +147,51 @@ check('dragging launcher preserves picker and keyboard activation survives cance
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+30,y:b.y+30,id:9}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:b.x-40,y:b.y-40,id:9}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
   assert.equal(await el(p,'expanded').isVisible(),false,'cancelled touch leaves selection active');await el(p,'compact').focus();await p.keyboard.press('Enter');
   assert.equal(await el(p,'expanded').isVisible(),true,'keyboard click is not swallowed by stale drag suppression');assert.equal(await el(p,'stop').isVisible(),true);
+ }finally{await p.close();}
+});
+check('invalidated extension disposal returns pending captions and cleans up a moved drag without preference writes',async()=>{
+ const p=await fixture({meetscribe_setting_collapsed:false,meetscribe_setting_language:'en'});try{
+  await el(p,'start').click();await el(p,'stop').waitFor();
+  await p.locator('#caps').evaluate(n=>n.textContent='Bao: pending when extension reloads');await p.waitForTimeout(30);
+  assert.deepEqual(await p.evaluate(()=>persisted),[],'captions are still waiting for acknowledgement');
+  const b=await el(p,'compact').boundingBox();await p.mouse.move(b.x+30,b.y+30);await p.mouse.down();await p.mouse.move(b.x-100,b.y-80,{steps:8});
+  assert.ok((await el(p,'compact').boundingBox()).x<b.x-50,'disposal interrupts a real moved drag');
+  const disposed=await p.evaluate(()=>{
+   window.preferenceAttempts=0;
+   chrome.storage.local.set=()=>{preferenceAttempts++;throw Error('Extension context invalidated.');};
+   Object.defineProperty(chrome.runtime,'id',{get(){throw Error('Extension context invalidated.');}});
+   const valid=__meetScribe.valid();let entries,error;
+   try{entries=__meetScribe.dispose();}catch(e){error=e.message;}
+   return {valid,error,entries,attempts:preferenceAttempts,hosts:document.querySelectorAll('meetscribe-toolbar').length,handlers:handlers.length,storageHandlers:storageHandlers.length,listeners:['keydown','resize','beforeunload'].map(type=>[type,windowListeners.get(type)?.size||0])};
+  });
+  assert.equal(disposed.error,undefined,'invalidated preferences must not abort disposal');
+  assert.equal(disposed.valid,false);
+  assert.deepEqual(disposed.entries.map(e=>e.text),['Alice: first caption','Bao: pending when extension reloads'],'unacknowledged caption entries are returned intact');
+  assert.equal(disposed.attempts,0,'disposal does not persist UI preferences');
+  assert.equal(disposed.hosts,0);assert.equal(disposed.handlers,0);assert.equal(disposed.storageHandlers,0);
+  assert.deepEqual(disposed.listeners,[['keydown',0],['resize',0],['beforeunload',0]]);
+  await p.mouse.up();
+ }finally{await p.close();}
+});
+check('failing preference persistence still opens and focuses compact recovery controls',async()=>{
+ const p=await fixture({meetscribe_setting_collapsed:false,meetscribe_setting_language:'en'});const errors=[];p.on('pageerror',e=>errors.push(e.message));try{
+  await el(p,'start').click();await el(p,'stop').waitFor();await el(p,'collapse').click();
+  await p.evaluate(()=>{
+   chrome.storage.local.set=()=>{throw Error('Extension context invalidated.');};
+   chrome.runtime.sendMessage=()=>{throw Error('Extension context invalidated.');};
+   Object.defineProperty(chrome.runtime,'id',{get(){throw Error('Extension context invalidated.');}});
+  });
+  await el(p,'settings').evaluate(n=>n.click());
+  await p.waitForFunction(()=>document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('compactText').textContent==='Reconnect required');
+  // Completing an ordinary moved drag also tolerates synchronous preference failure.
+  const b=await el(p,'compact').boundingBox();await p.mouse.move(b.x+30,b.y+30);await p.mouse.down();await p.mouse.move(b.x-80,b.y-60,{steps:8});await p.mouse.up();
+  assert.equal(await p.locator('meetscribe-toolbar').getAttribute('data-dragging'),null);
+  await el(p,'compact').focus();await p.keyboard.press('Enter');
+  assert.equal(await el(p,'expanded').isVisible(),true,'persistence failure must not strand recovery controls in compact mode');
+  assert.equal(await read(p,h=>h.shadowRoot.activeElement.id),'collapse','opening still moves focus into the panel');
+  assert.equal(await el(p,'rescue').isVisible(),true,'pending caption recovery remains available');
+  await p.keyboard.press('Escape');assert.equal(await el(p,'expanded').isVisible(),false);assert.equal(await read(p,h=>h.shadowRoot.activeElement.id),'compact');
+  assert.deepEqual(errors,[],'failed UI preference writes never escape browser event handlers');
  }finally{await p.close();}
 });
 check('pointer cancellation releases movement and does not toggle',async()=>{

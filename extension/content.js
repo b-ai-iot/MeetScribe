@@ -208,13 +208,13 @@
   $('compact').setAttribute('aria-label',`${t($('expanded').hidden?'expand':'collapse')} · ${$('compactText').textContent}${session?' · '+elapsed:''}`);
  }
  let drag=null,suppressClick=false;
- function finishDrag(){
+ function finishDrag(persist=true){
   if(!drag)return;
   const current=drag;drag=null;
   if(current.moved)suppressClick=true;
   try{if(current.target.hasPointerCapture(current.id))current.target.releasePointerCapture(current.id);}catch{}
   host.removeAttribute('data-dragging');
-  if(current.moved)savePosition();
+  if(current.moved&&persist)savePosition();
  }
  function bindMovement(target){
   target.onkeydown=e=>{
@@ -260,15 +260,18 @@
   if(typeof s?.collapsed==='boolean')collapsed=s.collapsed;
   clamp();
  }
+ // UI preferences are best effort; an invalidated context may throw before returning a promise.
+ function savePreference(values){
+  try{chrome.storage.local.set(values).catch(()=>{});}catch{}
+ }
  function savePosition(){
-  if(!host||!chrome?.storage?.local)return;
+  if(!host)return;
   const r=host.getBoundingClientRect();
   const pos={x:Math.round(r.left),y:Math.round(r.top)};
-  chrome.storage.local.set({meetscribe_setting_toolbarPosition:pos}).catch(()=>{});
+  savePreference({meetscribe_setting_toolbarPosition:pos});
  }
  function saveCollapsedState(val){
-  if(!chrome?.storage?.local)return;
-  chrome.storage.local.set({meetscribe_setting_collapsed:Boolean(val)}).catch(()=>{});
+  savePreference({meetscribe_setting_collapsed:Boolean(val)});
  }
  let storageListener=null;
  function mount(css){
@@ -355,5 +358,5 @@
  const clockTimer=setInterval(updateClock,1000);
  const resize=()=>clamp();window.addEventListener('resize',resize);
  const unload=e=>{if(running||buffer.length||stopping){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',unload);
- globalThis.__meetScribe={bootstrapReady:true,valid:connected,dispose(){clearInterval(healthTimer);clearInterval(clockTimer);clearTimeout(flushTimer);observer?.disconnect();picker?.();finishDrag();host?.remove();try{chrome.runtime.onMessage.removeListener(handler);}catch{}try{if(storageListener)chrome.storage.onChanged.removeListener(storageListener);}catch{}window.removeEventListener('keydown',dismissPanel);window.removeEventListener('resize',resize);window.removeEventListener('beforeunload',unload);return buffer;}};
+ globalThis.__meetScribe={bootstrapReady:true,valid:connected,dispose(){clearInterval(healthTimer);clearInterval(clockTimer);clearTimeout(flushTimer);observer?.disconnect();picker?.();finishDrag(false);host?.remove();try{chrome.runtime.onMessage.removeListener(handler);}catch{}try{if(storageListener)chrome.storage.onChanged.removeListener(storageListener);}catch{}window.removeEventListener('keydown',dismissPanel);window.removeEventListener('resize',resize);window.removeEventListener('beforeunload',unload);return buffer;}};
 })();
