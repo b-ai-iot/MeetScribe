@@ -2,6 +2,13 @@
 
 [Tiếng Việt](CHANGELOG.vi.md) · [README](README.md)
 
+## 1.4.0 — 2026-11-05
+
+- Redesign the meeting controls around an AssistiveTouch-inspired floating button and attached popover, with drag/keyboard movement, persistent preferences and visible recording/error state.
+- Introduce an original caption-bubble icon and a pearl/emerald workspace shared by the meeting library and settings.
+- Improve responsive navigation, session/action hierarchy and appearance preview while retaining capture, local backups, exports, folder repair and live VI/EN support.
+- Add floating-control and workspace regression checks; refresh bilingual usage guides and screenshots.
+
 ## 1.3.1 — 2026-11-02
 
 - Prevent toolbar callbacks from retaining a missing or partial translation engine (`t` / `applyTranslations` errors).

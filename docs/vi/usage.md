@@ -21,7 +21,7 @@ Trước khi bật MeetScribe, bạn phải bật tính năng phụ đề trực
 > **Quan trọng:** MeetScribe thu thập văn bản từ DOM do công nghệ nhận diện giọng nói của chính Google Meet / Zoom tạo ra. Tiện ích không ghi âm micro và không tự chạy AI nhận diện giọng nói. Nếu bạn chưa bật phụ đề, tiện ích sẽ không có dữ liệu để thu nhận.
 
 ### Bước 2: Mở thanh điều khiển
-Bấm vào biểu tượng **MeetScribe** trên thanh tiện ích Chrome. Thanh điều khiển kính mờ nổi sẽ xuất hiện ngay trên tab cuộc họp.
+Bấm vào biểu tượng **MeetScribe** trên thanh tiện ích Chrome. Nút nổi gọn xuất hiện trên tab họp. Chạm nút (hoặc nhấn Enter/Space khi đang focus) để mở bảng thao tác. Mặc định mới là thu gọn; lựa chọn mở rộng đã lưu rõ ràng trước đó được giữ lại. Nút vẫn hiện khi bảng đang mở.
 
 ### Bước 3: Các nút điều khiển trên thanh nổi
 
@@ -37,8 +37,8 @@ Giao diện hỗ trợ tiếng Việt và tiếng Anh. Bảng dưới đối chi
 | `Vùng share` | **Share region** | Yêu cầu bạn click chọn vùng nội dung trình chiếu. Bắt đầu lấy mẫu khung hình video trong bộ nhớ. |
 | `Ngừng chụp vùng share` | **Stop capturing share region** | Ngừng lấy mẫu ảnh slide nhưng vẫn tiếp tục thu thập phụ đề bình thường. |
 | `Đánh dấu` | **Mark / Bookmark** | Lưu ngay một mốc thời gian thảo luận vào `events/` và thử chụp một ảnh slide tại thời điểm đó. |
-| `Thu nhỏ` (`-`) | **Collapse** | Thu nhỏ thanh nổi thành một viên thuốc trạng thái nhỏ gọn (`Mở rộng MeetScribe`). Bấm lại để mở. |
-| `Di chuyển thanh điều khiển` | **Move toolbar** | Bấm và kéo biểu tượng mũi tên 4 hướng, hoặc dùng phím `Tab` tới nút rồi nhấn các phím mũi tên. |
+| `Thu nhỏ` (`-`) | **Collapse** | Đóng bảng thao tác nhưng giữ nút nổi và việc thu. Bấm nút để mở lại; Escape cũng đóng bảng và đưa focus về nút. |
+| `Di chuyển thanh điều khiển` | **Move toolbar** | Kéo nút nổi hoặc tay nắm di chuyển; focus nút rồi dùng phím mũi tên. Nút đặt lại vị trí đưa nút về vị trí mặc định dễ tiếp cận. Kéo không làm mở/đóng nhầm bảng. |
 | `Cài đặt MeetScribe` | **Settings** | Mở trang `settings.html` để chỉnh độ mờ, cỡ chữ hoặc cấu hình thư mục lưu trữ. |
 | `Thư viện phiên họp` | **Session library** | Mở trang `library.html` để xem lại, đổi tên, xuất lại hoặc tải gói ZIP cho AI. |
 | `Thử lưu và tiếp tục` | **Retry and continue** | Nút cứu hộ hiển thị khi lượt ghi file gặp lỗi tạm thời. |
@@ -97,7 +97,7 @@ Thư viện liệt kê toàn bộ các cuộc họp đã ghi được lưu trong
 ### 1. Giao diện thanh nổi (`Giao diện thanh nổi`)
 - **Độ mờ nền thanh nổi (`Độ mờ nền thanh nổi`):** Kéo thanh trượt từ 40% (trong suốt hơn) đến 100% (đậm hoàn toàn). Chỉ thay đổi alpha của nền kính mờ; chữ luôn giữ độ tương phản 100%. Giá trị mặc định là **96%**.
 - **Cỡ chữ hiển thị (`Cỡ chữ hiển thị`):** Kéo thanh trượt từ 12px đến 18px. Toàn bộ các nút và biểu tượng co giãn đồng bộ theo tỷ lệ. Mặc định là **14px**.
-- **`Đặt lại mặc định` (Reset to default):** Đưa độ mờ về 96%, cỡ chữ về 14px và chuyển thanh nổi về góc trên bên trái.
+- **`Đặt lại mặc định` (Reset to default):** Đưa độ mờ về 96%, cỡ chữ về 14px và khôi phục trạng thái thu gọn và vị trí mặc định gần cạnh phải.
 
 ### 2. Vị trí lưu trữ dữ liệu (`Vị trí lưu trữ dữ liệu`)
 - **`Thư mục Tải xuống (Downloads)`:** Mặc định. Tự động lưu các tệp vào thư mục Downloads của Chrome theo đường dẫn `MeetScribe/YYYY-MM-DD/...`.
@@ -117,3 +117,9 @@ Mở **Cài đặt → Ngôn ngữ giao diện**, chọn **Tiếng Việt** ho�
 Lựa chọn này không đổi ngôn ngữ phụ đề của Meet/Zoom hoặc dịch caption đã thu, tiêu đề, tên thư mục hay trường JSON thô. Tiêu đề trong transcript/hướng dẫn AI theo ngôn ngữ giao diện; nội dung gốc giữ nguyên. Tên tiện ích ở màn hình cài đặt do Chrome quản lý theo ngôn ngữ trình duyệt; lựa chọn riêng áp dụng cho UI MeetScribe và tooltip biểu tượng.
 
 ![Cài đặt bằng tiếng Anh](../images/settings-en.png)
+
+## Trạng thái nút nổi
+
+Khi đóng bảng, nút vẫn giúp nhận biết trạng thái/thời gian và lỗi. Mở nút để xem tiến trình xuất, thử lưu lại hoặc cứu caption đang chờ. Đóng, kéo hoặc đổi kích thước bảng không dừng thu; dùng **Dừng và lưu** để kết thúc. Bảng tự chọn phía còn chỗ và nằm trong viewport. Thư viện và cài đặt dùng chung điều hướng; màn hình hẹp được bố trí lại để đọc nội dung thuận tiện.
+
+Khi chọn vùng caption hoặc vùng share, bảng tạm ẩn để không che mục tiêu. Chọn xong hoặc nhấn Escape sẽ khôi phục trạng thái trước đó. Nếu mất vùng share hoặc không thể chụp ảnh, trạng thái thu gọn cảnh báo trong khi caption vẫn được thu.

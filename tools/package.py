@@ -5,7 +5,7 @@ from release import version
 root = Path(__file__).resolve().parents[1]
 source = root / 'extension'
 current = version(root)
-for file in ['background.js', 'content.js', 'offscreen.html', 'offscreen.js', 'library.html', 'library.js', 'overlay.css', 'settings.html', 'settings.js', 'i18n.js', 'i18n.mjs', 'i18n-ui.js', 'i18n-toolbar.js', 'i18n-system.js', '_locales/vi/messages.json', '_locales/en/messages.json']:
+for file in ['background.js', 'content.js', 'offscreen.html', 'offscreen.js', 'library.html', 'library.js', 'overlay.css', 'settings.html', 'settings.js', 'i18n.js', 'i18n.mjs', 'i18n-ui.js', 'i18n-toolbar.js', 'i18n-system.js', '_locales/vi/messages.json', '_locales/en/messages.json', 'workspace.css', 'ui-icons.mjs', 'library.css', 'settings.css', 'icons/brand.svg', 'icons/16.png', 'icons/32.png', 'icons/48.png', 'icons/128.png']:
     if not (source / file).is_file():
         raise SystemExit(f'Missing required file: {file}')
 out = root / 'dist'

@@ -53,6 +53,7 @@ function updatePreview(opacity, fontSize) {
   $('fontSizeVal').textContent = `${fontSize}px`;
   const preview = $('previewPanel');
   preview.style.backgroundColor = surfaceRgba(opacity);
+  preview.closest('.preview-container').style.setProperty('--preview-surface',surfaceRgba(opacity));
   preview.style.fontSize = `${fontSize}px`;
 }
 

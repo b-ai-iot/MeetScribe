@@ -33,39 +33,39 @@
 **Files:** `extension/icons/brand.svg`, existing 16/32/48/128 PNGs, `tools/icons.cjs`, packaging guard and asset tests when behavior is changed.
 **Interfaces:** brand glyph viewBox `0 0 32 32`, a rounded bubble containing three vertical strokes; page brand `<img src="icons/brand.svg" alt="" aria-hidden="true">`; toolbar embeds the same glyph paths inline to avoid web-accessible resource permissions.
 
-- [ ] Create canonical SVG and generate PNGs with the existing browser tooling; verify all sizes visually and alpha background.
-- [ ] Run baseline tests, ensure SVG/PNGs are packaged, and supply glyph paths to both UI tasks.
-- [ ] Independently review identity and package integration; commit verified files.
+- [x] Create canonical SVG and generate PNGs with the existing browser tooling; verify all sizes visually and alpha background.
+- [x] Run baseline tests, ensure SVG/PNGs are packaged, and supply glyph paths to both UI tasks.
+- [x] Independently review identity and package integration; commit verified files.
 
 ### Task 2: Floating control (toolbar implementer)
 
 **Own files:** `extension/content.js`, `extension/overlay.css`, `extension/settings.mjs`, `extension/i18n-toolbar.js`, new `tests/floating-toolbar.cjs`, new geometry helper tests only if a helper is needed.
 **Interfaces:** Keep IDs expanded/compact/start/stop/metrics/etc so existing actions and language bindings work. `#compact` becomes the always-visible 56–60px launcher, `#expanded` becomes attached popover, and `collapsed` remains the persisted visibility preference. Default compact=true only when no explicit stored value exists. Keep current stored coordinate and opacity/font formats. Reposition via pointer capture, arrow keys and a pointer-accessible reset/reposition control. No new injected runtime assets unless root agrees first.
 
-- [ ] Write behavioral browser checks reproducing absent floating launcher/default collapse, drag-click conflict, Escape/focus, corners/resize and active capture through toggles; observe failures against baseline.
-- [ ] Implement anchor/popover DOM and styles, status/error label, focus/Escape, drag and clamp behavior. Retain all capture/export/recovery handlers; document how current session state is preserved.
-- [ ] Add VI/EN labels and preserve preferences. Test font/opacity, stored position/collapse/reset, touch cancellation and repeated mount.
-- [ ] Run new tests and relevant unit/toolbar language suites; write a report with exact commands, outputs and limitations. Root adjusts cross-cutting fixtures for compact initial state.
-- [ ] Task-scoped spec/quality review, resolve important findings, commit via root.
+- [x] Write behavioral browser checks reproducing absent floating launcher/default collapse, drag-click conflict, Escape/focus, corners/resize and active capture through toggles; observe failures against baseline.
+- [x] Implement anchor/popover DOM and styles, status/error label, focus/Escape, drag and clamp behavior. Retain all capture/export/recovery handlers; document how current session state is preserved.
+- [x] Add VI/EN labels and preserve preferences. Test font/opacity, stored position/collapse/reset, touch cancellation and repeated mount.
+- [x] Run new tests and relevant unit/toolbar language suites; write a report with exact commands, outputs and limitations. Root adjusts cross-cutting fixtures for compact initial state.
+- [x] Task-scoped spec/quality review, resolve important findings, commit via root.
 
 ### Task 3: Library and settings workspace (pages implementer)
 
 **Own files:** `extension/workspace.css`, `extension/library.html`, `extension/library.css`, `extension/library.js`, `extension/settings.html`, `extension/settings.css`, `extension/settings.js`, `extension/i18n-ui.js`, optional `extension/ui-icons.mjs`, new `tests/workspace-ui.cjs`.
 **Interfaces:** Preserve existing field IDs, session/action class selectors, VI/EN current headings and worker commands. Shared pearl/emerald tokens live in workspace.css; both pages link it before page CSS. Brand asset from Task 1. Keep previewPanel background/font binding and appearance element ID stable. Root supplies final button-appearance preview integration when Task 2 lands.
 
-- [ ] Write targeted behavior/layout checks for responsive shared navigation, complete controls, pending data across language changes and visible focus; observe failures where new behavior is absent.
-- [ ] Replace marketing hero with compact workspace header/sidebar and responsive nav. Design white meeting cards and visually primary ZIP controls while retaining all secondary actions.
-- [ ] Redesign grouped settings and desktop side preview; keep language/permissions/session repair flows and save/reset statuses. Add accessible SVG icons rather than font glyphs.
-- [ ] Run new workspace tests, browser and language-UI suites; visually inspect 375/768/1440 screenshots in VI/EN. Report commands/results and limitations.
-- [ ] Task-scoped spec/quality review, resolve important findings, commit via root.
+- [x] Write targeted behavior/layout checks for responsive shared navigation, complete controls, pending data across language changes and visible focus; observe failures where new behavior is absent.
+- [x] Replace marketing hero with compact workspace header/sidebar and responsive nav. Design white meeting cards and visually primary ZIP controls while retaining all secondary actions.
+- [x] Redesign grouped settings and desktop side preview; keep language/permissions/session repair flows and save/reset statuses. Add accessible SVG icons rather than font glyphs.
+- [x] Run new workspace tests, browser and language-UI suites; visually inspect 375/768/1440 screenshots in VI/EN. Report commands/results and limitations.
+- [x] Task-scoped spec/quality review, resolve important findings, commit via root.
 
 ### Task 4: Integration, docs and release (root)
 
 **Files:** `tests/{browser,extension-smoke,language-toolbar,language-extension}.cjs`, `tools/screenshots.cjs`, `.github/workflows/ci.yml`, `package*.json`, manifest/model version, README/changelogs, paired usage/settings guides and docs images.
 **Interfaces:** `npm run test:ui` executes floating-toolbar.cjs and workspace-ui.cjs; CI runs it with the installed Chromium. Final version 1.4.0 is consistent across package/lock/manifest/model. Existing test assertions are adapted only where approved initial compact state or new visual styling changes expectations.
 
-- [ ] Integrate defaults/settings live preview, canonical icon identity, new test commands and CI; adjust old fixtures to explicitly expand before invoking panel actions.
-- [ ] Run complete unit/browser/extension/language/UI/release/docs suites. Reproduce any failure before fixes; never weaken assertions to hide regressions.
-- [ ] Review actual screenshots for all three surfaces, compare with approved mockup, and verify contrast and min sizes. Regenerate bilingual screenshot artifacts and update EN/VI usage, settings and release docs/changelogs.
+- [x] Integrate defaults/settings live preview, canonical icon identity, new test commands and CI; adjust old fixtures to explicitly expand before invoking panel actions.
+- [x] Run complete unit/browser/extension/language/UI/release/docs suites. Reproduce any failure before fixes; never weaken assertions to hide regressions.
+- [x] Review actual screenshots for all three surfaces, compare with approved mockup, and verify contrast and min sizes. Regenerate bilingual screenshot artifacts and update EN/VI usage, settings and release docs/changelogs.
 - [ ] Dispatch final strongest whole-branch reviewer, fix important findings, then fresh final verification. Push feature branch and open PR.
 - [ ] After required GitHub CI passes, squash merge to main, create annotated v1.4.0 tag, let release workflow publish and verify downloaded ZIP/checksum/version/license/locale assets. Fast-forward local main and report release plus update instructions.

@@ -1,3 +1,4 @@
+const {expandToolbar}=require('./toolbar-fixture.cjs');
 // Exercises live toolbar updates against the production scripts. Only Chrome's
 // extension message/storage boundary is replaced; DOM observers remain real.
 const {chromium}=require('playwright');
@@ -26,23 +27,26 @@ const extension=path.resolve(__dirname,'../extension');
   for(const name of ['i18n.js','i18n-ui.js','i18n-toolbar.js','i18n-system.js','captions.js','content.js']){
    await page.addScriptTag({path:path.join(extension,name)});
   }
-  await page.evaluate(css=>cmd('mount',{css}),await fs.readFile(extension+'/overlay.css','utf8'));
+  await page.evaluate(css=>cmd('mount',{css}),await fs.readFile(extension+'/overlay.css','utf8'));await expandToolbar(page);
   await page.getByRole('button',{name:'Vùng caption',exact:true}).click();await page.locator('#caps').hover();await page.locator('#caps').click();
   await page.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
   await page.getByRole('button',{name:'Dừng và lưu',exact:true}).waitFor();
   await page.getByRole('button',{name:'Vùng share',exact:true}).click();await page.locator('#shareRegion').hover();await page.locator('#shareRegion').click();
   await page.getByRole('button',{name:'Vùng caption',exact:true}).click();
   await page.evaluate(()=>setPreferences({meetscribe_setting_language:'en'}));
-  await page.getByRole('button',{name:'Stop and save',exact:true}).waitFor({timeout:2000});
+  await page.waitForFunction(()=>document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('stopLabel').textContent==='Stop and save');
+  assert.equal(await page.locator('meetscribe-toolbar').locator('#expanded').isVisible(),false,'Picker keeps the meeting region unobstructed while labels update');
   assert.match(await page.locator('html').innerText(),/Select the caption region/);
-  assert.equal(await page.getByRole('button',{name:'Share region',exact:true}).getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('meetscribe-toolbar').evaluate(el=>el.shadowRoot.getElementById('title').textContent),'Tiêu đề <script>');
   assert.equal(await page.locator('meetscribe-toolbar').evaluate(el=>el.shadowRoot.getElementById('path').textContent),'MeetScribe/ngày/cuộc họp');
   assert.equal(await page.locator('meetscribe-toolbar').evaluate(el=>el.shadowRoot.getElementById('storage').textContent),'Automatically saving to Thư mục <img>');
   assert.equal(await page.locator('meetscribe-toolbar').evaluate(el=>el.shadowRoot.getElementById('metrics').textContent),'0 captions · 2 images');
   assert.equal(await page.locator('meetscribe-toolbar').getAttribute('lang'),'en');
-  assert.equal(await page.getByRole('button',{name:'Move recording controls',exact:true}).getAttribute('title'),'Drag or use arrow keys to move');
   await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Stop and save',exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Share region',exact:true}).getAttribute('aria-pressed'),'true');
+  assert.equal(await page.getByRole('button',{name:'Move recording controls',exact:true}).getAttribute('title'),'Drag or use arrow keys to move');
+
   assert.match(await page.locator('meetscribe-toolbar').evaluate(el=>el.shadowRoot.textContent),/Region selection cancelled/);
   await page.locator('#caps').evaluate(el=>el.textContent='Bao: caption sau đổi ngôn ngữ');
   await page.getByRole('button',{name:'Mark',exact:true}).click();

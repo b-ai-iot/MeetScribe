@@ -1,3 +1,4 @@
+const {expandToolbar}=require('./toolbar-fixture.cjs');
 const {chromium}=require('playwright');
 const http=require('node:http'),fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../extension');
@@ -216,7 +217,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   window.cmd=(type,data={})=>new Promise(r=>handlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
  });
  await injectI18n(ui);await ui.addScriptTag({path:root+'/content.js'});
- const css=await fs.readFile(root+'/overlay.css','utf8');await ui.evaluate(css=>cmd('mount',{css}),css);
+ const css=await fs.readFile(root+'/overlay.css','utf8');await ui.evaluate(css=>cmd('mount',{css}),css);await expandToolbar(ui);
  await ui.getByRole('button',{name:'Bắt đầu ghi',exact:true}).evaluate(el=>{el.click();el.click();});
  await ui.waitForFunction(()=>starts===1);
  await ui.locator('#caps').evaluate(el=>el.innerText='Alice: Nội dung đã cập nhật');
@@ -227,8 +228,8 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  assert.equal(await ui.getByRole('button',{name:'Dừng và lưu',exact:true}).isVisible(),false);
  assert.equal(await ui.evaluate(()=>starts),1);passed++;console.log('PASS floating Start lock and Stop drains latest caption');
  await ui.getByRole('button',{name:'Thu nhỏ',exact:true}).click();
- assert.equal(await ui.getByRole('button',{name:'Mở rộng MeetScribe',exact:true}).isVisible(),true);
- await ui.getByRole('button',{name:'Mở rộng MeetScribe',exact:true}).click();
+ assert.equal(await ui.locator('meetscribe-toolbar').locator('#compact').isVisible(),true);
+ await expandToolbar(ui);
  await fs.mkdir(path.resolve(__dirname,'../artifacts'),{recursive:true});
  await ui.screenshot({path:path.resolve(__dirname,'../artifacts/toolbar-desktop.png')});
  await ui.setViewportSize({width:768,height:900});await ui.screenshot({path:path.resolve(__dirname,'../artifacts/toolbar-tablet.png')});
@@ -310,7 +311,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   window.zcmd=(type,data={})=>new Promise(r=>zhandlers[0]({scope:'meetscribe',target:'content',type,...data},{id:'fixture'},r));
  });
  await zoom.addScriptTag({path:root+'/captions.js'});
- await injectI18n(zoom);await zoom.addScriptTag({path:root+'/content.js'});await zoom.evaluate(css=>zcmd('mount',{css}),css);
+ await injectI18n(zoom);await zoom.addScriptTag({path:root+'/content.js'});await zoom.evaluate(css=>zcmd('mount',{css}),css);await expandToolbar(zoom);
  await zoom.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
  await zoom.locator('.live-transcription-subtitle__box').evaluate(el=>el.innerText='Bao: Zoom caption cuối');
  await zoom.getByRole('button',{name:'Dừng và lưu',exact:true}).click();
@@ -334,7 +335,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  });
  await meet.addScriptTag({path:root+'/captions.js'});
  await injectI18n(meet);await meet.addScriptTag({path:root+'/content.js'});
- await meet.evaluate(css=>mcmd('mount',{css}),css);
+ await meet.evaluate(css=>mcmd('mount',{css}),css);await expandToolbar(meet);
  await meet.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
 
  assert.equal(await meet.evaluate(()=>msaved.some(e=>e.text.includes('Đừng lưu cái này'))),false);
@@ -394,7 +395,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   window.handlers=[];window.chrome={runtime:{id:'fixture',onMessage:{addListener(fn){handlers.push(fn);}},sendMessage(){return Promise.resolve({ok:true});}}};
  });
  await injectI18n(scaleCheck);await scaleCheck.addScriptTag({path:root+'/content.js'});
- await scaleCheck.evaluate(css=>handlers[0]({scope:'meetscribe',target:'content',type:'mount',css},{id:'fixture'},()=>{}),css);
+ await scaleCheck.evaluate(css=>handlers[0]({scope:'meetscribe',target:'content',type:'mount',css},{id:'fixture'},()=>{}),css);await expandToolbar(scaleCheck);
  const toolbar=scaleCheck.locator('meetscribe-toolbar');
  // Scale to 12px
  await toolbar.evaluate(el=>{el.style.setProperty('--font-size','12px');});

@@ -129,3 +129,9 @@ npm run test:language
 ```
 
 This runs UI and toolbar checks plus an unpacked-extension VI/EN switching test. On Linux/Windows, set `MEETSCRIBE_TEST_CHROME` as above. Catalog tests compare VI/EN keys and interpolation placeholders.
+
+## Floating control and workspace checks
+
+Run `npm run test:ui` after the browser setup above. It exercises the floating-button interactions and responsive workspace. Run `npm run docs:icons` to regenerate the 16/32/48/128 PNG icons from `extension/icons/brand.svg` using the existing development browser. No image-generation service or runtime asset download is required.
+
+The 2026-11-05 v1.4.0 local validation passed 82 unit tests, 22 browser checks, 8 floating-control scenarios, the workspace checks, unpacked synthetic Meet/Zoom and VI/EN suites, 4 release-tool tests, and validation of 31 documentation pages/9 PNG screenshots. Native folder-picker dialogs and real live meetings still require manual verification.
