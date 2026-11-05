@@ -1,5 +1,8 @@
 (()=>{globalThis.__meetScribeI18n.registerMessages({
   "vi": {
+    "ui.quickStart": "Bắt đầu một phiên họp",
+    "ui.settingsUnsaved": "Bạn có thay đổi chưa lưu.",
+    "ui.settingsReady": "Các thay đổi được áp dụng khi lưu.",
     "ui.settingsTitle": "MeetScribe · Cài đặt",
     "ui.libraryTitle": "MeetScribe · Thư viện cuộc họp",
     "ui.libraryLink": "Thư viện cuộc họp",
@@ -132,6 +135,9 @@
     "ui.libraryReadError": "Chưa đọc được thư viện: {error}"
   },
   "en": {
+    "ui.quickStart": "Start a meeting session",
+    "ui.settingsUnsaved": "You have unsaved changes.",
+    "ui.settingsReady": "Changes take effect when you save.",
     "ui.settingsTitle": "MeetScribe · Settings",
     "ui.libraryTitle": "MeetScribe · Meeting library",
     "ui.libraryLink": "Meeting library",

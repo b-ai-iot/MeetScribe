@@ -7,6 +7,8 @@ import {
   resetSettings
 } from './settings.mjs';
 
+import { decorateIcons } from './ui-icons.mjs';
+decorateIcons();
 const $ = id => document.getElementById(id);
 
 let currentSettings = { ...DEFAULT_SETTINGS };
@@ -32,6 +34,10 @@ watchLanguage(language => {
   refreshLanguage(language);
 });
 let bannerTimer;
+function setPendingChanges(pending) {
+  $('formStatus').classList.toggle('pending', pending);
+  localizeNode($('formStatus'), pending ? 'ui.settingsUnsaved' : 'ui.settingsReady');
+}
 
 
 function showBanner(key, params = {}, type = 'success') {
@@ -63,6 +69,7 @@ function syncForm(settings) {
   const isCustom = settings.destination === 'customDirectory';
   $('customDirSection').hidden = !isCustom;
   updatePreview(settings.opacity, settings.fontSize);
+  setPendingChanges(false);
 }
 
 async function init() {
@@ -106,6 +113,9 @@ async function init() {
   } catch (e) {
     showBanner('ui.readSettingsError', () => ({error: errorMessage(e)}), 'error');
   }
+
+  $('settingsForm').addEventListener('input', () => setPendingChanges(true));
+  $('settingsForm').addEventListener('change', () => setPendingChanges(true));
 
   $('opacityInput').addEventListener('input', e => {
     updatePreview(Number(e.target.value), Number($('fontSizeInput').value));

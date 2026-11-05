@@ -1,4 +1,6 @@
 import { t, setLanguage, getLanguage, getLocale, loadLanguage, applyTranslations, watchLanguage, errorMessage, messageError } from './i18n.mjs';
+import { createIcon, decorateIcons } from './ui-icons.mjs';
+decorateIcons();
 const localizedNodes = new Map();
 function localized(node, draw, attribute) {
   if (attribute) {
@@ -61,8 +63,11 @@ function el(tag, text, cls) {
   return node;
 }
 
-function button(label, fn, cls) {
-  const node = el('button', label, cls);
+function button(label, fn, cls, icon) {
+  const node = el('button', undefined, cls);
+  node.type = 'button';
+  const iconName = icon || (cls?.includes('zip') ? 'download' : cls?.includes('rename') ? 'edit' : cls?.includes('delete') ? 'trash' : cls?.includes('retry') ? 'refresh' : 'folder');
+  node.append(createIcon(iconName), el('span', label));
   node.onclick = async () => {
     node.disabled = true;
     try {
@@ -248,7 +253,7 @@ async function render() {
           setError(message, 'ui.stopError', e);
           throw e;
         }
-      }));
+      }, undefined, 'stop'));
 
       let retryActiveZipBtn;
       const doStopAndZip = async (opts = {}) => {
@@ -374,6 +379,8 @@ async function render() {
       actions.append(delBtn);
     }
 
+    // Keep visual and keyboard reading order aligned with the primary export action.
+    actions.prepend(...[actions.querySelector('.zip-btn'), actions.querySelector('.zip-dest-select')].filter(Boolean));
     card.append(info, actions);
     list.append(card);
   }
