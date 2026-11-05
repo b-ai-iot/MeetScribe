@@ -1,3 +1,4 @@
+const {expandToolbar}=require('./toolbar-fixture.cjs');
 // End-to-end language switching through real extension pages, storage and worker.
 const {chromium}=require('playwright');
 const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),assert=require('node:assert/strict');
@@ -45,6 +46,7 @@ const root=path.resolve(__dirname,'..');
   // Refresh only this synthetic test tab; production never reloads a user's meeting.
   await meeting.reload();
   await library.evaluate(async()=>{const [tab]=await chrome.tabs.query({url:'https://meet.google.com/*'});await (await import('./install.mjs')).installToolbar(chrome,tab.id);});
+  await expandToolbar(meeting);
   await meeting.getByRole('button',{name:'Bắt đầu ghi',exact:true}).waitFor();
   assert.deepEqual(errors,[]);
   // A second click must reuse the repaired collector, with no duplicate listeners.
@@ -74,6 +76,8 @@ const root=path.resolve(__dirname,'..');
   await meeting.locator('#caps').evaluate(el=>el.textContent='Minh: Nội dung sau chuyển English <img onerror=alert(1)>');
   await meeting.getByRole('button',{name:'Mark',exact:true}).click();
   await meeting.waitForFunction(()=>document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('metrics').textContent.startsWith('2 captions'));
+  // Caption persistence may acknowledge before the separate marker command finishes.
+  await meeting.waitForFunction(()=>document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('message').textContent.includes('Caption marker saved'));
   assert.match(await meeting.locator('meetscribe-toolbar').evaluate(el=>el.shadowRoot.getElementById('message').textContent),/Caption marker saved/);
   await choose('vi');await meeting.getByRole('button',{name:'Dừng và lưu',exact:true}).waitFor();
   await meeting.evaluate(()=>{document.getElementById('caps').textContent='Lan: Dòng cuối không dịch <script>';document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('stop').click();});
@@ -99,6 +103,7 @@ with zipfile.ZipFile(sys.argv[1]) as z:
   await settings.locator('#resetBtn').click();
   await settings.waitForFunction(()=>document.documentElement.lang==='vi');
   await library.waitForFunction(()=>document.documentElement.lang==='vi');
+  await expandToolbar(meeting);
   await meeting.getByRole('button',{name:'Bắt đầu ghi',exact:true}).waitFor();
   assert.equal(await settings.locator('#languageInput').inputValue(),'vi');
   assert.deepEqual(errors,[]);

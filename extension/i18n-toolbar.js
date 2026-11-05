@@ -1,12 +1,14 @@
 (()=>{
  const messages={
   controls:['MeetScribe · Bộ điều khiển ghi họp','MeetScribe · Meeting recording controls'],
+  resetPosition:['Đặt lại vị trí','Reset position'],
   collapse:['Thu nhỏ','Collapse'],currentMeeting:['CUỘC HỌP HIỆN TẠI','CURRENT MEETING'],
   start:['Bắt đầu ghi','Start recording'],stop:['Dừng và lưu','Stop and save'],preparingEllipsis:['Đang chuẩn bị…','Preparing…'],savingEllipsis:['Đang lưu…','Saving…'],
   captionRegion:['Vùng caption','Caption region'],shareRegion:['Vùng share','Share region'],mark:['Đánh dấu','Mark'],clearShare:['Ngừng chụp vùng share','Stop capturing the share region'],retry:['Thử lưu và tiếp tục','Retry saving and resume'],rescue:['Cứu caption đang chờ','Recover pending captions'],
   storageFolder:['Thư mục lưu','Save folder'],settings:['Cài đặt MeetScribe','MeetScribe settings'],library:['Thư viện phiên họp','Meeting library'],move:['Di chuyển thanh điều khiển','Move recording controls'],moveHint:['Kéo hoặc dùng phím mũi tên để di chuyển','Drag or use arrow keys to move'],expand:['Mở rộng MeetScribe','Expand MeetScribe'],
   reconnect:['Cần kết nối lại','Reconnect required'],check:['Cần kiểm tra','Needs attention'],saving:['Đang lưu phiên','Saving session'],preparing:['Đang chuẩn bị','Preparing'],recording:['Đang ghi','Recording'],waitingCaption:['Chờ caption','Waiting for captions'],lostCaptionStatus:['Mất vùng caption','Caption region lost'],stopped:['Đã dừng','Stopped'],interrupted:['Phiên gián đoạn','Session interrupted'],ready:['Sẵn sàng','Ready'],
   lostCaption:['Mất vùng caption. Chọn lại khung phụ đề để tiếp tục.','Caption region lost. Select the caption region again to continue.'],
+  lostShareStatus:['Mất vùng share','Share region lost'],visualUnavailableStatus:['Chưa có ảnh share','Images unavailable'],
   lostShare:['Mất vùng share. Chọn lại vùng share; caption vẫn tiếp tục.','Share region lost. Select it again; caption recording continues.'],
   visualUnavailable:['Caption đang lưu · chưa lấy được ảnh share.','Captions are being saved · shared-screen images are unavailable.'],
   visualReady:['Tự lưu caption và chọn ảnh từ vùng share đã xác nhận.','Automatically saving captions and selecting images from the confirmed share region.'],

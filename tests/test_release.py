@@ -37,6 +37,8 @@ class ReleaseTests(unittest.TestCase):
         with zipfile.ZipFile(target) as archive:
             self.assertIsNone(archive.testzip())
             self.assertEqual(archive.read('MeetScribe/LICENSE'), (ROOT / 'LICENSE').read_bytes())
+            for asset in ('workspace.css', 'ui-icons.mjs', 'icons/brand.svg', 'icons/16.png', 'icons/32.png', 'icons/48.png', 'icons/128.png'):
+                self.assertIn('MeetScribe/' + asset, archive.namelist())
             for locale in ('en', 'vi'):
                 self.assertIn(f'MeetScribe/_locales/{locale}/messages.json', archive.namelist())
         for file in (self.root / 'extension').rglob('*'):

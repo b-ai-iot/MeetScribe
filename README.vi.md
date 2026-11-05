@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Giấy_phép-MIT-blue.svg" alt="Giấy phép: MIT" /></a>
-  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.3.1-green.svg" alt="Phiên bản 1.3.1" /></a>
+  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.4.0-green.svg" alt="Phiên bản 1.4.0" /></a>
   <a href="docs/vi/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
@@ -26,11 +26,17 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 - **Lưu trữ cục bộ linh hoạt:** Tự động xuất tệp vào thư mục `Downloads/MeetScribe/...` mặc định của Chrome hoặc vào bất kỳ thư mục nào trên máy tính qua File System Access API.
 - **Xuất gói ZIP cho AI cầm tay:** Tạo gói nén độc lập chứa toàn bộ bản chụp thô, ảnh trình chiếu, siêu dữ liệu, tệp `transcript.md` (bản đọc phụ đề theo mốc thời gian) và `README-for-AI.md` (chỉ dẫn chi tiết chống bịa đặt cho mô hình ngôn ngữ lớn).
 - **Thư viện quản lý phiên họp:** Tìm kiếm cuộc họp theo tên hoặc ngày, đổi tên hiển thị an toàn, kiểm tra dung lượng bản dự phòng cục bộ, xem trước trích đoạn phụ đề/ảnh thu nhỏ và thử xuất lại các lượt tải bị gián đoạn.
-- **Thanh điều khiển tùy biến:** Thanh kính mờ nổi với khả năng chỉnh độ mờ nền (40–100%), cỡ chữ linh hoạt (12–18px), hỗ trợ kéo thả bằng chuột, di chuyển bằng phím mũi tên và chế độ thu nhỏ gọn gàng.
+- **Nút nổi điều khiển cuộc họp:** Lấy cảm hứng từ AssistiveTouch, chạm để mở bảng thao tác gọn. Kéo hoặc dùng phím mũi tên để di chuyển, Escape để thu gọn; vẫn nhận biết trạng thái ghi/lỗi. Chỉnh độ mờ nền 40–100% và cỡ chữ 12–18px.
+- **Không gian quản lý mới:** Thư viện và cài đặt nền ngà/xanh ngọc, điều hướng đồng bộ, thao tác xuất rõ ràng và xem trước giao diện trực tiếp.
 
 ---
 
 ## Ảnh chụp giao diện
+
+<p align="center">
+  <img src="docs/images/toolbar-compact.png" alt="Nút nổi thu gọn giúp theo dõi cuộc họp thoáng hơn (dữ liệu giả lập)." width="800" /><br />
+  <em>Nút nổi thu gọn giúp theo dõi cuộc họp thoáng hơn (dữ liệu giả lập).</em>
+</p>
 
 <p align="center">
   <img src="docs/images/toolbar.png" alt="Thanh nổi MeetScribe trên Google Meet mô phỏng" width="800" /><br />
@@ -51,7 +57,7 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 
 ## Bắt đầu nhanh
 
-Tải `MeetScribe-1.3.1.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
+Tải `MeetScribe-1.4.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
 
 Hoặc cài trực tiếp từ mã nguồn:
 
@@ -71,7 +77,7 @@ Hoặc cài trực tiếp từ mã nguồn:
 ```bash
 npm run package
 ```
-Lệnh sẽ tạo tệp `dist/MeetScribe-1.3.1.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
+Lệnh sẽ tạo tệp `dist/MeetScribe-1.4.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
 
 ---
 

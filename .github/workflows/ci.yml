@@ -40,6 +40,11 @@ jobs:
         run: |
           export MEETSCRIBE_TEST_CHROME="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
           npm run test:language
+      - name: Floating control and workspace UI checks
+        shell: bash
+        run: |
+          export MEETSCRIBE_TEST_CHROME="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
+          npm run test:ui
       - run: npm run package
       - name: Verify packaged license
         run: |

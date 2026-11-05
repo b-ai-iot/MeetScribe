@@ -129,3 +129,9 @@ npm run test:language
 ```
 
 Lệnh chạy kiểm tra UI/thanh nổi cùng bài chuyển VI/EN trên tiện ích unpacked. Trên Linux/Windows, đặt `MEETSCRIBE_TEST_CHROME` như trên. Unit test đối chiếu khóa VI/EN và các biến nội suy của bộ dịch.
+
+## Kiểm tra nút nổi và không gian quản lý
+
+Chạy `npm run test:ui` sau bước chuẩn bị trình duyệt ở trên để kiểm tra thao tác nút nổi và bố cục responsive. Chạy `npm run docs:icons` để tạo lại PNG 16/32/48/128 từ `extension/icons/brand.svg` bằng trình duyệt phát triển hiện có. Không cần dịch vụ tạo ảnh hoặc tải tài nguyên lúc chạy.
+
+Kiểm tra cục bộ v1.4.0 ngày 2026-11-05 đạt 82 unit test, 22 browser check, 10 tình huống nút nổi, kiểm tra không gian quản lý, tiện ích unpacked trên Meet/Zoom giả lập và VI/EN, 4 bài kiểm tra công cụ phát hành, cùng 31 trang tài liệu/9 ảnh PNG. Hộp thoại chọn thư mục của hệ điều hành và cuộc họp thật vẫn cần kiểm tra thủ công.

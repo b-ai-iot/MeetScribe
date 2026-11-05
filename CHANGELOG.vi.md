@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) · [README](README.vi.md)
 
+## 1.4.0 — 2026-11-05
+
+- Thiết kế lại điều khiển cuộc họp bằng nút nổi lấy cảm hứng từ AssistiveTouch và bảng thao tác gọn; hỗ trợ kéo/phím, giữ tùy chọn và hiển thị trạng thái ghi/lỗi.
+- Thêm biểu tượng bong bóng caption riêng và giao diện nền ngà/xanh ngọc đồng bộ cho thư viện và cài đặt.
+- Cải thiện điều hướng responsive, thứ bậc nội dung/thao tác và xem trước giao diện; giữ chức năng thu, dự phòng cục bộ, xuất, sửa quyền thư mục và VI/EN trực tiếp.
+- Thêm kiểm thử nút nổi và không gian quản lý; cập nhật hướng dẫn cùng ảnh chụp song ngữ.
+
 ## 1.3.1 — 2026-11-02
 
 - Chặn callback thanh điều khiển giữ bộ dịch bị thiếu hoặc khởi tạo dở dang (lỗi `t` / `applyTranslations`).

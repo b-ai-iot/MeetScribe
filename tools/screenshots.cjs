@@ -1,3 +1,4 @@
+const {expandToolbar}=require('../tests/toolbar-fixture.cjs');
 // Real extension UI, synthetic meeting content, disposable browser profile.
 const {chromium} = require('playwright');
 const fs = require('node:fs/promises');
@@ -11,13 +12,13 @@ const fixture = `<!doctype html><html lang="en"><meta charset="utf-8">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#131b22;color:#eaf2f4;font:16px/1.5 system-ui}
 header{padding:28px 36px;border-bottom:1px solid #334450;display:flex;justify-content:space-between}
-.badge{color:#8ae8ca;font-size:13px}main{margin:36px 36px 36px 420px}
+.badge{color:#8ae8ca;font-size:13px}main{margin:36px 100px 220px 40px}
 .slide{background:#f4f7f7;color:#203a3c;border-radius:20px;padding:42px;min-height:460px}
 .eyebrow{color:#55726c;font-size:12px;letter-spacing:2px}h1{font-size:40px;margin:14px 0 24px}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{padding:22px;background:#e2eeea;border-radius:14px}
 .card b{display:block;font-size:26px;color:#24644f;margin-bottom:10px}.note{color:#647f83;font-size:14px;margin-top:32px}
-#caps{position:fixed;bottom:112px;left:450px;right:80px;padding:20px 26px;border:1px solid #425866;background:#24343f;border-radius:15px}
-#caps small{display:block;color:#8ae8ca;margin-bottom:7px}.controls{position:fixed;bottom:26px;left:450px;right:36px;display:flex;justify-content:space-between;color:#a2b8c1;font-size:14px}
+#caps{position:fixed;bottom:112px;left:120px;right:120px;padding:20px 26px;border:1px solid #425866;background:#24343f;border-radius:15px}
+#caps small{display:block;color:#8ae8ca;margin-bottom:7px}.controls{position:fixed;bottom:26px;left:40px;right:36px;display:flex;justify-content:space-between;color:#a2b8c1;font-size:14px}
 button{background:#313f49;color:#edf4f7;border:1px solid #54616b;border-radius:10px;padding:10px 20px}
 </style>
 <header><strong>Weekly planning <span class="badge">· DEMO</span></strong><span class="badge">Synthetic meeting · no live call</span></header>
@@ -63,11 +64,15 @@ button{background:#313f49;color:#edf4f7;border:1px solid #54616b;border-radius:1
       await chrome.scripting.executeScript({target:{tabId:tab.id},files:['i18n.js','i18n-ui.js','i18n-toolbar.js','i18n-system.js','captions.js','content.js']});
       await chrome.tabs.sendMessage(tab.id,{scope:'meetscribe',target:'content',type:'mount',css});
     }, css);
+    await expandToolbar(meeting);
     await meeting.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
     await meeting.getByRole('button',{name:'Dừng và lưu',exact:true}).waitFor();
     await meeting.getByRole('button',{name:'Đánh dấu',exact:true}).click();
     await meeting.waitForFunction(() => document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('metrics').textContent.startsWith('1 caption'));
     await meeting.screenshot({path:path.join(out, 'toolbar.png')});
+    await meeting.locator('meetscribe-toolbar').locator('#collapse').click();
+    await meeting.screenshot({path:path.join(out,'toolbar-compact.png')});
+    await expandToolbar(meeting);
     await meeting.locator('#caps div').evaluate(el => {el.textContent='Minh: Mỗi nhiệm vụ cần có người phụ trách và thời hạn rõ ràng.';});
     await meeting.getByRole('button',{name:'Dừng và lưu',exact:true}).click();
     await meeting.waitForFunction(() => document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('status').textContent==='Đã dừng');
@@ -81,7 +86,7 @@ button{background:#313f49;color:#edf4f7;border:1px solid #54616b;border-radius:1
       const store = await import('./store.mjs');
       const id = 'documentation-design-review';
       await store.createSession({id,title:'Design review · demo',folder:'MeetScribe/2026-10-29/Design-review--demo',status:'recording',
-        count:0,lastSequence:0,createdAt:'2026-10-29T08:00:00.000Z',destination:'downloads',platform:'meet',version:'1.3.0'});
+        count:0,lastSequence:0,createdAt:'2026-10-29T08:00:00.000Z',destination:'downloads',platform:'meet',version:'1.4.0'});
       await store.appendCaptions(id,[{sequence:1,timestamp:'2026-10-29T08:02:00.000Z',text:'Lan: Đây là nội dung minh họa cho tài liệu MeetScribe.',speaker:null}]);
       await store.saveImage(id,{name:'slide-demo.png',data:'data:image/png;base64,'+slide,bytes:Math.floor(slide.length*0.75),event:{timestamp:'2026-10-29T08:02:00.000Z',reason:'documentation-demo'}});
       await store.finalizeSession(id,{reason:'documentation-demo',endedAt:'2026-10-29T08:20:00.000Z'});
@@ -98,11 +103,13 @@ button{background:#313f49;color:#edf4f7;border:1px solid #54616b;border-radius:1
     await settings.goto(base + '/settings.html');
     await settings.locator('#opacityInput').fill('80');
     await settings.locator('#opacityInput').dispatchEvent('input');
+    await settings.evaluate(()=>scrollTo(0,0));
     await settings.screenshot({path:path.join(out,'settings.png'),fullPage:true});
     await settings.locator('#languageInput').selectOption('en');
     await settings.locator('#saveBtn').click();
     await settings.waitForFunction(() => document.documentElement.lang === 'en');
     await library.waitForFunction(() => document.documentElement.lang === 'en');
+    await settings.evaluate(()=>scrollTo(0,0));
     await settings.screenshot({path:path.join(out,'settings-en.png'),fullPage:true});
     await library.setViewportSize({width:1440,height:960});
     await library.screenshot({path:path.join(out,'library-en.png'),fullPage:true});
@@ -110,9 +117,12 @@ button{background:#313f49;color:#edf4f7;border:1px solid #54616b;border-radius:1
     await meeting.getByRole('button',{name:'Stop and save',exact:true}).waitFor();
     await meeting.getByRole('button',{name:'Mark',exact:true}).click();
     await meeting.screenshot({path:path.join(out,'toolbar-en.png')});
+    await meeting.locator('meetscribe-toolbar').locator('#collapse').click();
+    await meeting.screenshot({path:path.join(out,'toolbar-compact-en.png')});
+    await expandToolbar(meeting);
     await meeting.getByRole('button',{name:'Stop and save',exact:true}).click();
     if (errors.length) throw Error(errors.join('\n'));
-    console.log('Generated 7 PNG screenshots from the unpacked extension with synthetic demo data.');
+    console.log('Generated 9 PNG screenshots from the unpacked extension with synthetic demo data.');
   } finally {
     if (context) await context.close();
     await fs.rm(scratch, {recursive:true,force:true});

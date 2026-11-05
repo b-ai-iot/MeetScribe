@@ -1,3 +1,4 @@
+const {expandToolbar}=require('./toolbar-fixture.cjs');
 const {chromium}=require('playwright');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 (async()=>{
@@ -21,7 +22,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
    await chrome.scripting.executeScript({target:{tabId:tab.id},files:['i18n.js','i18n-ui.js','i18n-toolbar.js','i18n-system.js','captions.js','content.js']});
    await chrome.tabs.sendMessage(tab.id,{scope:'meetscribe',target:'content',type:'mount',css});
   },css);
-  console.log('Content toolbar mounted');
+  console.log('Content toolbar mounted');await expandToolbar(page);
   await page.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
   console.log('Start requested');
 
@@ -106,7 +107,7 @@ with zipfile.ZipFile(archive) as z:
   await zoom.goto('https://app.zoom.us/wc/123/join?fromPWA=1');
   const installedFrame=await lib.evaluate(async()=>{const [tab]=await chrome.tabs.query({url:'https://app.zoom.us/*'});return (await import('./install.mjs')).installToolbar(chrome,tab.id);});
   assert.notEqual(installedFrame,0);
-  const client=zoom.frameLocator('#webclient');await client.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
+  const client=zoom.frameLocator('#webclient');await expandToolbar(client);await client.getByRole('button',{name:'Bắt đầu ghi',exact:true}).click();
   await client.getByRole('button',{name:'Dừng và lưu',exact:true}).waitFor();
   await client.getByRole('button',{name:'Vùng share',exact:true}).click();await client.locator('#share-region').hover();await client.locator('#share-region').click();
   const runningZoom=await lib.evaluate(async()=> (await (await import('./store.mjs')).listSessions()).find(s=>s.platform==='zoom'));

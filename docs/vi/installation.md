@@ -59,9 +59,9 @@ Nếu bạn muốn tạo một gói nén ZIP chuẩn để lưu trữ hoặc chu
    *(Hoặc chạy trực tiếp: `python3 tools/package.py`)*
 3. Kết quả đóng gói sẽ nằm tại:
    ```text
-   dist/MeetScribe-1.3.1.zip
+   dist/MeetScribe-1.4.0.zip
    ```
-4. Giải nén tệp `MeetScribe-1.3.1.zip`, bạn sẽ nhận được thư mục `MeetScribe/` hoàn chỉnh chứa `manifest.json`.
+4. Giải nén tệp `MeetScribe-1.4.0.zip`, bạn sẽ nhận được thư mục `MeetScribe/` hoàn chỉnh chứa `manifest.json`.
 5. Thực hiện theo các bước 2–5 ở trên và trỏ **Tải tiện ích đã giải nén** vào thư mục `MeetScribe/` vừa giải nén.
 
 ---

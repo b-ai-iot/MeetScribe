@@ -1,5 +1,8 @@
 (()=>{globalThis.__meetScribeI18n.registerMessages({
   "vi": {
+    "ui.quickStart": "Bắt đầu một phiên họp",
+    "ui.settingsUnsaved": "Bạn có thay đổi chưa lưu.",
+    "ui.settingsReady": "Các thay đổi được áp dụng khi lưu.",
     "ui.settingsTitle": "MeetScribe · Cài đặt",
     "ui.libraryTitle": "MeetScribe · Thư viện cuộc họp",
     "ui.libraryLink": "Thư viện cuộc họp",
@@ -18,6 +21,7 @@
     "ui.fontDefault": "14px (Mặc định)",
     "ui.fontLarge": "18px (Lớn)",
     "ui.preview": "Xem trước giao diện",
+    "ui.previewState": "Đang ghi",
     "ui.previewRecording": "MeetScribe · Đang ghi nhận phụ đề",
     "ui.previewCaption": "Phụ đề mẫu: \"Chúng tôi đã hoàn thành mục tiêu quý này...\"",
     "ui.repairHeading": "Cấp lại quyền thư mục cho phiên họp cũ",
@@ -132,6 +136,9 @@
     "ui.libraryReadError": "Chưa đọc được thư viện: {error}"
   },
   "en": {
+    "ui.quickStart": "Start a meeting session",
+    "ui.settingsUnsaved": "You have unsaved changes.",
+    "ui.settingsReady": "Changes take effect when you save.",
     "ui.settingsTitle": "MeetScribe · Settings",
     "ui.libraryTitle": "MeetScribe · Meeting library",
     "ui.libraryLink": "Meeting library",
@@ -150,6 +157,7 @@
     "ui.fontDefault": "14px (Default)",
     "ui.fontLarge": "18px (Large)",
     "ui.preview": "Appearance preview",
+    "ui.previewState": "Recording",
     "ui.previewRecording": "MeetScribe · Capturing captions",
     "ui.previewCaption": "Sample caption: \"We have achieved our goals this quarter...\"",
     "ui.repairHeading": "Restore folder access for a previous session",
