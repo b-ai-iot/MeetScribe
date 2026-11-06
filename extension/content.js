@@ -38,7 +38,7 @@
  };
  const $=id=>root?.getElementById(id);
  const icons={note:'<path d="M8 3h8l4 4v14H4V3h4m8 0v5h5M8 12h8M8 16h5"/>',play:'<path d="m9 5 11 7-11 7Z"/>',stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',caption:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 10H7v4h3m7-4h-3v4h3"/>',screen:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8m-4-4v4m-4-12 4-4 4 4m-4-4v9"/>',mark:'<path d="M6 21V3m0 1h12l-3 5 3 5H6"/>',folder:'<path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>',minus:'<path d="M6 12h12"/>',move:'<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3m12-6 3 3-3 3"/>',arrow:'<path d="M8 5h11v11m0-11L5 19"/>',download:'<path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/>',settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>'};
- const brand=placement=>`<svg class="brand-mark" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><defs><linearGradient id="brand-mint-${placement}" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#A5F3D4"/><stop offset="1" stop-color="#36B99B"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#brand-mint-${placement})"/><path d="M8 7.5h16v13H14l-6 5v-18Z" stroke="#154E40" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v3m4-5v7m4-5v3" stroke="#154E40" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+ const brand=placement=>`<svg class="brand-mark" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><defs><linearGradient id="brand-violet-${placement}" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#A196FF"/><stop offset="1" stop-color="#6554D9"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#brand-violet-${placement})"/><path d="M8 7.5h16v13H14l-6 5v-18Z" stroke="#FFFFFF" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v3m4-5v7m4-5v3" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/></svg>`;
  const icon=name=>`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
  function setSession(value,begin=false){
   if(!value)return;
@@ -48,7 +48,7 @@
  function connected(){try{return !lost&&!!chrome.runtime.id;}catch{return false;}}
  function fault(message){
   notice=message;noticeKind='error';running=false;observer?.disconnect();clearTimeout(flushTimer);flushTimer=null;
-  if(/context invalidated|receiving end|message port closed|extension.*reload/i.test(message)){lost=true;clearInterval(healthTimer);picker?.();}
+  if(lost||/context invalidated|receiving end|message port closed|extension.*reload/i.test(message)){lost=true;clearInterval(healthTimer);picker?.();}
   render();
  }
  async function send(type,data={}){
@@ -114,34 +114,37 @@
  function pick(kind){
   picker?.();let target=null;
   const frame=document.createElement('div'),tip=document.createElement('div');
-  frame.style.cssText='position:fixed;z-index:2147483646;pointer-events:none;border:3px solid #59e2c0;border-radius:8px;background:#59e2c012;';
-  tip.style.cssText='position:fixed;z-index:2147483647;top:16px;left:16px;max-width:calc(100vw - 48px);padding:14px 18px;border-radius:12px;background:#142c29;color:#f0fdfa;font:14px/1.5 system-ui;pointer-events:none;box-shadow:0 8px 32px #0005';
+  frame.style.cssText='position:fixed;z-index:2147483646;pointer-events:none;border:3px solid #B8AAFF;border-radius:8px;background:#B8AAFF12;box-sizing:border-box;';
+  tip.style.cssText='position:fixed;z-index:2147483647;top:16px;left:16px;max-width:calc(100vw - 32px);padding:10px 12px;border:1px solid #8185a3;border-radius:12px;background:#171B35;color:#F5F5FF;font:14px/1.5 system-ui;pointer-events:none;box-shadow:0 8px 32px #0005;display:flex;align-items:center;gap:12px;box-sizing:border-box';
+  const instructions=document.createElement('span'),cancel=document.createElement('button');cancel.type='button';cancel.style.cssText='pointer-events:auto;flex:none;border:1px solid #B8AAFF;background:#222744;color:#F5F5FF;border-radius:8px;min-height:44px;padding:6px 12px;font:inherit;cursor:pointer';tip.append(instructions,cancel);
   let tipKey=kind==='caption'?'pickCaption':'pickShare';
-  refreshPicker=()=>{tip.textContent=t(tipKey);};refreshPicker();
+  refreshPicker=()=>{instructions.textContent=t(tipKey);cancel.textContent=t('cancelSelection');};refreshPicker();
   document.documentElement.append(frame,tip);
   const draw=()=>{if(!target)return;const r=target.getBoundingClientRect();Object.assign(frame.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});};
-  const move=e=>{if(e.composedPath().includes(host))return;target=e.target;draw();};
+  const move=e=>{if(e.composedPath().includes(host)||e.composedPath().includes(tip))return;target=e.target;draw();};
   const wheel=e=>{e.preventDefault();if(target?.parentElement){target=target.parentElement;draw();}};
-  const key=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();cleanup();noticeKind='info';notice=t('pickCancelled');render();}};
-  const cleanup=()=>{for(const [name,fn] of [['pointermove',move],['click',click],['keydown',key],['wheel',wheel]])document.removeEventListener(name,fn,true);frame.remove();tip.remove();picker=null;refreshPicker=null;render();if(host?.isConnected)$(collapsed?'compact':kind==='caption'?'caption':'share').focus({preventScroll:true});};
+  const cancelPick=()=>{cleanup();noticeKind='info';notice=t('pickCancelled');render();};
+  const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();cancelPick();}};
+  let cleaned=false;
+  const cleanup=()=>{if(cleaned)return;cleaned=true;for(const [name,fn] of [['pointermove',move],['click',click],['keydown',key],['wheel',wheel]])document.removeEventListener(name,fn,true);frame.remove();tip.remove();picker=null;refreshPicker=null;render();if(host?.isConnected)$(collapsed?'compact':lost?'rescue':kind==='caption'?'caption':'share').focus({preventScroll:true});};
   const click=e=>{
-   if(e.composedPath().includes(host))return;
+   if(e.composedPath().includes(host)||e.composedPath().includes(tip))return;
    e.preventDefault();e.stopImmediatePropagation();
    if(!target||target===document.body||target===document.documentElement){tipKey='pickSmaller';refreshPicker();return;}
    if(kind==='caption'){caption=target;captionSource='manual';bind();cleanup();noticeKind='info';notice=t('captionSelected');render();}
    else {share=target;cleanup();action(async()=>{if(!running)throw Error(t('startBeforeShare'));const result=await send('visual-start');setSession(result.session);notice=t('shareSelected');});}
   };
+  cancel.onclick=cancelPick;
   document.addEventListener('pointermove',move,true);document.addEventListener('wheel',wheel,{capture:true,passive:false});document.addEventListener('click',click,true);document.addEventListener('keydown',key,true);picker=cleanup;render();
  }
  function rescue(){
   const blob=new Blob([buffer.map(e=>JSON.stringify(e)).join('\n')+'\n'],{type:'application/x-ndjson'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='MeetScribe-caption-recovery-'+new Date().toISOString().replace(/[:.]/g,'-')+'.jsonl';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
   notice=t('rescued',{count:buffer.length});render();
  }
- async function action(fn){try{notice='';noticeKind='info';await fn();}catch(e){notice=e.message;noticeKind='error';}finally{render();}}
+ async function action(fn){try{notice='';noticeKind='info';await fn();}catch(e){if(!lost){notice=e.message;noticeKind='error';}}finally{render();}}
  function render(){
   if(!root)return;
-  const active=running||starting||stopping;
-  $('expanded').hidden=collapsed||!!picker;$('compact').hidden=false;$('compact').setAttribute('aria-expanded',String(!$('expanded').hidden));
+  host.hidden=!!picker;$('expanded').hidden=collapsed||!!picker;$('compact').hidden=!!picker;$('compact').setAttribute('aria-expanded',String(!$('expanded').hidden));
   $('start').hidden=running||stopping;$('stop').hidden=!running&&!stopping&&!['recording','stopping'].includes(session?.status);
   $('start').disabled=starting||stopping||lost||buffer.length>0&&!running;
   $('stop').disabled=stopping;
@@ -169,9 +172,12 @@
   const customTarget=session?.destinationName||t('selectedFolder');
   $('storage').textContent=session?.exportError?t('exportError'):session?.pendingExports?t('pendingExports',{count:session.pendingExports}):session?.count?(isCustomDest?t('exportedCustom',{folder:customTarget}):t('exportedDownloads')):(isCustomDest?t('saveCustom',{folder:customTarget}):t('saveDownloads'));
   $('path').textContent=session?.folder||t('defaultPath');
-  $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'')||t('defaultTitle');
+  $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'')||t('defaultTitle');$('title').title=$('title').textContent;
   $('share').setAttribute('aria-pressed',String(!!rectangle()));$('clearShare').hidden=!share;
-  $('liveBadge').textContent=t(active?'liveBadge':'privateBadge');
+  $('liveBadge').textContent=t('localBadge');
+  $('message').dataset.state=errorState?'error':'info';
+  $('saveSummary').textContent=session?.exportError?t('exportError'):session?.pendingExports?t('pendingExports',{count:session.pendingExports}):t(session?.count?'backedUp':'localOnly');
+  $('saveSummary').dataset.state=session?.exportError?'error':session?.count?'saved':'idle';
   updateClock();
   const compactStatus=$('compactText').textContent;
   const detail=errorState?$('message').textContent+(session?.exportError?' · '+t('exportError'):''):t('moveHint');
@@ -180,25 +186,25 @@
   $('launcherStatus').title=detail;
   clamp();
  }
- // Host coordinates always describe the 60px launcher, independent of panel size.
- // Keep the popover in the larger vertical space and scroll its content when needed.
- function defaultPosition(){return {x:Math.max(12,innerWidth-84),y:Math.max(12,innerHeight-144)};}
+ // Lucian #038 edge-aware placement and #077 trigger-relative transform origin,
+ // adapted for an immediately interactive, scrollable meeting menu (MIT, Seokwoooo 2026).
+ // Coordinates persist the whole capsule footprint, including its status and timer.
+ function defaultPosition(){return {x:Math.max(12,innerWidth-256),y:Math.max(12,innerHeight-144)};}
  function clamp(){
   if(!host)return;
-  const margin=12,size=60,gap=12;
-  const x=Math.min(Math.max(margin,parseFloat(host.style.left)||margin),Math.max(margin,innerWidth-size-margin));
+  const margin=12,size=60,gap=8,capsuleWidth=Math.min(232,innerWidth-margin*2);
+  const x=Math.min(Math.max(margin,parseFloat(host.style.left)||margin),Math.max(margin,innerWidth-capsuleWidth-margin));
   const y=Math.min(Math.max(margin,parseFloat(host.style.top)||margin),Math.max(margin,innerHeight-size-margin));
-  host.style.left=x+'px';host.style.top=y+'px';
-  const panel=$('expanded'),width=Math.min(344,innerWidth-margin*2);
+  host.style.width=capsuleWidth+'px';host.style.left=x+'px';host.style.top=y+'px';
+  const panel=$('expanded'),width=Math.min(300,innerWidth-margin*2);
   panel.style.width=width+'px';
-  panel.style.left=(Math.max(margin,Math.min(innerWidth-margin-width,x+size-width))-x)+'px';
+  panel.style.left=(Math.max(margin,Math.min(innerWidth-margin-width,x+capsuleWidth-width))-x)+'px';
   const above=y-margin-gap,below=innerHeight-y-size-margin-gap;
   const upward=above>=below,available=Math.max(0,upward?above:below);
   panel.style.maxHeight=available+'px';
   panel.style.top=(upward?-Math.min(panel.scrollHeight,available)-gap:size+gap)+'px';
-  const status=$('launcherStatus'),leftSpace=x-margin-gap,rightSpace=innerWidth-x-size-margin-gap;
-  const useLeft=leftSpace>=rightSpace,statusWidth=Math.min(184,Math.max(leftSpace,rightSpace));
-  status.style.width=Math.max(0,statusWidth)+'px';status.style.left=(useLeft?-statusWidth-gap:size+gap)+'px';
+  panel.style.setProperty('--menu-direction',upward?'6px':'-6px');
+  panel.style.transformOrigin=`${x+capsuleWidth/2-(x+parseFloat(panel.style.left))}px ${upward?'bottom':'top'}`;
  }
  function updateClock(){
   if(!root)return;
@@ -279,18 +285,18 @@
   host=document.createElement('meetscribe-toolbar');host.style.cssText='position:fixed;width:60px;height:60px;z-index:2147483645;';const position=defaultPosition();host.style.left=position.x+'px';host.style.top=position.y+'px';
   root=host.attachShadow({mode:'open'});const style=document.createElement('style');style.textContent=css;root.append(style);
   const box=document.createElement('div');box.innerHTML=`
-  <section id="expanded" class="panel" aria-label="MeetScribe · Bộ điều khiển ghi họp" data-i18n-aria-label="toolbar.controls">
-   <header><span class="brand">${brand('panel')}<strong>MeetScribe</strong></span><span id="liveBadge" class="badge">LOCAL · PRIVATE</span><button id="collapse" data-i18n-aria-label="toolbar.collapse" data-i18n-title="toolbar.collapse" class="icon" aria-label="Thu nhỏ" title="Thu nhỏ">${icon('minus')}</button></header>
-   <div class="meeting"><p class="eyebrow" data-i18n="toolbar.currentMeeting">CUỘC HỌP HIỆN TẠI</p><h2 id="title"></h2></div>
-   <div class="statusline"><span id="dot" class="dot"></span><strong id="status" role="status"></strong><time id="elapsed">00:00</time></div>
+  <section id="expanded" class="panel" aria-label="MeetScribe · Bộ điều khiển ghi họp" data-i18n-aria-label="toolbar.controls" hidden>
+   <header><span class="brand"><strong>MeetScribe</strong></span><span id="liveBadge" class="badge">LOCAL</span><button id="collapse" data-i18n-aria-label="toolbar.collapse" data-i18n-title="toolbar.collapse" class="icon" aria-label="Thu nhỏ" title="Thu nhỏ">${icon('minus')}</button></header>
+   <div class="meeting"><h2 id="title"></h2></div>
    <div class="primary"><button id="start" class="start">${icon('play')}<span id="startLabel">Bắt đầu ghi</span></button><button id="stop" class="stop" hidden>${icon('stop')}<span id="stopLabel">Dừng và lưu</span></button></div>
-   <div class="tools"><button id="caption">${icon('caption')}<span data-i18n="toolbar.captionRegion">Vùng caption</span></button><button id="share" aria-pressed="false">${icon('screen')}<span data-i18n="toolbar.shareRegion">Vùng share</span></button><button id="mark">${icon('mark')}<span data-i18n="toolbar.mark">Đánh dấu</span></button></div>
-   <p id="message" class="hint" role="status"></p><button id="clearShare" data-i18n="toolbar.clearShare" class="textbutton" hidden>Ngừng chụp vùng share</button>
-   <button id="retry" data-i18n="toolbar.retry" class="rescue" hidden>Thử lưu và tiếp tục</button><button id="rescue" class="rescue" hidden>${icon('download')} <span data-i18n="toolbar.rescue">Cứu caption đang chờ</span></button>
-   <div class="saved"><span id="metrics">0 caption · 0 ảnh</span><span id="storage"></span></div>
-   <footer><span id="path" data-i18n-title="toolbar.storageFolder" title="Thư mục lưu"></span><button id="settings" data-i18n-aria-label="toolbar.settings" data-i18n-title="toolbar.settings" class="icon" aria-label="Cài đặt MeetScribe" title="Cài đặt MeetScribe">${icon('settings')}</button><button id="library" data-i18n-aria-label="toolbar.library" data-i18n-title="toolbar.library" class="icon" aria-label="Thư viện phiên họp" title="Thư viện phiên họp">${icon('folder')}</button><button id="move" data-i18n-aria-label="toolbar.move" data-i18n-title="toolbar.moveHint" class="icon" aria-label="Di chuyển thanh điều khiển" title="Kéo hoặc dùng phím mũi tên để di chuyển">${icon('move')}</button></footer>
-   <div class="position-actions"><button id="resetPosition" class="reset-position" data-i18n="toolbar.resetPosition">Đặt lại vị trí</button><span data-i18n="toolbar.moveHint">Kéo hoặc dùng phím mũi tên để di chuyển</span></div>
-  </section><button id="compact" class="compact" aria-label="Mở rộng MeetScribe" aria-controls="expanded" aria-expanded="false" aria-describedby="launcherStatus">${brand('launcher')}<span id="compactDot" class="dot" aria-hidden="true"></span></button><div id="launcherStatus" class="launcher-status"><span id="compactText">Sẵn sàng</span><time id="compactElapsed" hidden>00:00</time></div>`;root.append(box);document.documentElement.append(host);
+   <div class="tools"><button id="caption">${icon('caption')}<span data-i18n="toolbar.captionRegion">Vùng caption</span>${icon('arrow')}</button><button id="share" aria-pressed="false">${icon('screen')}<span data-i18n="toolbar.shareRegion">Vùng share</span>${icon('arrow')}</button><button id="mark">${icon('mark')}<span data-i18n="toolbar.mark">Đánh dấu</span></button></div>
+   <button id="clearShare" data-i18n="toolbar.clearShare" class="textbutton" hidden>Ngừng chụp vùng share</button>
+   <div class="operation"><div class="statusline"><span id="dot" class="dot" aria-hidden="true"></span><strong id="status" role="status"></strong><time id="elapsed">00:00</time></div><p id="message" class="hint" role="status"></p><span id="saveSummary" class="save-summary"></span></div>
+   <div class="recovery"><button id="retry" data-i18n="toolbar.retry" class="rescue" hidden>Thử lưu và tiếp tục</button><button id="rescue" class="rescue" hidden>${icon('download')} <span data-i18n="toolbar.rescue">Cứu caption đang chờ</span></button></div>
+   <footer><button id="library" data-i18n-aria-label="toolbar.library" data-i18n-title="toolbar.library" aria-label="Thư viện phiên họp" title="Thư viện phiên họp">${icon('folder')}<span data-i18n="toolbar.libraryShort">Thư viện</span></button><button id="settings" data-i18n-aria-label="toolbar.settings" data-i18n-title="toolbar.settings" aria-label="Cài đặt MeetScribe" title="Cài đặt MeetScribe">${icon('settings')}<span data-i18n="toolbar.settingsShort">Cài đặt</span></button><button id="move" data-i18n-aria-label="toolbar.move" data-i18n-title="toolbar.moveHint" class="icon" aria-label="Di chuyển thanh điều khiển" title="Kéo hoặc dùng phím mũi tên để di chuyển">${icon('move')}</button></footer>
+   <details id="details"><summary data-i18n="toolbar.details">Chi tiết</summary><div class="details-content"><span id="metrics">0 caption · 0 ảnh</span><span id="storage"></span><span id="path" data-i18n-title="toolbar.storageFolder" title="Thư mục lưu"></span><button id="resetPosition" class="reset-position" data-i18n="toolbar.resetPosition">Đặt lại vị trí</button><span class="move-help" data-i18n="toolbar.moveHint">Kéo hoặc dùng phím mũi tên để di chuyển</span></div></details>
+  </section><button id="compact" class="compact" aria-label="Mở rộng MeetScribe" aria-controls="expanded" aria-expanded="false" aria-describedby="launcherStatus">${brand('launcher')}<span id="launcherStatus" class="launcher-status"><span class="capsule-state"><span id="compactDot" class="dot" aria-hidden="true"></span><span id="compactText">Sẵn sàng</span></span><time id="compactElapsed" hidden>00:00</time></span><svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m7 14 5-5 5 5"/></svg></button>`;root.append(box);document.documentElement.append(host);
+  $('details').ontoggle=()=>clamp();
   $('collapse').onclick=()=>setCollapsed(true,true);
   $('compact').onclick=e=>{if(suppressClick){suppressClick=false;if(e.detail!==0)return;}if(picker){picker();return;}setCollapsed(!collapsed,true);};
   window.addEventListener('keydown',dismissPanel);

@@ -21,7 +21,7 @@ Script dùng hồ sơ Chrome tạm và bản sao tiện ích với quyền host 
 | Image / Ảnh | Content / Nội dung |
 | --- | --- |
 | `toolbar.png` | Toolbar over a synthetic meeting / Thanh nổi trên trang họp demo |
-| `library.png` | Session library and ZIP controls / Thư viện phiên và nút xuất ZIP |
+| `library.png` | Archive index, selected-session inspector and ZIP controls / Danh sách phiên, khung xem nội dung và nút xuất ZIP |
 | `settings.png` | Appearance and destination settings / Cài đặt giao diện và nơi lưu |
 | `library-mobile.png` | Narrow library layout, not mobile-browser support / Bố cục thư viện hẹp, không phải hỗ trợ trình duyệt di động |
 
@@ -30,3 +30,7 @@ Script dùng hồ sơ Chrome tạm và bản sao tiện ích với quyền host 
 | `toolbar-en.png` | English toolbar / Thanh nổi tiếng Anh |
 | `library-en.png` | English session library / Thư viện tiếng Anh |
 | `settings-en.png` | English settings and language selector / Cài đặt và bộ chọn ngôn ngữ tiếng Anh |
+
+The v1.5.0 studio layout is informed by the [Lucian reference study](../references/lucian-20261106.md). The source attribution and MIT terms are in [third-party notices](../../THIRD_PARTY_NOTICES.md).
+
+Bố cục studio v1.5.0 tham khảo [nghiên cứu Lucian](../references/lucian-20261106.md); nguồn và điều khoản MIT nằm trong [thông báo bên thứ ba](../../THIRD_PARTY_NOTICES.md).

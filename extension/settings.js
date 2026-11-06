@@ -1,3 +1,5 @@
+// Explicit save-state feedback adapted from Lucian UX/UI Prompt #250/#008.
+// MIT © 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/
 import { t, setLanguage, getLanguage, applyTranslations, watchLanguage, errorMessage } from './i18n.mjs';
 import {
   DEFAULT_SETTINGS,
@@ -32,11 +34,42 @@ watchLanguage(language => {
   $('languageInput').value = language;
   currentSettings.language = language;
   refreshLanguage(language);
+  setPendingChanges();
 });
-let bannerTimer;
-function setPendingChanges(pending) {
-  $('formStatus').classList.toggle('pending', pending);
-  localizeNode($('formStatus'), pending ? 'ui.settingsUnsaved' : 'ui.settingsReady');
+let saving = false;
+function formValues() {
+  return {
+    opacity: Number($('opacityInput').value),
+    fontSize: Number($('fontSizeInput').value),
+    destination: document.querySelector('input[name="destination"]:checked')?.value || 'downloads',
+    language: $('languageInput').value
+  };
+}
+function hasPendingChanges() {
+  return Object.entries(formValues()).some(([key, value]) => value !== currentSettings[key]);
+}
+function setFormState(state) {
+  $('settingsForm').dataset.state = state;
+  $('formStatus').classList.toggle('pending', state === 'dirty' || state === 'error');
+  const message = state === 'saving' ? 'ui.settingsSaving' : state === 'saved' ? 'ui.savedOnDevice' : state === 'dirty' || state === 'error' ? 'ui.settingsUnsaved' : 'ui.settingsReady';
+  localizeNode($('formStatus'), message);
+}
+function setPendingChanges() {
+  if (saving) return;
+  const pending = hasPendingChanges();
+  if (pending && $('statusBanner').classList.contains('success')) $('statusBanner').className = 'status-banner';
+  setFormState(pending ? 'dirty' : 'ready');
+}
+function setSaving(active) {
+  saving = active;
+  $('settingsForm').setAttribute('aria-busy', String(active));
+  // An in-flight snapshot must not overwrite a later edit. These controls become
+  // available as soon as the actual storage operation settles.
+  for (const control of $('settingsForm').querySelectorAll('input,select,button')) control.disabled = active;
+  if (active) {
+    $('statusBanner').className = 'status-banner';
+    setFormState('saving');
+  }
 }
 
 
@@ -44,8 +77,8 @@ function showBanner(key, params = {}, type = 'success') {
   const banner = $('statusBanner');
   localizeNode(banner, key, params);
   banner.className = `status-banner show ${type}`;
-  clearTimeout(bannerTimer);
-  bannerTimer = setTimeout(() => { banner.className = 'status-banner'; }, 4000);
+  // Retain native errors and confirmations until the next operation; changing
+  // language redraws this node without discarding raw error details.
 }
 
 function updatePreview(opacity, fontSize) {
@@ -72,7 +105,7 @@ function syncForm(settings) {
   const isCustom = settings.destination === 'customDirectory';
   $('customDirSection').hidden = !isCustom;
   updatePreview(settings.opacity, settings.fontSize);
-  setPendingChanges(false);
+  setFormState('ready');
 }
 
 async function init() {
@@ -137,28 +170,35 @@ async function init() {
 
   $('settingsForm').addEventListener('submit', async e => {
     e.preventDefault();
+    if (saving) return;
+    const patch = formValues();
+    setSaving(true);
     try {
-      const selectedDest = document.querySelector('input[name="destination"]:checked')?.value || 'downloads';
-      const updated = await saveSettings({
-        opacity: Number($('opacityInput').value),
-        fontSize: Number($('fontSizeInput').value),
-        destination: selectedDest,
-        language: $('languageInput').value
-      });
+      const updated = await saveSettings(patch);
       syncForm(updated);
+      setFormState('saved');
       showBanner('ui.saved');
     } catch (err) {
+      setFormState('error');
       showBanner('ui.saveError', () => ({error: errorMessage(err)}), 'error');
+    } finally {
+      setSaving(false);
     }
   });
 
   $('resetBtn').addEventListener('click', async () => {
+    if (saving) return;
+    setSaving(true);
     try {
       const defaults = await resetSettings();
       syncForm(defaults);
+      setFormState('saved');
       showBanner('ui.resetDone');
     } catch (err) {
+      setFormState('error');
       showBanner('ui.resetError', () => ({error: errorMessage(err)}), 'error');
+    } finally {
+      setSaving(false);
     }
   });
 
@@ -173,7 +213,7 @@ async function init() {
       if (res && res.name) {
         preloadedHandle = res.handle;
         $('customDirName').removeAttribute('data-i18n');
-            $('customDirName').textContent = res.name;
+        $('customDirName').textContent = res.name;
         localizeNode($('customDirStatus'), res.hasPermission ? 'ui.permissionGranted' : 'ui.noPermission');
         $('customDirStatus').className = `dest-status ${res.hasPermission ? 'granted' : 'revoked'}`;
         if ($('reauthorizeDirBtn')) $('reauthorizeDirBtn').hidden = Boolean(res.hasPermission);
@@ -221,6 +261,9 @@ async function init() {
       showBanner('ui.sessionFolderRestoreError', () => ({error: errorMessage(err)}), 'error');
     }
   });
+  // Controls are disabled in the initial HTML so early clicks cannot precede
+  // settings/directory readiness or disappear before handlers are installed.
+  setSaving(false);
 }
 
 if (document.readyState === 'loading') {

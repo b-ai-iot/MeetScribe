@@ -123,3 +123,9 @@ Lựa chọn này không đổi ngôn ngữ phụ đề của Meet/Zoom hoặc d
 Khi đóng bảng, nút vẫn giúp nhận biết trạng thái/thời gian và lỗi. Mở nút để xem tiến trình xuất, thử lưu lại hoặc cứu caption đang chờ. Đóng, kéo hoặc đổi kích thước bảng không dừng thu; dùng **Dừng và lưu** để kết thúc. Bảng tự chọn phía còn chỗ và nằm trong viewport. Thư viện và cài đặt dùng chung điều hướng; màn hình hẹp được bố trí lại để đọc nội dung thuận tiện.
 
 Khi chọn vùng caption hoặc vùng share, bảng tạm ẩn để không che mục tiêu. Chọn xong hoặc nhấn Escape sẽ khôi phục trạng thái trước đó. Nếu mất vùng share hoặc không thể chụp ảnh, trạng thái thu gọn cảnh báo trong khi caption vẫn được thu.
+
+## Duyệt không gian cuộc họp
+
+Tìm/lọc danh sách gọn rồi chọn một dòng để mở trích đoạn caption gần nhất, ảnh đã chụp, trạng thái lưu và thao tác xuất trong khung nội dung. Chỉ phiên được chọn hiện chi tiết; trích đoạn không phải toàn bộ bản gỡ băng. Phục hồi cần xử lý được hiển thị rõ. Trên màn hình hẹp, dùng **Về danh sách** để trở lại. Đường dẫn kỹ thuật và thông tin phụ nằm trong **Chi tiết lưu trữ**. Chọn phiên khác không thay đổi phiên của lượt xuất đang chạy.
+
+Thanh nổi dùng capsule 232 × 60 nối với menu thao tác. Mở **Chi tiết** để xem bộ đếm, đường dẫn lưu và đặt lại vị trí. Khi chọn vùng caption/share, thanh nổi ẩn để không che vùng cần chọn; thanh hủy riêng vẫn hiện.

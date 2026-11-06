@@ -1,5 +1,6 @@
 (()=>{
  const messages={
+  details:['Chi tiết','Details'],localBadge:['CỤC BỘ','LOCAL'],localOnly:['Lưu trữ trên thiết bị','On-device storage'],backedUp:['Đã lưu bản dự phòng','Local backup saved'],libraryShort:['Thư viện','Library'],settingsShort:['Cài đặt','Settings'],cancelSelection:['Hủy chọn vùng','Cancel selection'],
   controls:['MeetScribe · Bộ điều khiển ghi họp','MeetScribe · Meeting recording controls'],
   resetPosition:['Đặt lại vị trí','Reset position'],
   collapse:['Thu nhỏ','Collapse'],currentMeeting:['CUỘC HỌP HIỆN TẠI','CURRENT MEETING'],

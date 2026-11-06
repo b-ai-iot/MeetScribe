@@ -38,19 +38,20 @@ async function fit(page){
  const boxes=await read(page,host=>['compact','expanded','launcherStatus'].map(id=>{const el=host.shadowRoot.getElementById(id);if(!el||el.hidden)return null;const r=el.getBoundingClientRect();return {id,x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};}).filter(Boolean));
  const v=page.viewportSize();for(const b of boxes){assert.ok(b.x>=7&&b.y>=7&&b.right<=v.width-7&&b.bottom<=v.height-7,`${b.id} outside viewport: ${JSON.stringify(b)}`);}
 }
-check('fresh install has a 60px launcher; open keeps it visible and Escape restores focus',async()=>{
+check('fresh install has one connected status capsule; open keeps it visible and Escape restores focus',async()=>{
  const p=await fixture();try{
   assert.equal(await el(p,'expanded').isVisible(),false,'fresh install must start compact');
-  const b=await el(p,'compact').boundingBox();assert.ok(b.width>=56&&b.width<=60&&b.height>=56&&b.height<=60);
+  const b=await el(p,'compact').boundingBox();assert.ok(b.width>=220&&b.width<=240&&b.height>=56&&b.height<=60);
+  const status=await el(p,'launcherStatus').boundingBox();assert.ok(status.x>=b.x&&status.y>=b.y&&status.x+status.width<=b.x+b.width&&status.y+status.height<=b.y+b.height,'status belongs to the same capsule hit area');
   // A hidden header gradient must not make the always-visible launcher mark disappear.
-  async function mintPixel(){
+  async function violetPixel(){
    const png=await el(p,'compact').locator('.brand-mark').screenshot();
-   return p.evaluate(base64=>new Promise(resolve=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);resolve([...ctx.getImageData(4,16,1,1).data]);};img.src='data:image/png;base64,'+base64;}),png.toString('base64'));
+   return p.evaluate(base64=>new Promise(resolve=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);resolve({background:[...ctx.getImageData(4,16,1,1).data],glyph:[...ctx.getImageData(8,11,1,1).data]});};img.src='data:image/png;base64,'+base64;}),png.toString('base64'));
   }
-  const compactPixel=await mintPixel();assert.ok(compactPixel[1]>140&&compactPixel[0]>40,'collapsed launcher keeps visible mint brand background: '+compactPixel);
+  const compactPixel=await violetPixel();assert.ok(compactPixel.glyph.slice(0,3).every(c=>c>220),'caption glyph contrasts against violet background');assert.ok(compactPixel.background[0]>90&&compactPixel.background[2]>180,'collapsed capsule keeps visible violet brand background: '+compactPixel);
 
   await el(p,'compact').focus();await p.keyboard.press('Enter');assert.equal(await el(p,'expanded').isVisible(),true);assert.equal(await el(p,'compact').isVisible(),true,'launcher stays visible');
-  const openPixel=await mintPixel();assert.ok(openPixel[1]>140&&openPixel[0]>40,'open launcher keeps visible mint brand background');
+  const openPixel=await violetPixel();assert.ok(openPixel.background[0]>90&&openPixel.background[2]>180,'open capsule keeps visible violet brand background');
   await p.keyboard.press('Escape');assert.equal(await el(p,'expanded').isVisible(),false);assert.equal(await read(p,h=>h.shadowRoot.activeElement.id),'compact');
   await p.keyboard.press('Space');assert.equal(await el(p,'expanded').isVisible(),true);
   await p.locator('#caps').click();await p.keyboard.press('Escape');assert.equal(await el(p,'expanded').isVisible(),false,'Escape also closes after focus returns to meeting');
@@ -62,19 +63,23 @@ check('drag threshold prevents click while a small movement remains a click; arr
   assert.equal(await el(p,'expanded').isVisible(),false,'drag must not open panel');const moved=await el(p,'compact').boundingBox();assert.ok(moved.x<b.x-50,'launcher moves');
   await el(p,'compact').focus();await p.keyboard.press('ArrowLeft');const key=await el(p,'compact').boundingBox();assert.ok(key.x<moved.x);assert.equal(await p.evaluate(()=>saved.meetscribe_setting_toolbarPosition.x),Math.round(key.x));
   await p.mouse.move(key.x+30,key.y+30);await p.mouse.down();await p.mouse.move(key.x+32,key.y+31);await p.mouse.up();assert.equal(await el(p,'expanded').isVisible(),true,'movement below threshold clicks');
-  await el(p,'resetPosition').click();const reset=await el(p,'compact').boundingBox();assert.ok(reset.x>1200);assert.equal(await el(p,'compact').isVisible(),true);await fit(p);
+  await el(p,'details').locator('summary').click();await el(p,'resetPosition').click();const reset=await el(p,'compact').boundingBox();assert.ok(reset.x>1100);assert.equal(await el(p,'compact').isVisible(),true);await fit(p);
  }finally{await p.close();}
 });
 check('explicit preferences, corners and resize keep popover usable at maximum font',async()=>{
  const p=await fixture({meetscribe_setting_collapsed:false,meetscribe_setting_fontSize:18,meetscribe_setting_opacity:40,meetscribe_setting_toolbarPosition:{x:0,y:0},meetscribe_setting_language:'en'});try{
   assert.equal(await el(p,'expanded').isVisible(),true);assert.equal(await el(p,'compact').isVisible(),true);
   assert.equal(await read(p,h=>h.style.getPropertyValue('--font-size')),'18px');assert.match(await read(p,h=>h.style.getPropertyValue('--surface')),/0\.40/);
+  await el(p,'details').locator('summary').click();
+  for(const language of ['en','vi']){
+   await p.evaluate(language=>setPreferences({meetscribe_setting_language:language}),language);
   for(const v of [{width:375,height:500},{width:390,height:350},{width:768,height:600},{width:1440,height:900}]){
    await p.setViewportSize(v);
    for(const position of [{x:0,y:0},{x:v.width,y:0},{x:0,y:v.height},{x:v.width,y:v.height}]){
     await p.evaluate(position=>setPreferences({meetscribe_setting_toolbarPosition:position}),position);await fit(p);
     await el(p,'library').scrollIntoViewIfNeeded();assert.equal(await el(p,'library').isVisible(),true);
    }
+  }
   }
   await p.evaluate(()=>cmd('mount',{css:''}));assert.equal(await p.locator('meetscribe-toolbar').count(),1);assert.equal(await p.evaluate(()=>storageHandlers.length),1);
  }finally{await p.close();}
@@ -119,7 +124,7 @@ check('region picker releases an overlapping panel and restores it on selection 
   await p.evaluate(()=>{const region=document.createElement('div');region.id='slide';region.style.cssText='position:fixed;right:10px;top:100px;width:300px;height:200px';region.textContent='Overlapping shared slide';document.body.append(region);});
   await el(p,'start').click();await el(p,'stop').waitFor();
   const before=await el(p,'expanded').boundingBox(),slide=await p.locator('#slide').boundingBox();assert.ok(before.x<slide.x+slide.width&&before.x+before.width>slide.x&&before.y<slide.y+slide.height&&before.y+before.height>slide.y,'fixture reproduces overlapping target');
-  await el(p,'share').click();assert.equal(await el(p,'expanded').isVisible(),false,'picker hides panel to expose target');assert.equal(await el(p,'compact').isVisible(),true);assert.equal(await el(p,'compact').getAttribute('aria-expanded'),'false');
+  await el(p,'share').click();assert.equal(await el(p,'expanded').isVisible(),false,'picker hides panel to expose target');assert.equal(await el(p,'compact').isVisible(),false,'picker hides the whole capsule hit area');assert.equal(await el(p,'compact').getAttribute('aria-expanded'),'false');
   await p.locator('#slide').hover({timeout:2000});await p.locator('#slide').click({timeout:2000});
   await el(p,'stop').waitFor();assert.equal(await el(p,'share').getAttribute('aria-pressed'),'true');assert.equal(await el(p,'expanded').isVisible(),true);assert.equal(await read(p,h=>h.shadowRoot.activeElement.id),'share');
   await el(p,'caption').click();assert.equal(await el(p,'expanded').isVisible(),false);
@@ -137,16 +142,28 @@ check('region picker releases an overlapping panel and restores it on selection 
 
  }finally{await p.close();}
 });
-check('dragging launcher preserves picker and keyboard activation survives cancelled touch',async()=>{
+check('picker exposes underlying capsule area and Cancel restores focus without changing preferences',async()=>{
  const p=await fixture({meetscribe_setting_collapsed:false,meetscribe_setting_language:'en'});try{
+  await el(p,'start').click();await el(p,'stop').waitFor();const capsule=await el(p,'compact').boundingBox();
+  await p.evaluate(b=>{const region=document.createElement('div');region.id='behindCapsule';region.style.cssText=`position:fixed;left:${b.x}px;top:${b.y}px;width:${b.width}px;height:${b.height}px`;region.textContent='Slide behind recording controls';document.body.append(region);},capsule);
+  await el(p,'share').click();assert.equal(await el(p,'compact').isVisible(),false);
+  await p.locator('#behindCapsule').hover();await p.locator('#behindCapsule').click();
+  assert.equal(await el(p,'share').getAttribute('aria-pressed'),'true');assert.equal(await read(p,h=>h.shadowRoot.activeElement.id),'share');
+  await el(p,'caption').click();await p.setViewportSize({width:390,height:350});
+  const cancelButton=p.getByRole('button',{name:'Cancel selection',exact:true});const strip=await cancelButton.locator('..').boundingBox();assert.ok(strip.x>=8&&strip.x+strip.width<=382,'picker strip fits narrow viewport without clipping Cancel');await cancelButton.click();
+  assert.equal(await el(p,'expanded').isVisible(),true);assert.equal(await read(p,h=>h.shadowRoot.activeElement.id),'caption');
+  assert.equal(await p.evaluate(()=>saved.meetscribe_setting_collapsed),false);
+ }finally{await p.close();}
+});
+check('Vietnamese context invalidation cancels picker and exposes buffered caption rescue',async()=>{
+ const p=await fixture({meetscribe_setting_collapsed:false,meetscribe_setting_language:'vi'});const errors=[];p.on('pageerror',e=>errors.push(e.message));try{
   await el(p,'start').click();await el(p,'stop').waitFor();await el(p,'share').click();
-  let b=await el(p,'compact').boundingBox();await p.mouse.move(b.x+30,b.y+30);await p.mouse.down();await p.mouse.move(b.x-100,b.y-80,{steps:8});await p.mouse.up();
-  assert.equal(await el(p,'expanded').isVisible(),false,'generated post-drag click must leave picker active');assert.match(await p.locator('html').innerText(),/Select the shared-screen content/);
-  await el(p,'compact').focus();await p.keyboard.press('Enter');assert.equal(await el(p,'expanded').isVisible(),true,'keyboard activation can cancel picker after drag');
-  await el(p,'share').click();b=await el(p,'compact').boundingBox();const cdp=await p.context().newCDPSession(p);
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+30,y:b.y+30,id:9}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:b.x-40,y:b.y-40,id:9}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
-  assert.equal(await el(p,'expanded').isVisible(),false,'cancelled touch leaves selection active');await el(p,'compact').focus();await p.keyboard.press('Enter');
-  assert.equal(await el(p,'expanded').isVisible(),true,'keyboard click is not swallowed by stale drag suppression');assert.equal(await el(p,'stop').isVisible(),true);
+  await p.evaluate(()=>{chrome.runtime.sendMessage=()=>{throw Error('Extension context invalidated.');};document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('settings').click();});
+  await p.waitForFunction(()=>document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('compactText').textContent==='Cần kết nối lại');
+  assert.equal(await p.getByRole('button',{name:'Hủy chọn vùng',exact:true}).count(),0,'localized invalidation removes picker listeners and cancel strip');
+  assert.equal(await el(p,'expanded').isVisible(),true,'previous expanded preference restored');assert.equal(await el(p,'rescue').isVisible(),true);
+  assert.match(await el(p,'message').textContent(),/Extension đã được nạp lại/);assert.deepEqual(errors,[]);
+  assert.deepEqual(await p.evaluate(()=>__meetScribe.dispose().map(e=>e.text)),['Alice: first caption']);
  }finally{await p.close();}
 });
 check('invalidated extension disposal returns pending captions and cleans up a moved drag without preference writes',async()=>{
@@ -204,6 +221,30 @@ check('pointer cancellation releases movement and does not toggle',async()=>{
   const after=await el(p,'compact').boundingBox();assert.equal(after.x,cancelled.x);assert.equal(after.y,cancelled.y);assert.equal(await el(p,'expanded').isVisible(),false);
   assert.equal(await p.locator('meetscribe-toolbar').getAttribute('data-dragging'),null);
   await el(p,'compact').click();assert.equal(await el(p,'expanded').isVisible(),true,'cancelled touch leaves next click usable');
+ }finally{await p.close();}
+});
+check('reduced motion keeps controls immediate and exports real controller screenshots when requested',async()=>{
+ const p=await fixture({meetscribe_setting_collapsed:false,meetscribe_setting_language:'en'});try{
+  await p.emulateMedia({reducedMotion:'reduce'});
+  assert.equal(await el(p,'expanded').evaluate(el=>getComputedStyle(el).animationName),'none');
+  await el(p,'start').click();await el(p,'stop').waitFor();await fit(p);
+  if(process.env.MEETSCRIBE_CONTROLLER_SCREENSHOTS){
+   await fs.mkdir(process.env.MEETSCRIBE_CONTROLLER_SCREENSHOTS,{recursive:true});
+   await p.evaluate(()=>{
+    document.body.style.cssText='margin:0;background:#eef0f7;font:16px system-ui;color:#293149';
+    const stage=document.createElement('main');stage.innerHTML='<div style="padding:32px;color:#656b83;font-size:13px">SYNTHETIC MEETING · PRODUCT REVIEW</div><div style="margin:0 5%;height:55vh;border-radius:24px;background:#fff;box-shadow:0 12px 60px #3942690d;padding:8%;box-sizing:border-box"><div style="font-size:12px;letter-spacing:2px;color:#6c60a8">WEEKLY PLANNING</div><h1 style="font-size:clamp(20px,3vw,44px);line-height:1.15;font-weight:500">Make room for<br>the conversation.</h1><p style="color:#798198;font-size:14px">A synthetic meeting preview for controller review.</p></div>';
+    document.body.prepend(stage);
+   });
+   for(const item of [{name:'1440-en',width:1440,height:900,language:'en',fontSize:14},{name:'1024-en',width:1024,height:768,language:'en',fontSize:14},{name:'768-vi',width:768,height:800,language:'vi',fontSize:14},{name:'390-vi',width:390,height:844,language:'vi',fontSize:14},{name:'375-vi-font18',width:375,height:667,language:'vi',fontSize:18},{name:'390-short-font18',width:390,height:350,language:'vi',fontSize:18}]){
+    await p.setViewportSize({width:item.width,height:item.height});
+    await p.evaluate(item=>setPreferences({meetscribe_setting_language:item.language,meetscribe_setting_fontSize:item.fontSize,meetscribe_setting_toolbarPosition:{x:item.width-256,y:item.height-76}}),item);await fit(p);
+    await p.screenshot({path:path.join(process.env.MEETSCRIBE_CONTROLLER_SCREENSHOTS,'controller-'+item.name+'.png')});
+   }
+   await p.evaluate(()=>setPreferences({meetscribe_setting_collapsed:true}));
+   await p.screenshot({path:path.join(process.env.MEETSCRIBE_CONTROLLER_SCREENSHOTS,'controller-collapsed-short.png')});
+   await p.evaluate(()=>setPreferences({meetscribe_setting_collapsed:false}));await el(p,'caption').click();
+   await p.screenshot({path:path.join(process.env.MEETSCRIBE_CONTROLLER_SCREENSHOTS,'controller-picker-short.png')});await p.keyboard.press('Escape');
+  }
  }finally{await p.close();}
 });
 (async()=>{

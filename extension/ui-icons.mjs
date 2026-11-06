@@ -1,5 +1,15 @@
 // Original functional icons. Labels live in text spans, so live translations preserve the SVG.
 const paths={
+ caption:'M4 5h16v14H4z M10 10H7v4h3 M17 10h-3v4h3',
+ share:'M3 3h18v14H3z M8 21h8 M12 17v4 M8 9l4-4 4 4 M12 5v9',
+ mark:'M6 21V3 M6 4h12l-3 5 3 5H6',
+ move:'M12 3v18 M3 12h18 M9 6l3-3 3 3 M9 18l3 3 3-3 M6 9l-3 3 3 3 M18 9l3 3-3 3',
+ search:'M21 21l-5-5 M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16',
+ back:'M20 12H4 M10 6l-6 6 6 6',
+ more:'M5 12h.01 M12 12h.01 M19 12h.01',
+ image:'M3 4h18v16H3z M3 16l5-5 4 4 3-3 6 6 M16 8h.01',
+ check:'M5 12l4 4L19 6',
+ chevron:'M9 5l7 7-7 7',
  library:'M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5',
  settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 3v2 M12 19v2 M3 12h2 M19 12h2 M5.6 5.6l1.5 1.5 M16.9 16.9l1.5 1.5 M5.6 18.4l1.5-1.5 M16.9 7.1l1.5-1.5',
  shield:'M12 3 4 6v5c0 5 8 10 8 10s8-5 8-10V6z M8.5 12l2.5 2.5 4.5-5',

@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Giấy_phép-MIT-blue.svg" alt="Giấy phép: MIT" /></a>
-  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.4.0-green.svg" alt="Phiên bản 1.4.0" /></a>
+  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.5.0-green.svg" alt="Phiên bản 1.5.0" /></a>
   <a href="docs/vi/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
@@ -26,8 +26,8 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 - **Lưu trữ cục bộ linh hoạt:** Tự động xuất tệp vào thư mục `Downloads/MeetScribe/...` mặc định của Chrome hoặc vào bất kỳ thư mục nào trên máy tính qua File System Access API.
 - **Xuất gói ZIP cho AI cầm tay:** Tạo gói nén độc lập chứa toàn bộ bản chụp thô, ảnh trình chiếu, siêu dữ liệu, tệp `transcript.md` (bản đọc phụ đề theo mốc thời gian) và `README-for-AI.md` (chỉ dẫn chi tiết chống bịa đặt cho mô hình ngôn ngữ lớn).
 - **Thư viện quản lý phiên họp:** Tìm kiếm cuộc họp theo tên hoặc ngày, đổi tên hiển thị an toàn, kiểm tra dung lượng bản dự phòng cục bộ, xem trước trích đoạn phụ đề/ảnh thu nhỏ và thử xuất lại các lượt tải bị gián đoạn.
-- **Nút nổi điều khiển cuộc họp:** Lấy cảm hứng từ AssistiveTouch, chạm để mở bảng thao tác gọn. Kéo hoặc dùng phím mũi tên để di chuyển, Escape để thu gọn; vẫn nhận biết trạng thái ghi/lỗi. Chỉnh độ mờ nền 40–100% và cỡ chữ 12–18px.
-- **Không gian quản lý mới:** Thư viện và cài đặt nền ngà/xanh ngọc, điều hướng đồng bộ, thao tác xuất rõ ràng và xem trước giao diện trực tiếp.
+- **Điều khiển nổi:** Capsule thống nhất hiển thị trạng thái ghi/lỗi và mở menu thao tác gọn. Kéo hoặc dùng phím mũi tên để di chuyển, Escape để thu; vẫn chỉnh được độ mờ nền và cỡ chữ.
+- **Không gian cuộc họp:** Danh sách tìm kiếm gọn bên cạnh nội dung caption/ảnh của phiên được chọn, phục hồi theo ngữ cảnh và cụm xuất rõ ràng; cài đặt indigo/violet với xem trước trực tiếp.
 
 ---
 
@@ -45,7 +45,7 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 
 <p align="center">
   <img src="docs/images/library.png" alt="Trang Thư viện phiên họp MeetScribe" width="800" /><br />
-  <em>Trang Thư viện phiên họp (<code>library.html</code>) hiển thị tìm kiếm, thẻ cuộc họp, trạng thái xuất và tùy chọn ZIP.</em>
+  <em>Trang Thư viện phiên họp (<code>library.html</code>) hiển thị tìm kiếm, danh sách cuộc họp, khung xem phiên được chọn, trạng thái xuất và tùy chọn ZIP.</em>
 </p>
 
 <p align="center">
@@ -57,7 +57,7 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 
 ## Bắt đầu nhanh
 
-Tải `MeetScribe-1.4.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
+Tải `MeetScribe-1.5.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
 
 Hoặc cài trực tiếp từ mã nguồn:
 
@@ -77,7 +77,7 @@ Hoặc cài trực tiếp từ mã nguồn:
 ```bash
 npm run package
 ```
-Lệnh sẽ tạo tệp `dist/MeetScribe-1.4.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
+Lệnh sẽ tạo tệp `dist/MeetScribe-1.5.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
 
 ---
 
@@ -111,3 +111,5 @@ Mọi đóng góp bằng tiếng Anh hoặc tiếng Việt đều được hoan 
 MeetScribe được phát hành theo [Giấy phép MIT](LICENSE). Bản quyền &copy; 2026 Nhóm đóng góp MeetScribe.
 
 Xem [quản trị nhánh và quyền](docs/vi/governance.md) và [quy trình phát hành](docs/vi/releasing.md).
+
+Một số mẫu giao diện được điều chỉnh từ [Lucian UX/UI Prompt](https://lucianlabs.dev/en/uxui-prompt/); xem [thông báo thành phần bên thứ ba](THIRD_PARTY_NOTICES.md).

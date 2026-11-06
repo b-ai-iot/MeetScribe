@@ -21,7 +21,7 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
   const settings=await context.newPage(),library=await context.newPage();
   const base=`http://127.0.0.1:${server.address().port}`;
   await settings.goto(base+'/settings.html');await library.goto(base+'/library.html');await library.waitForSelector('.session');
-  assert.equal(await library.locator('h1').textContent(),'Thư viện cuộc họp','The library heading identifies the workspace');
+  assert.equal(await library.locator('h1').textContent(),'Kho cuộc họp','The library heading identifies the workspace');
   assert.equal(await settings.locator('nav [aria-current="page"]').count(),1,'Settings navigation identifies the current page');
   assert.equal(await library.locator('nav [aria-current="page"]').count(),1,'Library navigation identifies the current page');
   for(const page of [library,settings]){
@@ -47,13 +47,14 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
   await library.locator('.zip-btn').click();
   for(const language of ['vi','en']){
    await library.evaluate(value=>window.changeLanguage(value),language);await settings.evaluate(value=>window.changeLanguage(value),language);
-   assert.equal(await library.locator('h1').textContent(),language==='vi'?'Thư viện cuộc họp':'Meeting library');
+   assert.equal(await library.locator('h1').textContent(),language==='vi'?'Kho cuộc họp':'Meeting archive');
    assert.equal(await library.locator('.zip-dest-select').inputValue(),'saveAs');
    assert.equal(await library.locator('.zip-btn').isDisabled(),true);
    assert.equal(await library.locator('.zip-btn svg[aria-hidden="true"]').count(),1,'Localized pending buttons retain decorative icons');
    for(const width of [375,768,1440]){
     for(const [name,page] of [['library',library],['settings',settings]]){
      await page.setViewportSize({width,height:1000});
+     if(name==='library'&&width<=780&&await page.locator('.archive-index').isVisible())await page.locator('.session-row').click();
      const layout=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('button,select,nav a,input[type="range"],.radio-option')].filter(n=>n.getBoundingClientRect().width&&n.getBoundingClientRect().height).map(n=>({height:n.getBoundingClientRect().height,label:n.textContent})),nav:document.querySelector('nav').getBoundingClientRect().toJSON(),main:document.querySelector('main').getBoundingClientRect().toJSON()}));
      assert.equal(layout.overflow,false,`${name} ${language} ${width}: horizontal overflow`);
      for(const control of layout.controls)assert.ok(control.height>=44,`${name} ${language} ${width}: control under 44px: ${control.label}`);
@@ -63,7 +64,7 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
      await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
      assert.ok(await page.evaluate(()=>getComputedStyle(document.activeElement).outlineStyle!=='none'),'Keyboard focus is visible');
      assert.ok(await page.evaluate(()=>{const n=document.activeElement,r=n.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')===n;}),'Focused action is visible and unobscured');
-     if(name==='settings'){const positions=await page.evaluate(()=>({controls:document.querySelector('.appearance-controls').getBoundingClientRect().toJSON(),preview:document.querySelector('.appearance-preview').getBoundingClientRect().toJSON()}));if(width===1440)assert.ok(positions.preview.left>=positions.controls.right,'Desktop preview sits beside the controls');else assert.ok(positions.preview.top>=positions.controls.bottom,'Narrow preview stacks below controls');}
+     if(name==='settings'){const positions=await page.evaluate(()=>({controls:document.querySelector('.preferences-column').getBoundingClientRect().toJSON(),preview:document.querySelector('.appearance-preview').getBoundingClientRect().toJSON()}));if(width===1440)assert.ok(positions.preview.left>=positions.controls.right,'Desktop preview sits beside the controls');else assert.ok(positions.preview.top>=positions.controls.bottom,'Narrow preview stacks below controls');}
      if(process.env.MEETSCRIBE_SCREENSHOTS){await page.evaluate(()=>scrollTo(0,0));await fs.mkdir(process.env.MEETSCRIBE_SCREENSHOTS,{recursive:true});await page.screenshot({path:path.join(process.env.MEETSCRIBE_SCREENSHOTS,`${name}-${language}-${width}.png`),fullPage:true});}
     }
    }
