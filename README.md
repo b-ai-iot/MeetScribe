@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.4.0-green.svg" alt="Version 1.4.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.5.0-green.svg" alt="Version 1.5.0" /></a>
   <a href="docs/en/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
@@ -26,8 +26,8 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 - **Flexible Local Storage:** Exports files automatically to Chrome's default `Downloads/MeetScribe/...` directory or to any custom folder chosen via the File System Access API.
 - **AI-Ready ZIP Export:** Generates self-contained packages containing raw snapshots, slides, metadata, `transcript.md` (timestamped reading copy), and `README-for-AI.md` (structured instructions for external LLMs).
 - **Session Management Library:** Search previous meetings by title or date, safely rename display titles, inspect local backup sizes, preview captions/slides, and re-export failed downloads.
-- **Floating Meeting Controls:** An AssistiveTouch-inspired button opens a compact control panel. Drag or use arrow keys to move it, press Escape to collapse, and keep the recording/error state visible. Adjustable background opacity (40–100%) and font size (12–18px).
-- **Refined Workspace:** A pearl/emerald meeting library and settings interface with a shared navigation, clear export actions and a live appearance preview.
+- **Floating Meeting Controls:** One connected recording capsule opens a compact action menu. Move it by drag or arrow keys, collapse with Escape, and see recording/error state without opening the menu. Adjustable surface opacity and font size.
+- **Archive Workspace:** A compact searchable meeting index beside a selected-session caption/image inspector, contextual recovery and focused export actions; indigo/violet settings with a responsive live preview.
 
 ---
 
@@ -45,7 +45,7 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 
 <p align="center">
   <img src="docs/images/library-en.png" alt="MeetScribe session library page" width="800" /><br />
-  <em>Session library page (<code>library.html</code>) showing search, session cards, export status, and ZIP options.</em>
+  <em>Session library page (<code>library.html</code>) showing search, a searchable meeting index, selected-session preview, export status, and ZIP options.</em>
 </p>
 
 <p align="center">
@@ -57,7 +57,7 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 
 ## Quickstart
 
-Download `MeetScribe-1.4.0.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
+Download `MeetScribe-1.5.0.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
 
 To install from source instead:
 
@@ -77,7 +77,7 @@ To create a local zip package matching the repository manifest, run:
 ```bash
 npm run package
 ```
-This outputs `dist/MeetScribe-1.4.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
+This outputs `dist/MeetScribe-1.5.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
 
 ---
 
@@ -111,3 +111,5 @@ Contributions are welcome in both English and Vietnamese. Please review [CONTRIB
 MeetScribe is licensed under the [MIT License](LICENSE). Copyright &copy; 2026 MeetScribe contributors.
 
 See [branch governance and permissions](docs/en/governance.md) and [release procedure](docs/en/releasing.md).
+
+Selected interface patterns are adapted from [Lucian UX/UI Prompt](https://lucianlabs.dev/en/uxui-prompt/); see [third-party notices](THIRD_PARTY_NOTICES.md).

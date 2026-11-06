@@ -247,7 +247,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  await ui.waitForFunction(()=>persisted.some(e=>e.text==='Pending recovery 100'));
  assert.equal(await ui.getByRole('button',{name:'Dừng và lưu',exact:true}).isVisible(),true);
  passed++;console.log('PASS transient message failure retains caption queue and supports resume');
- await ui.evaluate(()=>{const slide=document.createElement('div');slide.id='slide';slide.textContent='Shared slide';slide.style.cssText='position:fixed;right:5px;top:10px;width:100px;height:80px;background:green';document.body.append(slide);});
+ await ui.evaluate(()=>{const slide=document.createElement('div');slide.id='slide';slide.textContent='Shared slide';slide.style.cssText='position:fixed;right:5px;top:120px;width:100px;height:80px;background:green';document.body.append(slide);});
  await ui.getByRole('button',{name:'Vùng share',exact:true}).click();await ui.locator('#slide').hover();await ui.locator('#slide').click();
  await ui.waitForFunction(()=>document.querySelector('meetscribe-toolbar').shadowRoot.getElementById('message').textContent.includes('Đã chọn vùng share'));
  await ui.locator('#slide').evaluate(el=>el.remove());
@@ -417,26 +417,15 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
    hint:parseFloat(getComputedStyle(root.querySelector('.hint')).fontSize)
   };
  });
- assert.ok(at18.h2>19,'h2 scales up at 18px');
+ assert.ok(at18.h2>at12.h2&&Math.abs(at18.h2/at12.h2-1.5)<.01,'meeting title scales proportionally at 18px');
  assert.ok(at18.hint>14,'hint scales up at 18px');
- // Test position move and reset to null coordinates
+ // Reset the actual controller through Details rather than imitating its CSS updates.
  await toolbar.evaluate(el=>{el.style.left='300px';el.style.top='400px';});
  assert.equal(await toolbar.evaluate(el=>el.style.left),'300px');
- await scaleCheck.evaluate(()=>{
-  const tb=document.querySelector('meetscribe-toolbar');
-  // Trigger storage update with toolbarPosition: null
-  window.chrome.storage={local:{get(k,cb){cb({meetscribe_setting_toolbarPosition:null});}}};
- });
- await toolbar.evaluate(el=>{
-  // Call applyVisualSettings with null position
-  const s={toolbarPosition:null};
-  const op=96,fs=14;
-  el.style.setProperty('--surface',`rgba(20,28,34,${(op/100).toFixed(2)})`);
-  el.style.setProperty('--font-size',`${fs}px`);
-  el.style.left='24px';el.style.top='100px';
- });
- assert.equal(await toolbar.evaluate(el=>el.style.left),'24px');
- assert.equal(await toolbar.evaluate(el=>el.style.top),'100px');
+ await toolbar.locator('#details summary').click();await toolbar.locator('#resetPosition').click();
+ const reset=await toolbar.boundingBox();
+ assert.ok(reset.x>900&&reset.y>500,'Reset returns the capsule to its default lower-right position');
+ assert.ok(reset.x+reset.width<=1280&&reset.y+reset.height<=800,'Reset keeps the full capsule visible');
  passed++;console.log('PASS toolbar proportional font scaling at 12px/18px and reset to default coordinates');
  await scaleCheck.close();
  // Test old session repair section is visible even when global destination is Downloads
@@ -535,26 +524,31 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  await libPage.reload();
  await libPage.locator('#searchInput').waitFor();
 
- const xssCard = libPage.locator('[data-sid="session-completed-xss"]');
+ const row = id => libPage.locator(`.session-row[data-sid="${id}"]`);
+ const selectedCard = id => libPage.locator(`#selectedSession .session[data-sid="${id}"]`);
+ const selectMeeting = async id => {
+  if(!await libPage.locator('.archive-index').isVisible())await libPage.locator('#backToMeetings').click();
+  await row(id).click();await selectedCard(id).waitFor();
+ };
+ const xssCard = selectedCard('session-completed-xss');
+ const activeCard = selectedCard('session-active-rec');
+ await selectMeeting('session-active-rec');assert.equal(await activeCard.locator('.delete-btn').count(),0);
+ await selectMeeting('session-completed-xss');
  assert.equal(await xssCard.locator('.session-title').textContent(), '<script>alert("xss")</script> & <b>Bảo mật</b>');
-
- const activeCard = libPage.locator('[data-sid="session-active-rec"]');
- assert.equal(await activeCard.locator('.delete-btn').count(), 0);
- assert.equal(await xssCard.locator('.delete-btn').count(), 1);
-
+ assert.equal(await xssCard.locator('.session-title script,.session-title b').count(),0,'User title remains text');
+ assert.equal(await xssCard.locator('.delete-btn').count(),1);
  await libPage.locator('#searchInput').fill('chiến lược');
- assert.equal(await libPage.locator('.session').count(), 1);
- assert.equal(await libPage.locator('.session-title').textContent(), 'Họp chiến lược Q4 đang diễn ra');
-
+ assert.equal(await libPage.locator('.session-row').count(),1);
+ assert.equal(await libPage.locator('.session-title').textContent(),'Họp chiến lược Q4 đang diễn ra');
  await libPage.locator('#clearSearch').click();
- assert.equal(await libPage.locator('.session').count(), 2);
-
+ assert.equal(await libPage.locator('.session-row').count(),2);
  await libPage.locator('#searchInput').fill('2026-10-30');
- assert.equal(await libPage.locator('.session').count(), 2);
+ assert.equal(await libPage.locator('.session-row').count(),2);
  await libPage.locator('#searchInput').fill('1999-01-01');
- assert.equal(await libPage.locator('.session').count(), 0);
- assert.match(await libPage.locator('#sessions').textContent(), /Không tìm thấy/);
- await libPage.locator('#clearSearch').click();
+ assert.equal(await libPage.locator('.session-row').count(),0);
+ assert.equal(await libPage.locator('.session').count(),0,'No stale inspector survives an empty search');
+ assert.match(await libPage.locator('#sessions').textContent(),/Không tìm thấy/);
+ await libPage.locator('#clearSearch').click();await selectMeeting('session-completed-xss');
 
  let promptRenameVal = 'Họp Bảo Mật An Toàn Đã Đổi Tên';
  libPage.on('dialog', async dialog => {
@@ -566,8 +560,8 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  });
 
  await xssCard.locator('.rename-btn').click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .session-title')?.textContent === 'Họp Bảo Mật An Toàn Đã Đổi Tên');
- assert.equal(await libPage.locator('[data-sid="session-completed-xss"] .session-title').textContent(), 'Họp Bảo Mật An Toàn Đã Đổi Tên');
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-completed-xss"] .session-title')?.textContent === 'Họp Bảo Mật An Toàn Đã Đổi Tên');
+ assert.equal(await libPage.locator('#selectedSession .session[data-sid="session-completed-xss"] .session-title').textContent(), 'Họp Bảo Mật An Toàn Đã Đổi Tên');
 
  await libPage.screenshot({path: path.resolve(__dirname, '../artifacts/library-desktop.png')});
 
@@ -577,7 +571,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
   // Regression: mock worker export-zip failure -> visible error text and enabled retry button
  await libPage.evaluate(() => { window.__mockFailZip = true; });
  await xssCard.locator('.zip-btn').click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('disk failure'));
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('disk failure'));
  assert.match(await xssCard.locator('.zip-status').textContent(), /disk failure/);
  const retryBtn = xssCard.locator('.zip-retry-btn');
  assert.equal(await retryBtn.isVisible(), true);
@@ -586,14 +580,14 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  // Retrying when worker succeeds updates status to success
  await libPage.evaluate(() => { window.__mockFailZip = false; });
  await retryBtn.click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
  assert.match(await xssCard.locator('.zip-status').textContent(), /Đã lưu ZIP thành công/);
 
  // Save As option button is present and triggers export
  const saveAsBtn = xssCard.locator('.zip-save-as-btn');
  assert.equal(await saveAsBtn.count(), 1);
  await saveAsBtn.click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-completed-xss"] .zip-status')?.textContent.includes('Đã lưu ZIP thành công'));
 
  // Regression: CUSTOM-directory session with dropdown SaveAs sends destination: 'downloads' and saveAs: true (both primary and retry)
  await libPage.evaluate(async () => {
@@ -615,7 +609,8 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  await libPage.reload();
  await libPage.locator('#searchInput').waitFor();
 
- const customCard = libPage.locator('[data-sid="session-custom-saveas"]');
+ await selectMeeting('session-custom-saveas');
+ const customCard = selectedCard('session-custom-saveas');
  await customCard.locator('.zip-dest-select').selectOption('saveAs');
  await libPage.evaluate(() => { window.__recordedZipMessages = []; });
  await customCard.locator('.zip-btn').click();
@@ -627,7 +622,7 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  // After failure, retry also sends destination: 'downloads' and saveAs: true
  await libPage.evaluate(() => { window.__mockFailZip = true; window.__recordedZipMessages = []; });
  await customCard.locator('.zip-btn').click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-custom-saveas"] .zip-status')?.textContent.includes('disk failure'));
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-custom-saveas"] .zip-status')?.textContent.includes('disk failure'));
  const customRetryBtn = customCard.locator('.zip-retry-btn');
  assert.equal(await customRetryBtn.isVisible(), true);
 
@@ -639,22 +634,23 @@ with zipfile.ZipFile(sys.argv[1], 'r') as zf:
  assert.equal(retryMsg.destination, 'downloads');
 
  // Regression: rename mutation error is propagated to UI instead of silently swallowed
+ await selectMeeting('session-completed-xss');
  await libPage.evaluate(() => { window.__mockFailRename = true; });
  promptRenameVal = 'Tên Thử Lỗi Đổi';
  await xssCard.locator('.rename-btn').click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .card-error')?.textContent.includes('Tiêu đề không hợp lệ') || document.getElementById('message')?.textContent.includes('Tiêu đề không hợp lệ'));
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-completed-xss"] .card-error')?.textContent.includes('Tiêu đề không hợp lệ') || document.getElementById('message')?.textContent.includes('Tiêu đề không hợp lệ'));
  await libPage.evaluate(() => { window.__mockFailRename = false; });
 
  // Regression: delete mutation error is propagated to UI instead of silently swallowed
  await libPage.evaluate(() => { window.__mockFailDelete = true; });
  await xssCard.locator('.delete-btn').click();
- await libPage.waitForFunction(() => document.querySelector('[data-sid="session-completed-xss"] .card-error')?.textContent.includes('disk failure on delete') || document.getElementById('message')?.textContent.includes('disk failure on delete'));
- assert.equal(await libPage.locator('[data-sid="session-completed-xss"]').count(), 1);
+ await libPage.waitForFunction(() => document.querySelector('#selectedSession .session[data-sid="session-completed-xss"] .card-error')?.textContent.includes('disk failure on delete') || document.getElementById('message')?.textContent.includes('disk failure on delete'));
+ assert.equal(await row('session-completed-xss').count(),1,'Failed deletion preserves the indexed session');
  await libPage.evaluate(() => { window.__mockFailDelete = false; });
 
- await libPage.locator('[data-sid="session-completed-xss"] .delete-btn').click();
- await libPage.waitForFunction(() => !document.querySelector('[data-sid="session-completed-xss"]'));
- assert.equal(await libPage.locator('[data-sid="session-completed-xss"]').count(), 0);
+ await libPage.locator('#selectedSession .session[data-sid="session-completed-xss"] .delete-btn').click();
+ await libPage.waitForFunction(() => !document.querySelector('.session-row[data-sid="session-completed-xss"]'));
+ assert.equal(await row('session-completed-xss').count(),0);
 
  passed++;console.log('PASS session library: search, date, rename, preview, confirmed deletion, XSS prevention and 375px responsive');
  await libPage.close();

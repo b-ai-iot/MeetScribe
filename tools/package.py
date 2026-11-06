@@ -12,7 +12,7 @@ out = root / 'dist'
 out.mkdir(exist_ok=True)
 target = out / f'MeetScribe-{current}.zip'
 with ZipFile(target, 'w', ZIP_DEFLATED, compresslevel=9) as archive:
-    files = [(root / 'LICENSE', 'LICENSE')]
+    files = [(root / 'LICENSE', 'LICENSE'), (root / 'THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_NOTICES.md')]
     files += [(file, file.relative_to(source).as_posix()) for file in sorted(source.rglob('*'))
               if file.is_file() and not any(part.startswith('.') for part in file.relative_to(source).parts)]
     for file, name in files:

@@ -46,16 +46,19 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
   assert.equal(await library.locator('.path').textContent(),'MeetScribe/Đã dừng');
   assert.match(await library.locator('.dest-meta').textContent(),/Thư mục Việt/);
   assert.equal(await library.locator('.session-title img').count(),0);
-  assert.match(await library.locator('.meta').first().textContent(),/12,345 captions · 2 images/);
-  assert.match(await library.locator('.meta').first().textContent(),/10\/29\/2026/);
-  assert.match(await library.locator('.session-info > .meta.warning').first().textContent(),/Save error: The local folder does not have write permission/);
+  assert.match(await library.locator('.document-meta').textContent(),/12,345 captions · 2 images/);
+  const englishDate=await library.locator('.document-kicker > span').last().textContent();
+  assert.match(englishDate,/Oct(?:ober)?/,'October uses its English month label');assert.match(englishDate,/\b29\b/);assert.match(englishDate,/2026/);
+  assert.match(await library.locator('.recovery-panel > .meta.warning').first().textContent(),/Save error: The local folder does not have write permission/);
   await library.evaluate(()=>window.finishZip());await library.waitForFunction(()=>!document.querySelector('.zip-btn').disabled);
   assert.match(await library.locator('.card-error').textContent(),/ZIP export error: Unknown native detail <img>/);
   await library.evaluate(()=>window.changeLanguage('vi'));await library.waitForFunction(()=>document.documentElement.lang==='vi');
   assert.match(await library.locator('.card-error').textContent(),/Lỗi xuất ZIP: Unknown native detail <img>/);
   assert.equal(await library.locator('#searchInput').inputValue(),'Cuộc họp');
-  assert.match(await library.locator('.meta').first().textContent(),/29\/10\/2026.*12\.345 caption/);
-  assert.match(await library.locator('.session-info > .meta.warning').first().textContent(),/Lỗi lưu: Thư mục lưu cục bộ chưa được cấp quyền ghi/);
+  assert.match(await library.locator('.document-meta').textContent(),/12\.345 caption · 2 ảnh/);
+  const vietnameseDate=await library.locator('.document-kicker > span').last().textContent();
+  assert.match(vietnameseDate,/(?:thg|tháng)\s*10/,'October updates to its Vietnamese month label');assert.match(vietnameseDate,/\b29\b/);assert.match(vietnameseDate,/2026/);
+  assert.match(await library.locator('.recovery-panel > .meta.warning').first().textContent(),/Lỗi lưu: Thư mục lưu cục bộ chưa được cấp quyền ghi/);
   await settings.locator('#resetBtn').click();await settings.waitForFunction(()=>document.documentElement.lang==='vi');
   // A long English action row must never steal the reading area or escape its card.
   for (const language of ['en','vi']) {
@@ -64,6 +67,7 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
     await library.locator('.session-title').evaluate(node=>node.textContent='Weekly planning · demo');
     for (const width of [1440,768,390]) {
       await library.setViewportSize({width,height:1100});
+      if(width<=780&&await library.locator('.archive-index').isVisible())await library.locator('.session-row').click();
       const layout=await library.evaluate(()=>{
         const info=document.querySelector('.session-info').getBoundingClientRect();
         const title=document.querySelector('.session-title').getBoundingClientRect();
@@ -72,13 +76,13 @@ const http=require('node:http'),fs=require('node:fs/promises'),path=require('nod
         return {infoWidth:info.width,titleWidth:title.width,cardLeft:card.left,cardRight:card.right,cardBottom:card.bottom,overflow:document.documentElement.scrollWidth>innerWidth,controls};
       });
       if(width===1440){
-        assert.ok(layout.infoWidth>=560,`${language}: desktop reading area was squeezed to ${layout.infoWidth}px`);
+        assert.ok(layout.infoWidth>=480,`${language}: desktop reading area was squeezed to ${layout.infoWidth}px`);
         assert.ok(layout.titleWidth>=160,`${language}: desktop title wraps one word per line`);
       }
       if(width===768)assert.ok(layout.infoWidth>=500,`${language}: tablet reading area was squeezed to ${layout.infoWidth}px`);
       assert.equal(layout.overflow,false,`${language} ${width}: page has horizontal overflow`);
       for(const control of layout.controls){
-        assert.ok(control.width>0&&control.height>=32,`${language} ${width}: hidden action ${control.text}`);
+        assert.ok(control.width>0&&control.height>=44,`${language} ${width}: hidden action ${control.text}`);
         assert.ok(control.left>=layout.cardLeft&&control.right<=layout.cardRight&&control.bottom<=layout.cardBottom,`${language} ${width}: action escapes card: ${control.text}`);
       }
     }

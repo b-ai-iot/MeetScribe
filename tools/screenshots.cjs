@@ -81,22 +81,27 @@ button{background:#313f49;color:#edf4f7;border:1px solid #54616b;border-radius:1
     const library = await context.newPage();
     await library.goto(base + '/library.html');
     // Seed a second completed session using the actual journal, including a demo slide.
-    const slide = await meeting.locator('.slide').screenshot();
+    // Seed only the synthetic slide, without a fixed controller painted over it.
+    const controller=meeting.locator('meetscribe-toolbar');
+    await controller.evaluate(host=>host.style.visibility='hidden');
+    let slide;try{slide=await meeting.locator('.slide').screenshot();}finally{await controller.evaluate(host=>host.style.removeProperty('visibility'));}
     await library.evaluate(async slide => {
       const store = await import('./store.mjs');
       const id = 'documentation-design-review';
       await store.createSession({id,title:'Design review · demo',folder:'MeetScribe/2026-10-29/Design-review--demo',status:'recording',
-        count:0,lastSequence:0,createdAt:'2026-10-29T08:00:00.000Z',destination:'downloads',platform:'meet',version:'1.4.0'});
+        count:0,lastSequence:0,createdAt:'2026-10-29T08:00:00.000Z',destination:'downloads',platform:'meet',version:'1.5.0'});
       await store.appendCaptions(id,[{sequence:1,timestamp:'2026-10-29T08:02:00.000Z',text:'Lan: Đây là nội dung minh họa cho tài liệu MeetScribe.',speaker:null}]);
       await store.saveImage(id,{name:'slide-demo.png',data:'data:image/png;base64,'+slide,bytes:Math.floor(slide.length*0.75),event:{timestamp:'2026-10-29T08:02:00.000Z',reason:'documentation-demo'}});
       await store.finalizeSession(id,{reason:'documentation-demo',endedAt:'2026-10-29T08:20:00.000Z'});
     }, slide.toString('base64'));
     await library.reload();
-    await library.locator('.session').nth(1).waitFor();
-    await library.locator('.backup-size').nth(1).waitFor();
+    await library.locator('.session-row').nth(1).waitFor();
+    await library.locator('.session-row[data-sid="documentation-design-review"]').click();
+    await library.locator('#selectedSession .session[data-sid="documentation-design-review"] .backup-size').waitFor();
     await library.locator('.thumb').waitFor();
     await library.screenshot({path:path.join(out,'library.png'),fullPage:true});
     await library.setViewportSize({width:390,height:844});
+    if(await library.locator('.archive-index').isVisible())await library.locator('.session-row[data-sid="documentation-design-review"]').click();
     await library.screenshot({path:path.join(out,'library-mobile.png'),fullPage:true});
 
     const settings = await context.newPage();

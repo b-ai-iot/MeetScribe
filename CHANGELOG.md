@@ -2,6 +2,14 @@
 
 [Tiếng Việt](CHANGELOG.vi.md) · [README](README.md)
 
+## 1.5.0 — 2026-11-06
+
+- Rebuild the library as a searchable meeting index and selected-session inspector with caption/media space, contextual recovery and one export command bar.
+- Recompose settings as compact preference groups beside a live preview stage with explicit save-state feedback.
+- Replace detached floating controls with a connected indigo/violet capsule and compact anchored action menu; improve region-selection and invalidated-context cleanup.
+- Adapt selected Lucian UX/UI Prompt workspace, navigation, disclosure, menu and save-feedback patterns with upstream MIT notices included in distribution.
+- Add selection-race, per-session operation, mobile navigation and settings/controller regression checks; refresh paired docs and actual UI screenshots.
+
 ## 1.4.0 — 2026-11-05
 
 - Redesign the meeting controls around an AssistiveTouch-inspired floating button and attached popover, with drag/keyboard movement, persistent preferences and visible recording/error state.

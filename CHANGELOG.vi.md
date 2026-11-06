@@ -2,6 +2,14 @@
 
 [English](CHANGELOG.md) · [README](README.vi.md)
 
+## 1.5.0 — 2026-11-06
+
+- Xây lại thư viện thành danh sách cuộc họp có tìm kiếm và khung nội dung phiên được chọn, có vùng caption/ảnh, phục hồi theo ngữ cảnh và một cụm xuất dữ liệu.
+- Bố trí lại cài đặt thành các nhóm tùy chọn gọn bên cạnh sân khấu xem trước, với trạng thái lưu rõ ràng và thao tác Lưu tường minh.
+- Ghép nút nổi thành capsule indigo/violet thống nhất và menu neo gọn; cải thiện chọn vùng cùng dọn trạng thái khi context tiện ích mất hiệu lực.
+- Điều chỉnh các mẫu workspace, điều hướng, disclosure, menu và phản hồi lưu từ Lucian UX/UI Prompt; kèm thông báo MIT gốc trong gói phân phối.
+- Thêm kiểm tra đua chọn phiên, thao tác theo phiên, điều hướng di động và cài đặt/điều khiển; cập nhật tài liệu song ngữ cùng ảnh UI thực tế.
+
 ## 1.4.0 — 2026-11-05
 
 - Thiết kế lại điều khiển cuộc họp bằng nút nổi lấy cảm hứng từ AssistiveTouch và bảng thao tác gọn; hỗ trợ kéo/phím, giữ tùy chọn và hiển thị trạng thái ghi/lỗi.

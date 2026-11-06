@@ -19,7 +19,7 @@ class ReleaseTests(unittest.TestCase):
         self.other = '0.0.0' if self.current != '0.0.0' else '9.9.9'
         for name in ('extension', 'tools'):
             shutil.copytree(ROOT / name, self.root / name)
-        for name in ('package.json', 'package-lock.json', 'LICENSE', 'CHANGELOG.md', 'CHANGELOG.vi.md'):
+        for name in ('package.json', 'package-lock.json', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', 'CHANGELOG.vi.md'):
             shutil.copy2(ROOT / name, self.root / name)
         self.addCleanup(self.temp.cleanup)
 
@@ -37,6 +37,7 @@ class ReleaseTests(unittest.TestCase):
         with zipfile.ZipFile(target) as archive:
             self.assertIsNone(archive.testzip())
             self.assertEqual(archive.read('MeetScribe/LICENSE'), (ROOT / 'LICENSE').read_bytes())
+            self.assertEqual(archive.read('MeetScribe/THIRD_PARTY_NOTICES.md'), (ROOT / 'THIRD_PARTY_NOTICES.md').read_bytes())
             for asset in ('workspace.css', 'ui-icons.mjs', 'icons/brand.svg', 'icons/16.png', 'icons/32.png', 'icons/48.png', 'icons/128.png'):
                 self.assertIn('MeetScribe/' + asset, archive.namelist())
             for locale in ('en', 'vi'):

@@ -19,66 +19,16 @@
   </nav>
   <main>
     <header>
-      <p class="eyebrow" data-i18n="ui.settingsEyebrow">TÙY CHỈNH GIAO DIỆN VÀ LƯU TRỮ</p>
+      <p class="eyebrow" data-i18n="ui.preferencesEyebrow">CÁ NHÂN HÓA</p>
       <h1 data-i18n="ui.settingsHeading">Cài đặt MeetScribe</h1>
-      <p class="intro" data-i18n="ui.settingsIntro">Tùy biến thanh nổi trên màn hình họp và chọn nơi lưu trữ các phiên ghi chú.</p>
+      <p class="intro" data-i18n="ui.preferencesIntro">Một không gian vừa ý. Mọi cuộc họp gọn gàng hơn.</p>
     </header>
 
-    <form id="settingsForm">
-      <section class="card language-card">
-        <h2 data-icon="language"><span data-i18n="ui.language">Ngôn ngữ giao diện</span></h2>
-        <p class="desc" data-i18n="ui.languageDesc">Chọn ngôn ngữ cho MeetScribe. Phụ đề đã thu và dữ liệu cuộc họp giữ nguyên.</p>
-        <div class="field"><label for="languageInput" data-i18n="ui.language">Ngôn ngữ giao diện</label>
-          <select id="languageInput" name="language"><option value="vi" lang="vi">Tiếng Việt</option><option value="en" lang="en">English</option></select>
-        </div>
-      </section>
-      <section class="card appearance-card">
-        <h2 data-icon="appearance"><span data-i18n="ui.appearance">Giao diện thanh nổi</span></h2>
-        <p class="desc" data-i18n="ui.appearanceDesc">Chỉnh độ mờ nền và cỡ chữ hiển thị trên thanh ghi họp. Chữ luôn giữ độ rõ 100%.</p>
-
-        <div class="appearance-layout"><div class="appearance-controls">
-        <div class="field">
-          <div class="field-header">
-            <label for="opacityInput" data-i18n="ui.opacity">Độ mờ nền thanh nổi</label>
-            <span id="opacityVal" class="value-badge">96%</span>
-          </div>
-          <input type="range" id="opacityInput" name="opacity" min="40" max="100" step="1" value="96" aria-describedby="opacityDesc">
-          <div class="range-labels" id="opacityDesc">
-            <span data-i18n="ui.opacityLow">40% (Trong suốt hơn)</span>
-            <span data-i18n="ui.opacityDefault">96% (Mặc định)</span>
-            <span data-i18n="ui.opacityHigh">100% (Đậm hoàn toàn)</span>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="field-header">
-            <label for="fontSizeInput" data-i18n="ui.fontSize">Cỡ chữ hiển thị</label>
-            <span id="fontSizeVal" class="value-badge">14px</span>
-          </div>
-          <input type="range" id="fontSizeInput" name="fontSize" min="12" max="18" step="1" value="14" aria-describedby="fontSizeDesc">
-          <div class="range-labels" id="fontSizeDesc">
-            <span data-i18n="ui.fontSmall">12px (Nhỏ gọn)</span>
-            <span data-i18n="ui.fontDefault">14px (Mặc định)</span>
-            <span data-i18n="ui.fontLarge">18px (Lớn)</span>
-          </div>
-        </div>
-
-        </div><div class="appearance-preview">
-          <h3 data-i18n="ui.preview">Xem trước giao diện</h3>
-          <div class="preview-container">
-            <div id="previewPanel" class="preview-panel">
-              <img src="icons/brand.svg" alt="" width="36" height="36">
-              <p><strong data-i18n="ui.previewRecording">MeetScribe · Đang ghi nhận phụ đề</strong></p>
-              <p class="preview-sub" data-i18n="ui.previewCaption">Phụ đề mẫu: "Chúng tôi đã hoàn thành mục tiêu quý này..."</p>
-            </div>
-            <div class="preview-compact" aria-hidden="true">
-              <div class="preview-state"><span data-i18n="ui.previewState">Đang ghi</span><time>00:12</time></div>
-              <div class="preview-launcher"><img src="icons/brand.svg" alt="" width="32" height="32"><span class="preview-dot"></span></div>
-            </div>
-          </div>
-        </div></div>
-      </section>
-
+    <!-- Adapted from Lucian UX/UI Prompt #015/#023/#250/#008 · MIT © 2026 Seokwoooo.
+         https://lucianlabs.dev/uxui-prompt/ · native radios, progressive details, explicit save states. -->
+    <form id="settingsForm" data-state="ready" aria-busy="true">
+      <div class="settings-workbench">
+      <div class="preferences-column">
       <section id="sessionRepairSection" class="card" hidden>
         <h2 data-icon="shield"><span data-i18n="ui.repairHeading">Cấp lại quyền thư mục cho phiên họp cũ</span></h2>
         <p class="desc" data-i18n="ui.repairDesc">Phiên họp này được ghim lưu vào thư mục cục bộ riêng. Bạn có thể cấp lại quyền ghi mà không thay đổi vị trí lưu mặc định của các phiên mới.</p>
@@ -88,18 +38,42 @@
             <div class="dest-status" id="repairDirStatus" data-i18n="ui.checkingPermission">Đang kiểm tra quyền…</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button type="button" id="reauthorizeSessionDirBtn" class="btn-secondary" data-icon="shield"><span data-i18n="ui.repairButton">Cấp lại quyền ghi cho thư mục này</span></button>
+            <button disabled type="button" id="reauthorizeSessionDirBtn" class="btn-secondary" data-icon="shield"><span data-i18n="ui.repairButton">Cấp lại quyền ghi cho thư mục này</span></button>
           </div>
         </div>
       </section>
 
-      <section class="card">
-        <h2 data-icon="folder"><span data-i18n="ui.storageHeading">Vị trí lưu trữ dữ liệu</span></h2>
+      <section class="preference-group language-card">
+        <h2 data-icon="language"><span data-i18n="ui.interfaceGroup">Giao diện &amp; ngôn ngữ</span></h2>
+        <div class="language-row">
+          <div><label for="languageInput" data-i18n="ui.language">Ngôn ngữ giao diện</label>
+          <p class="desc" data-i18n="ui.languageDesc">Chọn ngôn ngữ cho MeetScribe. Phụ đề đã thu và dữ liệu cuộc họp giữ nguyên.</p></div>
+          <select disabled id="languageInput" name="language"><option value="vi" lang="vi">Tiếng Việt</option><option value="en" lang="en">English</option></select>
+        </div>
+      </section>
+      <section class="preference-group appearance-card">
+        <h2 data-icon="appearance"><span data-i18n="ui.toolbarGroup">Điều khiển cuộc họp</span></h2>
+        <p class="desc" data-i18n="ui.appearanceDesc">Chỉnh độ mờ nền và cỡ chữ hiển thị trên thanh ghi họp. Chữ luôn giữ độ rõ 100%.</p>
+        <div class="appearance-controls">
+          <div class="field">
+            <div class="field-header"><label for="opacityInput" data-i18n="ui.opacity">Độ mờ nền thanh nổi</label><output id="opacityVal" for="opacityInput" class="value-badge">96%</output></div>
+            <input disabled type="range" id="opacityInput" name="opacity" min="40" max="100" step="1" value="96" aria-describedby="opacityDesc">
+            <div class="range-labels" id="opacityDesc"><span data-i18n="ui.opacityLow">40% (Trong suốt hơn)</span><span data-i18n="ui.opacityHigh">100% (Đậm hoàn toàn)</span></div>
+          </div>
+          <div class="field">
+            <div class="field-header"><label for="fontSizeInput" data-i18n="ui.fontSize">Cỡ chữ hiển thị</label><output id="fontSizeVal" for="fontSizeInput" class="value-badge">14px</output></div>
+            <input disabled type="range" id="fontSizeInput" name="fontSize" min="12" max="18" step="1" value="14" aria-describedby="fontSizeDesc">
+            <div class="range-labels" id="fontSizeDesc"><span data-i18n="ui.fontSmall">12px (Nhỏ gọn)</span><span data-i18n="ui.fontLarge">18px (Lớn)</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="preference-group storage-group">
+        <h2 data-icon="folder"><span data-i18n="ui.outputGroup">Vị trí lưu trữ dữ liệu</span></h2>
         <p class="desc" data-i18n="ui.storageDesc">Chọn nơi xuất các tệp caption, ảnh chụp và biên bản cuộc họp.</p>
 
         <div class="radio-group">
           <label class="radio-option">
-            <input type="radio" name="destination" value="downloads" checked>
+            <input disabled type="radio" name="destination" value="downloads" checked>
             <div class="radio-info">
               <div class="radio-title" data-i18n="ui.downloadsChoice">Thư mục Tải xuống (Downloads)</div>
               <div class="radio-desc" data-i18n="ui.downloadsDesc">Lưu tự động vào thư mục Downloads mặc định của trình duyệt Chrome.</div>
@@ -107,13 +81,12 @@
           </label>
 
           <label class="radio-option">
-            <input type="radio" name="destination" value="customDirectory">
+            <input disabled type="radio" name="destination" value="customDirectory">
             <div class="radio-info">
               <div class="radio-title" data-i18n="ui.customChoice">Thư mục cục bộ tùy chọn</div>
               <div class="radio-desc" data-i18n="ui.customDesc">Lưu trực tiếp vào thư mục do bạn chỉ định trên máy tính.</div>
             </div>
           </label>
-        </div>
 
         <div id="customDirSection" class="dest-details" hidden>
           <div>
@@ -121,21 +94,45 @@
             <div class="dest-status" id="customDirStatus" data-i18n="ui.noPermission">Chưa cấp quyền ghi</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button type="button" id="reauthorizeDirBtn" class="btn-secondary" hidden data-icon="shield"><span data-i18n="ui.reauthorize">Cấp lại quyền</span></button>
-            <button type="button" id="chooseDirBtn" class="btn-secondary" data-icon="folder"><span data-i18n="ui.chooseFolder">Chọn thư mục…</span></button>
+            <button disabled type="button" id="reauthorizeDirBtn" class="btn-secondary" hidden data-icon="shield"><span data-i18n="ui.reauthorize">Cấp lại quyền</span></button>
+            <button disabled type="button" id="chooseDirBtn" class="btn-secondary" data-icon="folder"><span data-i18n="ui.chooseFolder">Chọn thư mục…</span></button>
           </div>
+        </div>
         </div>
       </section>
 
+      </div>
+      <aside class="appearance-preview" aria-labelledby="previewHeading">
+        <div class="preview-heading"><span class="preview-indicator" aria-hidden="true"></span><h2 id="previewHeading" data-i18n="ui.livePreview">Xem trước trực tiếp</h2></div>
+        <p class="preview-description" data-i18n="ui.previewDescription">Thay đổi thông số để thấy giao diện cập nhật. Chọn Lưu để áp dụng.</p>
+        <div class="preview-container">
+          <div class="sample-meeting" aria-hidden="true"><span class="sample-screen-icon" data-icon="share"></span><span data-i18n="ui.previewMeeting">Họp kế hoạch sản phẩm</span><div class="sample-lines"><i></i><i></i><i></i></div></div>
+          <div class="preview-controller">
+            <div id="previewPanel" class="preview-panel">
+              <div class="preview-menu-title"><strong>MeetScribe</strong><span class="preview-menu-badge" data-i18n="toolbar.localBadge">CỤC BỘ</span><span class="preview-menu-close" aria-hidden="true">−</span></div>
+              <p class="preview-menu-subtitle" data-i18n="ui.previewMeeting">Họp kế hoạch sản phẩm</p>
+              <div class="preview-primary" data-icon="stop"><span data-i18n="toolbar.stop">Dừng và lưu</span></div>
+              <div class="preview-row" data-icon="caption"><span class="preview-row-label" data-i18n="toolbar.captionRegion">Vùng caption</span><svg class="preview-row-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></div>
+              <div class="preview-row" data-icon="share"><span class="preview-row-label" data-i18n="toolbar.shareRegion">Vùng share</span><svg class="preview-row-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></div>
+              <div class="preview-row" data-icon="mark"><span class="preview-row-label" data-i18n="toolbar.mark">Đánh dấu</span></div>
+              <div class="preview-health" data-icon="shield"><span data-i18n="ui.savedOnDevice">Đã lưu trên thiết bị</span></div>
+              <div class="preview-menu-footer"><span data-icon="folder"><span data-i18n="toolbar.libraryShort">Thư viện</span></span><span data-icon="settings"><span data-i18n="toolbar.settingsShort">Cài đặt</span></span><span data-icon="move" aria-hidden="true"></span></div>
+            </div>
+            <div class="preview-compact">
+              <div class="preview-launcher"><img src="icons/brand.svg" alt="" width="32" height="32"></div>
+              <div class="preview-state"><span data-i18n="ui.previewState">Đang ghi</span><time>00:12</time></div>
+              <svg class="ui-icon preview-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+            </div>
+          </div>
+        </div>
+        <p class="preview-notice" data-i18n="ui.previewNotice">Bản xem trước · Không phải phiên ghi thật</p>
+      </aside>
+      </div>
       <div class="save-area">
-      <p id="formStatus" class="form-status" role="status" data-i18n="ui.settingsReady">Các thay đổi được áp dụng khi lưu.</p>
-      <div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div>
-      <div class="actions">
-        <button type="submit" class="btn-primary" id="saveBtn" data-icon="save"><span data-i18n="ui.save">Lưu cài đặt</span></button>
-        <button type="button" class="btn-secondary" id="resetBtn" data-icon="reset"><span data-i18n="ui.reset">Đặt lại mặc định</span></button>
-      </div></div>
+        <div class="save-feedback"><p id="formStatus" class="form-status" role="status" data-i18n="ui.loading">Đang tải…</p><div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div></div>
+        <div class="actions"><button disabled type="button" class="btn-quiet" id="resetBtn" data-icon="reset"><span data-i18n="ui.reset">Đặt lại mặc định</span></button><button disabled type="submit" class="btn-primary" id="saveBtn" data-icon="save"><span data-i18n="ui.save">Lưu cài đặt</span></button></div>
+      </div>
     </form>
-
     <footer data-i18n="ui.settingsFooter">
       Dữ liệu được lưu trữ trực tiếp trên thiết bị của bạn. MeetScribe không gửi dữ liệu tới máy chủ bên ngoài.
     </footer>

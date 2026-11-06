@@ -1,6 +1,6 @@
 {
   "name": "meetscribe",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
     "docs:screenshots": "node tools/screenshots.cjs",
     "test:language": "node tests/language-ui.cjs && node tests/language-toolbar.cjs && node tests/language-extension.cjs",
     "test:ui": "node tests/floating-toolbar.cjs && node tests/workspace-ui.cjs",
-    "docs:icons": "node tools/icons.cjs"
+    "docs:icons": "node tools/icons.cjs",
+    "test:studio": "node tests/archive-studio.cjs && node tests/settings-studio.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

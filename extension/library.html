@@ -7,11 +7,19 @@
   <span class="local" data-icon="shield"><span data-i18n="ui.localOnly">LƯU TẠI MÁY · KHÔNG GỌI AI</span></span>
 </nav>
 <main>
-<header><div><p class="eyebrow" data-i18n="ui.libraryEyebrow">KHÔNG GIAN CUỘC HỌP</p><h1 data-i18n="ui.libraryLink">Thư viện cuộc họp</h1><p class="intro" data-i18n="ui.libraryIntroFirst">Caption và hình ảnh đã chọn, sắp xếp theo từng cuộc họp.</p></div><div class="summary"><span id="sessionCount">—</span><span data-i18n="ui.sessionsSaved">phiên đã lưu cục bộ</span></div></header>
-<div class="section-title"><h2 data-i18n="ui.sessionsHeading">Thư viện phiên họp</h2><button id="refresh" data-icon="refresh"><span data-i18n="ui.refresh">Làm mới</span></button></div>
-<div class="search-bar"><input id="searchInput" type="search" placeholder="Tìm theo tên cuộc họp hoặc ngày (YYYY-MM-DD)…" data-i18n-placeholder="ui.searchPlaceholder" aria-label="Tìm kiếm cuộc họp" data-i18n-aria-label="ui.searchLabel"><button id="clearSearch" hidden data-icon="close"><span data-i18n="ui.clearSearch">Xóa tìm</span></button></div>
-<p id="message" role="status"></p><div id="sessions"></div>
-<aside class="storage-note"><span data-i18n="ui.asideFirst">File được xuất vào </span><strong data-i18n="ui.asidePath">thư mục tải xuống đang cấu hình trong Chrome / MeetScribe / ngày / tên cuộc họp</strong><span data-i18n="ui.asideLast">. Nếu Chrome dùng Downloads mặc định, dữ liệu nằm trong Downloads. Bản dự phòng ở hồ sơ Chrome này; không gỡ tiện ích hoặc xóa dữ liệu tiện ích khi còn file chưa xuất.</span></aside>
+<header class="archive-header"><div><p class="eyebrow" data-i18n="ui.archiveEyebrow">KHÔNG GIAN CUỘC HỌP</p><h1 data-i18n="ui.archiveTitle">Kho cuộc họp</h1><p class="intro" data-i18n="ui.archiveIntro">Tìm lại nội dung, xem ảnh trình chiếu và mang theo những ý chính.</p></div><button id="refresh" class="btn-secondary" data-icon="refresh"><span data-i18n="ui.refresh">Làm mới</span></button></header>
+<p id="message" role="status"></p>
+<!-- Adapted composition: Lucian UX/UI Prompt #101 Split workspace, MIT © 2026 Seokwoooo. https://lucianlabs.dev/uxui-prompt/#101 -->
+<div id="archiveWorkspace" class="archive-workspace" data-view="index">
+<section class="archive-index" aria-label="Danh sách cuộc họp" data-i18n-aria-label="ui.archiveListLabel">
+  <div class="index-tools"><div class="index-heading"><h2 data-i18n="ui.sessionsHeading">Thư viện phiên họp</h2><span id="sessionCount" class="count-badge">—</span></div>
+  <div class="search-bar"><span data-icon="search" aria-hidden="true"></span><input id="searchInput" type="search" placeholder="Tìm cuộc họp…" data-i18n-placeholder="ui.searchPlaceholder" aria-label="Tìm kiếm cuộc họp" data-i18n-aria-label="ui.searchLabel"><button id="clearSearch" class="btn-quiet" hidden data-icon="close" aria-label="Xóa tìm" data-i18n-aria-label="ui.clearSearch"></button></div>
+  <div class="archive-filters" role="group" aria-label="Danh sách cuộc họp" data-i18n-aria-label="ui.archiveListLabel"><button type="button" data-filter="all" aria-pressed="true" data-i18n="ui.allMeetings">Tất cả</button><button type="button" data-filter="attention" aria-pressed="false" data-i18n="ui.attentionFilter">Cần xử lý</button><button type="button" data-filter="active" aria-pressed="false" data-i18n="ui.activeFilter">Đang ghi</button></div></div>
+  <div id="sessions"></div>
+  <div class="index-footer"><span data-icon="shield" aria-hidden="true"></span><span data-i18n="ui.savedOnDevice">Đã lưu trên thiết bị</span></div>
+</section>
+<section id="inspector" class="archive-inspector" aria-label="Nội dung cuộc họp được chọn" data-i18n-aria-label="ui.reviewPaneLabel"><div id="selectedSession"></div></section>
+</div>
 <details class="guide"><summary data-i18n="ui.quickStart">Bắt đầu một phiên họp</summary><ol><li data-i18n="ui.guideOne">Mở Google Meet hoặc Zoom web và bật phụ đề.</li><li data-i18n="ui.guideTwo">Bấm biểu tượng MeetScribe trên Chrome.</li><li data-i18n="ui.guideThree">Bắt đầu ghi từ thanh điều khiển nổi.</li></ol></details>
 <footer data-i18n="ui.libraryFooter">Thu thập cục bộ. Không lưu âm thanh hoặc tệp video. Biên bản Word chỉ được tổng hợp khi anh yêu cầu.</footer>
 </main></div><script type="module" src="library.js"></script></body></html>

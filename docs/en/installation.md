@@ -59,9 +59,9 @@ If you want to create a clean zip archive for distribution or offline installati
    *(Or run directly: `python3 tools/package.py`)*
 3. The script generates:
    ```text
-   dist/MeetScribe-1.4.0.zip
+   dist/MeetScribe-1.5.0.zip
    ```
-4. Extract `MeetScribe-1.4.0.zip` to your desired location. It contains a self-contained `MeetScribe/` folder with `manifest.json`.
+4. Extract `MeetScribe-1.5.0.zip` to your desired location. It contains a self-contained `MeetScribe/` folder with `manifest.json`.
 5. Follow steps 2–5 above, pointing **Load unpacked** to the extracted `MeetScribe/` folder.
 
 ---
