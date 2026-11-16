@@ -129,3 +129,7 @@ Khi chọn vùng caption hoặc vùng share, bảng tạm ẩn để không che 
 Tìm/lọc danh sách gọn rồi chọn một dòng để mở trích đoạn caption gần nhất, ảnh đã chụp, trạng thái lưu và thao tác xuất trong khung nội dung. Chỉ phiên được chọn hiện chi tiết; trích đoạn không phải toàn bộ bản gỡ băng. Phục hồi cần xử lý được hiển thị rõ. Trên màn hình hẹp, dùng **Về danh sách** để trở lại. Đường dẫn kỹ thuật và thông tin phụ nằm trong **Chi tiết lưu trữ**. Chọn phiên khác không thay đổi phiên của lượt xuất đang chạy.
 
 Thanh nổi dùng capsule 232 × 60 nối với menu thao tác. Mở **Chi tiết** để xem bộ đếm, đường dẫn lưu và đặt lại vị trí. Khi chọn vùng caption/share, thanh nổi ẩn để không che vùng cần chọn; thanh hủy riêng vẫn hiện.
+
+## Cuộc họp Microsoft Teams web
+
+Tham gia bằng Chrome máy tính, mở **More → Language and speech → Show live captions** (hoặc **Turn on live captions**, tùy bản Teams), rồi bắt đầu MeetScribe. Tiện ích tự tìm khung caption của Teams; chọn **Vùng caption** nếu cần. Chọn vùng share, đánh dấu, lưu cục bộ và xuất ZIP dùng cùng quy trình. Xem [hướng dẫn Teams](teams.md).

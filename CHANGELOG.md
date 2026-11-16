@@ -2,6 +2,14 @@
 
 [Tiếng Việt](CHANGELOG.vi.md) · [README](README.md)
 
+## 1.6.0 — 2026-11-16
+
+- Add Microsoft Teams web caption capture on teams.microsoft.com, teams.cloud.microsoft and teams.live.com with strict host validation.
+- Discover the complete Teams caption widget, retain visible speaker context, reacquire replaced widgets and keep manual selection available.
+- Route embedded Teams meeting frames and map selected share regions into tab coordinates; retain local files and portable ZIP exports.
+- Add real unpacked-extension fixture coverage for three Teams hosts, VI/EN, manual/automatic captions, iframe image geometry, Stop drain and downloaded ZIPs. Live tenant meetings still require manual validation.
+- Update bilingual interface labels and Teams setup documentation without adding permissions or runtime network calls.
+
 ## 1.5.0 — 2026-11-06
 
 - Rebuild the library as a searchable meeting index and selected-session inspector with caption/media space, contextual recovery and one export command bar.

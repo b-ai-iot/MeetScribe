@@ -37,9 +37,9 @@ Tải ZIP và checksum, kiểm tra SHA-256 rồi giải nén. Bật chế độ 
 
 [English installation](https://github.com/b-ai-iot/MeetScribe/blob/vVERSION/docs/en/installation.md) · [Hướng dẫn tiếng Việt](https://github.com/b-ai-iot/MeetScribe/blob/vVERSION/docs/vi/installation.md)
 
-MIT license included. Captions must be enabled in Google Meet / Zoom web. Automated checks use synthetic meeting fixtures; real-meeting and native folder-picker behavior still needs manual validation.
+MIT license included. Captions must be enabled in Google Meet / Zoom / Microsoft Teams web. Automated checks use synthetic meeting fixtures; real-meeting and native folder-picker behavior still needs manual validation.
 
-Có kèm giấy phép MIT. Cần bật phụ đề của Google Meet / Zoom web. Kiểm thử tự động dùng dữ liệu mô phỏng; cuộc họp thật và hộp thoại chọn thư mục của hệ điều hành cần kiểm tra thủ công.
+Có kèm giấy phép MIT. Cần bật phụ đề của Google Meet / Zoom / Microsoft Teams web. Kiểm thử tự động dùng dữ liệu mô phỏng; cuộc họp thật và hộp thoại chọn thư mục của hệ điều hành cần kiểm tra thủ công.
 '''.replace('VERSION', current)
 
 

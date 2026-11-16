@@ -9,11 +9,11 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.5.0-green.svg" alt="Version 1.5.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.0-green.svg" alt="Version 1.6.0" /></a>
   <a href="docs/en/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
-MeetScribe is an independent, local-first Chrome extension that captures live captions and shared-screen slides during Google Meet and Zoom web sessions. It operates entirely in your browser: no audio recording, no video file recording, and zero AI or external network calls during meetings. You choose where to export portable ZIP archives for later analysis.
+MeetScribe is an independent, local-first Chrome extension that captures live captions and shared-screen slides during Google Meet, Zoom and Microsoft Teams web sessions. It operates entirely in your browser: no audio recording, no video file recording, and zero AI or external network calls during meetings. You choose where to export portable ZIP archives for later analysis.
 
 > **UI Language Note:** The extension supports **Tiếng Việt** and **English**. Open **Cài đặt / Settings → Ngôn ngữ giao diện / Interface language**, choose a language, and click **Lưu cài đặt / Save settings**. Existing open pages and the toolbar update without restarting capture. Captions and meeting data stay in their original language.
 
@@ -21,7 +21,7 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 
 ## Key Features
 
-- **DOM-Native Caption Capture:** Captures live captions from official Google Meet and Zoom web DOM elements with automatic reacquisition and journaled IndexedDB persistence. Speaker names can remain in raw text; the structured `speaker` field is currently `null`.
+- **DOM-Native Caption Capture:** Captures live captions from official Google Meet, Zoom and Microsoft Teams web DOM elements with automatic reacquisition and journaled IndexedDB persistence. Speaker names can remain in raw text; the structured `speaker` field is currently `null`.
 - **Smart Slide Sampling:** Captures user-confirmed presentation areas (15-second sample, minimum 30-second interval, perceptual deduplication via dHash64/color/region) without saving full video streams.
 - **Flexible Local Storage:** Exports files automatically to Chrome's default `Downloads/MeetScribe/...` directory or to any custom folder chosen via the File System Access API.
 - **AI-Ready ZIP Export:** Generates self-contained packages containing raw snapshots, slides, metadata, `transcript.md` (timestamped reading copy), and `README-for-AI.md` (structured instructions for external LLMs).
@@ -57,7 +57,7 @@ MeetScribe is an independent, local-first Chrome extension that captures live ca
 
 ## Quickstart
 
-Download `MeetScribe-1.5.0.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
+Download `MeetScribe-1.6.0.zip` and `SHA256SUMS.txt` from the [latest release](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Verify the checksum](docs/en/releasing.md#verify-a-download), extract the ZIP, then load its `MeetScribe/` folder at `chrome://extensions/` with Developer mode enabled. Chrome Web Store distribution is not provided.
 
 To install from source instead:
 
@@ -71,19 +71,19 @@ To install from source instead:
 3. **Load Unpacked Extension:**
    Click **Load unpacked** and select the `extension/` directory inside this repository.
 4. **Pin and Use:**
-   Pin **MeetScribe** (the subtitle follows Chrome’s language) to your toolbar. Open a Google Meet or Zoom web tab, turn on native captions, and click the MeetScribe icon to display the floating controls.
+   Pin **MeetScribe** (the subtitle follows Chrome’s language) to your toolbar. Open a Google Meet, Zoom web or Microsoft Teams web tab, turn on native captions, and click the MeetScribe icon to display the floating controls.
 
 To create a local zip package matching the repository manifest, run:
 ```bash
 npm run package
 ```
-This outputs `dist/MeetScribe-1.5.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
+This outputs `dist/MeetScribe-1.6.0.zip` containing the unpacked `MeetScribe/` folder with `manifest.json`.
 
 ---
 
 ## Scope & Honest Limitations
 
-- **Platforms:** Supports Google Meet and Zoom on desktop Google Chrome (116+). The Zoom desktop application is **not** supported.
+- **Platforms:** Supports Google Meet, Zoom and Microsoft Teams on desktop Google Chrome (116+). The Zoom desktop application is **not** supported.
 - **Native Captions Required:** Captions must be activated within the meeting interface. MeetScribe captures DOM text; it does not record microphone audio or perform speech-to-text transcription.
 - **Mouse Selection:** Initial caption and share-screen region pickers require mouse interaction (hover, scroll to expand parent, click to select, Esc to cancel). Toolbar movement supports both mouse dragging and keyboard arrows.
 - **Testing Boundaries:** Automated test suites run against synthetic DOM fixtures and platform OPFS handles. Testing does not substitute for real meeting environments or the native OS directory picker dialog.
@@ -113,3 +113,5 @@ MeetScribe is licensed under the [MIT License](LICENSE). Copyright &copy; 2026 M
 See [branch governance and permissions](docs/en/governance.md) and [release procedure](docs/en/releasing.md).
 
 Selected interface patterns are adapted from [Lucian UX/UI Prompt](https://lucianlabs.dev/en/uxui-prompt/); see [third-party notices](THIRD_PARTY_NOTICES.md).
+
+Microsoft Teams web is supported on three official Teams hosts; read the [Teams setup and limitations](docs/en/teams.md).

@@ -562,3 +562,26 @@ test('captions: opacity 0 is rejected by isElementVisible and detector reacquire
   assert.equal(res.status, 'found');
   assert.equal(res.container, newNode);
 });
+
+test('captions: Teams renderer retains every speaker and reacquires a replaced live-caption widget',()=>{
+ const doc=createMockDocument();
+ const wrapper=new MockElement({attributes:{'data-tid':'closed-caption-renderer-wrapper'}});
+ const renderer=new MockElement({attributes:{'data-tid':'closed-caption-renderer'}});
+ const first=new MockElement({attributes:{'data-tid':'closed-caption-text'},innerText:'Lan: First sentence'});
+ const second=new MockElement({attributes:{'data-tid':'closed-caption-text'},innerText:'Bảo: Second sentence'});
+ renderer.append(first,second);wrapper.append(renderer);doc.body.append(wrapper);
+ let result=findCaptionContainer(doc);
+ assert.equal(result.status,'found');assert.equal(result.container,wrapper);
+ assert.ok(result.container.contains(second),'Select the shared widget, not just one caption item');
+ assert.equal(rankCaptionCandidates(doc)[0].platform,'teams');
+ wrapper.remove();wrapper.isConnected=false;
+ const replacement=new MockElement({attributes:{'data-tid':'closed-caption-renderer'},innerText:'Lan: Replaced caption'});doc.body.append(replacement);
+ result=reacquireCaptionContainer(wrapper,doc);assert.equal(result.container,replacement);assert.equal(result.replaced,true);
+});
+test('captions: Teams hidden captions and caption-shaped chat content do not auto-select',()=>{
+ const doc=createMockDocument();
+ const hidden=new MockElement({attributes:{'data-tid':'closed-caption-renderer-wrapper'},style:{display:'none'}});
+ const chat=new MockElement({attributes:{'role':'log','aria-label':'Meeting chat'}});
+ chat.append(new MockElement({attributes:{'data-tid':'closed-caption-renderer'},innerText:'Not live captions'}));doc.body.append(hidden,chat);
+ assert.equal(findCaptionContainer(doc).container,null);
+});
