@@ -127,3 +127,7 @@ When choosing a caption or shared region, the panel temporarily hides so it cann
 ## Browsing the archive workspace
 
 Search/filter the compact meeting index, then select a row to open its latest caption excerpt, captured images, storage state and export controls in the inspector. Only the selected meeting is shown in detail; the excerpt is not a full transcript. Recovery requiring action stays prominent. On narrow screens use **Back to meetings** to return to the list. Technical paths and secondary information are available in **Storage details**. Selecting a different meeting does not change the identity of an export already running.
+
+## Microsoft Teams web meetings
+
+Join the meeting in desktop Chrome, open **More → Language and speech → Show live captions** (or **Turn on live captions**, depending on the Teams version), then start MeetScribe. Automatic discovery targets the Teams caption renderer; use **Caption region** when necessary. Share-region selection, bookmarks, local storage and ZIP export use the same workflow. See the [Teams guide](teams.md).

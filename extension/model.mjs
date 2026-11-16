@@ -1,4 +1,4 @@
-export const VERSION='1.5.0';
+export const VERSION='1.6.0';
 export function safeName(value=''){
  let name=String(value).normalize('NFC').replace(/[\x00-\x1f\x7f]+/g,' ').replace(/[<>:"/\\|?*]+/g,'-').replace(/^[.\s-]+|[.\s-]+$/g,'').replace(/\s+/g,' ').slice(0,80).trim();
  if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(name))name='_'+name;
@@ -12,6 +12,7 @@ export function isMeet(url){try{const u=new URL(url);return u.protocol==='https:
 export function meetingPlatform(url){
  try{const u=new URL(url);if(u.protocol!=='https:')return null;
  if(u.hostname==='meet.google.com')return 'meet';
+ if(['teams.microsoft.com','teams.cloud.microsoft','teams.live.com'].includes(u.hostname))return 'teams';
  if(/(^|\.)zoom\.(us|com)$/.test(u.hostname)&&/^\/(?:wc(?:\/|$)|j\/|s\/|w\/)/.test(u.pathname))return 'zoom';
  }catch{}return null;
 }

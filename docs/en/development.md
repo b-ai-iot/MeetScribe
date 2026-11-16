@@ -139,3 +139,5 @@ The 2026-11-05 v1.4.0 local validation passed 82 unit tests, 22 browser checks, 
 ## Archive studio validation
 
 Run `npm run test:studio` for selected-session details, stale-response/action identity, mobile Back and explicit settings save/preview scenarios. Lucian references, retrieval date and adapted-pattern mapping are documented in the [reference study](../references/lucian-20261106.md); distribution includes [third-party notices](../../THIRD_PARTY_NOTICES.md).
+
+The `test:extension` command also runs `tests/teams-extension.cjs`: disposable Teams host grants enable real extension install/messaging/storage/Downloads/ZIP on synthetic pages. It covers top-level and direct-child share geometry and VI/EN, but does not validate shipped activeTab invocation or a live capture stream.

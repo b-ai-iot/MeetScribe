@@ -45,3 +45,5 @@ Toàn bộ ảnh chụp giao diện sử dụng dữ liệu mô phỏng nhằm b
 
 - Governance and branches / Quản trị và nhánh: [English](en/governance.md) · [Tiếng Việt](vi/governance.md)
 - Releases and checksums / Phát hành và checksum: [English](en/releasing.md) · [Tiếng Việt](vi/releasing.md)
+
+- Microsoft Teams web: [English](en/teams.md) · [Tiếng Việt](vi/teams.md)

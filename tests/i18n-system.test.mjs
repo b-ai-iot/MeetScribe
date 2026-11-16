@@ -138,7 +138,7 @@ test('system: persisted and wire visual wrappers translate known nested errors w
  const {setLanguage,errorMessage,messageError}=await import('../extension/i18n.mjs');
  const cases=[
   {code:'system.visualInUse',vi:'Một cuộc họp khác đang dùng luồng ảnh. Dừng ảnh ở cuộc họp đó trước.',en:'Another meeting is using the image stream. Stop image capture in that meeting first.'},
-  {code:'system.sharePosition',vi:'Chưa xác định được vị trí vùng share trong khung Zoom; caption vẫn tiếp tục.',en:'The shared area in the Zoom frame could not be located; captions continue.'},
+  {code:'system.sharePosition',vi:'Chưa xác định được vị trí vùng share trong khung cuộc họp; caption vẫn tiếp tục.',en:'The shared area in the meeting frame could not be located; captions continue.'},
   {native:'NotAllowedError: nội dung <b>native</b> remains unchanged'}
  ];
  try{

@@ -57,7 +57,7 @@ async function visualInfo(s){
  const info=await sendSessionMessage(chrome,s,'inspect');
  if((s.frameId??0)===0||!info.rect)return info;
  const [measurement]=await chrome.scripting.executeScript({target:{tabId:s.tabId,frameIds:[0]},args:[info.sourcePath],func:(sourcePath)=>{
-  const frames=[...document.querySelectorAll('iframe')].filter(f=>{try{const u=new URL(f.src);return /(^|\.)zoom\.(us|com)$/.test(u.hostname)&&u.pathname.startsWith('/wc/')&&u.origin+u.pathname===sourcePath;}catch{return false;}});
+  const frames=[...document.querySelectorAll('iframe')].filter(f=>{try{const u=new URL(f.src);return u.protocol==='https:'&&((/(^|\.)zoom\.(us|com)$/.test(u.hostname)&&u.pathname.startsWith('/wc/'))||['teams.microsoft.com','teams.cloud.microsoft','teams.live.com'].includes(u.hostname))&&u.origin+u.pathname===sourcePath;}catch{return false;}});
   const frame=frames.length===1?frames[0]:null;if(!frame)return null;
   const r=frame.getBoundingClientRect();const sx=r.width/(frame.offsetWidth||r.width),sy=r.height/(frame.offsetHeight||r.height);
   return {x:r.left+frame.clientLeft*sx,y:r.top+frame.clientTop*sy,width:frame.clientWidth*sx,height:frame.clientHeight*sy,viewportWidth:innerWidth,viewportHeight:innerHeight};
@@ -107,7 +107,7 @@ const scheduleExport=id=>exportSession(id).catch(()=>{});
 async function start(tab){return commands.run(tab.id,'start',async()=>{
  const current=await active(tab.id);if(current)return current;
  const check=await content(tab.id,'inspect');if(!check?.captionAvailable)throw messageError('system.captionRequired');
- const id=crypto.randomUUID(),title=(tab.title||t('system.meeting')).replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'').trim();
+ const id=crypto.randomUUID(),title=(tab.title||t('system.meeting')).replace(/^(?:Meet|Zoom|Microsoft Teams|Teams)\s*[-–—]\s*/,'').trim();
  const currentSettings=await getSettings();
  const isCustom=currentSettings.destination==='customDirectory';
  const activeDestId=isCustom?await store.getActiveDirectoryHandleId():null;

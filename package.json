@@ -1,12 +1,12 @@
 {
   "name": "meetscribe",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.cjs",
-    "test:extension": "node tests/extension-smoke.cjs",
+    "test:extension": "node tests/extension-smoke.cjs && node tests/teams-extension.cjs",
     "package": "python3 tools/package.py",
     "docs:check": "python3 tools/check_docs.py",
     "docs:screenshots": "node tools/screenshots.cjs",
@@ -21,7 +21,7 @@
   "engines": {
     "node": ">=20"
   },
-  "description": "Capture native meeting captions and selected shared-screen images locally on Google Meet and Zoom web.",
+  "description": "Capture native meeting captions and selected shared-screen images locally on Google Meet, Zoom and Microsoft Teams web.",
   "license": "MIT",
   "repository": {
     "type": "git",

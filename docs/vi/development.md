@@ -139,3 +139,5 @@ Kiểm tra cục bộ v1.4.0 ngày 2026-11-05 đạt 82 unit test, 22 browser ch
 ## Kiểm tra không gian archive
 
 Chạy `npm run test:studio` để kiểm tra chi tiết phiên được chọn, phản hồi chậm/đúng phiên thao tác, nút Về danh sách trên di động và cài đặt Lưu/xem trước. Xem [nghiên cứu tham khảo](../references/lucian-20261106.md) về nguồn Lucian, ngày truy xuất và mẫu được điều chỉnh; gói phân phối có [thông báo bên thứ ba](../../THIRD_PARTY_NOTICES.md).
+
+Lệnh `test:extension` chạy thêm `tests/teams-extension.cjs`: cấp quyền host cho bản sao fixture để kiểm tra tiện ích thật, lưu trữ, Downloads và ZIP trên trang mô phỏng Teams. Có tọa độ vùng share top/direct-child và VI/EN; chưa kiểm tra thao tác activeTab của bản cài hay luồng ảnh cuộc họp thật.

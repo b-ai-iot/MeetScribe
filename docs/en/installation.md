@@ -59,9 +59,9 @@ If you want to create a clean zip archive for distribution or offline installati
    *(Or run directly: `python3 tools/package.py`)*
 3. The script generates:
    ```text
-   dist/MeetScribe-1.5.0.zip
+   dist/MeetScribe-1.6.0.zip
    ```
-4. Extract `MeetScribe-1.5.0.zip` to your desired location. It contains a self-contained `MeetScribe/` folder with `manifest.json`.
+4. Extract `MeetScribe-1.6.0.zip` to your desired location. It contains a self-contained `MeetScribe/` folder with `manifest.json`.
 5. Follow steps 2–5 above, pointing **Load unpacked** to the extracted `MeetScribe/` folder.
 
 ---
@@ -95,3 +95,7 @@ When you load MeetScribe, Chrome registers the permissions declared in [`extensi
 4. You should see the translucent floating toolbar appear in the top-left area of your meeting tab with the badge `LOCAL · PRIVATE` and the primary button labeled `Bắt đầu ghi` ("Start recording").
 
 For complete usage instructions and button explanations, proceed to the [Usage Guide](usage.md). For troubleshooting installation issues, see [Troubleshooting](troubleshooting.md).
+
+## Microsoft Teams web
+
+Use Teams in desktop Chrome at `teams.microsoft.com`, `teams.cloud.microsoft` or `teams.live.com`. Enable Live captions in the meeting before starting MeetScribe. See the [Teams guide](teams.md). Teams desktop, pop-out caption windows and other embedded host domains are outside this support scope.

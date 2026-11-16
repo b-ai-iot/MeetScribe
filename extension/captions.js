@@ -25,6 +25,11 @@
     { sel: '.closed-caption-container', score: 85, platform: 'zoom', confidence: 'high' },
     { sel: '.subtitle-window', score: 80, platform: 'zoom', confidence: 'high' },
 
+    // Teams web: select the whole renderer so multiple speakers survive updates.
+    // These data-tid hooks are UI internals; manual region selection remains available.
+    { sel: '[data-tid="closed-caption-renderer-wrapper"]', score: 100, platform: 'teams', confidence: 'high' },
+    { sel: '[data-tid="closed-caption-renderer"]', score: 95, platform: 'teams', confidence: 'high' },
+
     // Generic live caption fallback (requires caption/subtitle in attributes or classes)
     { sel: '[role="log"][aria-label*="caption" i]', score: 75, platform: 'generic', confidence: 'medium' },
     { sel: '[role="region"][aria-label*="subtitles" i]', score: 75, platform: 'generic', confidence: 'medium' },

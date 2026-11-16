@@ -62,7 +62,7 @@
    const res=globalThis.__meetScribeCaptions.findCaptionContainer(document);
    return res.container;
   }
-  return [...document.querySelectorAll('#live-transcription-subtitle,.live-transcription-subtitle__box,.live-transcription-subtitle,.transcript-container__transcripts,.transcript-container,[role="log"][aria-label*="transcript" i],div[aria-label="Phụ đề"],div[aria-label="Captions"],[role="log"][aria-label*="caption" i]')].find(visible)||null;
+  return [...document.querySelectorAll('[data-tid="closed-caption-renderer-wrapper"],[data-tid="closed-caption-renderer"],#live-transcription-subtitle,.live-transcription-subtitle__box,.live-transcription-subtitle,.transcript-container__transcripts,.transcript-container,[role="log"][aria-label*="transcript" i],div[aria-label="Phụ đề"],div[aria-label="Captions"],[role="log"][aria-label*="caption" i]')].find(visible)||null;
  }
  function reacquireIfNeeded(){
   if(captionSource==='manual'){
@@ -172,7 +172,7 @@
   const customTarget=session?.destinationName||t('selectedFolder');
   $('storage').textContent=session?.exportError?t('exportError'):session?.pendingExports?t('pendingExports',{count:session.pendingExports}):session?.count?(isCustomDest?t('exportedCustom',{folder:customTarget}):t('exportedDownloads')):(isCustomDest?t('saveCustom',{folder:customTarget}):t('saveDownloads'));
   $('path').textContent=session?.folder||t('defaultPath');
-  $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom)\s*[-–—]\s*/,'')||t('defaultTitle');$('title').title=$('title').textContent;
+  $('title').textContent=session?.title||document.title.replace(/^(?:Meet|Zoom|Microsoft Teams|Teams)\s*[-–—]\s*/,'')||t('defaultTitle');$('title').title=$('title').textContent;
   $('share').setAttribute('aria-pressed',String(!!rectangle()));$('clearShare').hidden=!share;
   $('liveBadge').textContent=t('localBadge');
   $('message').dataset.state=errorState?'error':'info';

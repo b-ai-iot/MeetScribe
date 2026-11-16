@@ -9,11 +9,11 @@
 <p align="center">
   <a href="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml"><img src="https://github.com/b-ai-iot/MeetScribe/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Giấy_phép-MIT-blue.svg" alt="Giấy phép: MIT" /></a>
-  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.5.0-green.svg" alt="Phiên bản 1.5.0" /></a>
+  <a href="CHANGELOG.vi.md"><img src="https://img.shields.io/badge/phiên_bản-1.6.0-green.svg" alt="Phiên bản 1.6.0" /></a>
   <a href="docs/vi/installation.md"><img src="https://img.shields.io/badge/Chrome-116%2B-orange.svg" alt="Chrome 116+" /></a>
 </p>
 
-MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ cục bộ (local-first) giúp thu thập phụ đề trực tiếp và ảnh chụp màn hình trình chiếu trong các cuộc họp Google Meet và Zoom bản web. Tiện ích hoạt động hoàn toàn trong trình duyệt của bạn: không ghi âm âm thanh micro, không lưu tệp video và tuyệt đối không thực hiện bất kỳ lệnh gọi API AI hay kết nối máy chủ bên ngoài nào khi đang họp. Bạn nắm toàn quyền kiểm soát dữ liệu và có thể xuất gói ZIP chuẩn bị sẵn cho AI bất cứ lúc nào.
+MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ cục bộ (local-first) giúp thu thập phụ đề trực tiếp và ảnh chụp màn hình trình chiếu trong các cuộc họp Google Meet, Zoom và Microsoft Teams bản web. Tiện ích hoạt động hoàn toàn trong trình duyệt của bạn: không ghi âm âm thanh micro, không lưu tệp video và tuyệt đối không thực hiện bất kỳ lệnh gọi API AI hay kết nối máy chủ bên ngoài nào khi đang họp. Bạn nắm toàn quyền kiểm soát dữ liệu và có thể xuất gói ZIP chuẩn bị sẵn cho AI bất cứ lúc nào.
 
 > **Ghi chú ngôn ngữ giao diện:** Tiện ích hỗ trợ **Tiếng Việt** và **English**. Mở **Cài đặt / Settings → Ngôn ngữ giao diện / Interface language**, chọn ngôn ngữ rồi bấm **Lưu cài đặt / Save settings**. Trang đang mở và thanh nổi cập nhật mà không khởi động lại việc thu. Caption và dữ liệu cuộc họp giữ nguyên ngôn ngữ gốc.
 
@@ -57,7 +57,7 @@ MeetScribe là tiện ích mở rộng Chrome độc lập, ưu tiên lưu trữ
 
 ## Bắt đầu nhanh
 
-Tải `MeetScribe-1.5.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
+Tải `MeetScribe-1.6.0.zip` và `SHA256SUMS.txt` tại [release mới nhất](https://github.com/b-ai-iot/MeetScribe/releases/latest). [Kiểm tra checksum](docs/vi/releasing.md#kiểm-tra-file-tải-về), giải nén rồi tải thư mục `MeetScribe/` tại `chrome://extensions/` với chế độ dành cho nhà phát triển. Chưa phân phối qua Chrome Web Store.
 
 Hoặc cài trực tiếp từ mã nguồn:
 
@@ -71,19 +71,19 @@ Hoặc cài trực tiếp từ mã nguồn:
 3. **Nạp tiện ích chưa giải nén:**
    Bấm **Tải tiện ích đã giải nén** (Load unpacked) và trỏ tới thư mục `extension/` trong kho mã nguồn này.
 4. **Ghim và sử dụng:**
-   Ghim **MeetScribe** (phần tên phụ theo ngôn ngữ Chrome) lên thanh tiện ích Chrome. Mở một tab Google Meet hoặc Zoom web, bật phụ đề và bấm biểu tượng MeetScribe để mở thanh điều khiển nổi.
+   Ghim **MeetScribe** (phần tên phụ theo ngôn ngữ Chrome) lên thanh tiện ích Chrome. Mở một tab Google Meet, Zoom web hoặc Microsoft Teams web, bật phụ đề và bấm biểu tượng MeetScribe để mở thanh điều khiển nổi.
 
 Để đóng gói tệp ZIP cục bộ khớp với thông tin phiên bản của kho mã nguồn:
 ```bash
 npm run package
 ```
-Lệnh sẽ tạo tệp `dist/MeetScribe-1.5.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
+Lệnh sẽ tạo tệp `dist/MeetScribe-1.6.0.zip` chứa thư mục `MeetScribe/` kèm tệp `manifest.json`.
 
 ---
 
 ## Phạm vi & Giới hạn thực tế
 
-- **Nền tảng hỗ trợ:** Hoạt động trên Google Meet và Zoom bản web trong Google Chrome máy tính (116+). **Không** hỗ trợ ứng dụng Zoom desktop cài trên máy.
+- **Nền tảng hỗ trợ:** Hoạt động trên Google Meet, Zoom và Microsoft Teams bản web trong Google Chrome máy tính (116+). **Không** hỗ trợ ứng dụng Zoom desktop cài trên máy.
 - **Yêu cầu bật phụ đề:** Phụ đề phải được bật trong giao diện cuộc họp. MeetScribe đọc văn bản từ DOM; tiện ích không ghi âm micro và không tự chuyển giọng nói thành văn bản.
 - **Thao tác chuột khi chọn vùng:** Bộ chọn vùng phụ đề và vùng trình chiếu ban đầu yêu cầu thao tác bằng chuột (rê chuột, cuộn chuột để chọn khung cha, click để chọn, bấm Esc để hủy). Thanh điều khiển hỗ trợ cả kéo chuột lẫn phím mũi tên.
 - **Giới hạn kiểm thử tự động:** Các bộ kiểm thử tự động chạy trên trang HTML mô phỏng và directory handle OPFS chuẩn. Kiểm thử tự động không thay thế việc kiểm tra trực tiếp trong cuộc họp thật hay hộp thoại chọn thư mục của hệ điều hành.
@@ -113,3 +113,5 @@ MeetScribe được phát hành theo [Giấy phép MIT](LICENSE). Bản quyền 
 Xem [quản trị nhánh và quyền](docs/vi/governance.md) và [quy trình phát hành](docs/vi/releasing.md).
 
 Một số mẫu giao diện được điều chỉnh từ [Lucian UX/UI Prompt](https://lucianlabs.dev/en/uxui-prompt/); xem [thông báo thành phần bên thứ ba](THIRD_PARTY_NOTICES.md).
+
+Hỗ trợ Microsoft Teams web; xem [cách bật caption và giới hạn](docs/vi/teams.md).

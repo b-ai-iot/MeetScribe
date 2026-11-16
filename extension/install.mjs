@@ -1,6 +1,6 @@
 import {chooseMeetingFrame} from './frames.mjs';
 export async function installToolbar(api,tabId){
- const frames=await api.scripting.executeScript({target:{tabId,allFrames:true},func:()=>({isTop:window===window.top,hasMeeting:!!document.querySelector('#meeting-app,#wc-content,.meeting-app'),url:location.origin+location.pathname})});
+ const frames=await api.scripting.executeScript({target:{tabId,allFrames:true},func:()=>({isTop:window===window.top,hasMeeting:!!document.querySelector('#meeting-app,#wc-content,.meeting-app,[data-tid="closed-caption-renderer-wrapper"],[data-tid="closed-caption-renderer"]'),url:location.origin+location.pathname})});
  const frameId=chooseMeetingFrame(frames),target={tabId,frameIds:[frameId]};
  // Load the engine before catalogs; verify initialization before retaining content callbacks.
  await api.scripting.executeScript({target,files:['i18n.js']});

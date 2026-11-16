@@ -59,9 +59,9 @@ Nếu bạn muốn tạo một gói nén ZIP chuẩn để lưu trữ hoặc chu
    *(Hoặc chạy trực tiếp: `python3 tools/package.py`)*
 3. Kết quả đóng gói sẽ nằm tại:
    ```text
-   dist/MeetScribe-1.5.0.zip
+   dist/MeetScribe-1.6.0.zip
    ```
-4. Giải nén tệp `MeetScribe-1.5.0.zip`, bạn sẽ nhận được thư mục `MeetScribe/` hoàn chỉnh chứa `manifest.json`.
+4. Giải nén tệp `MeetScribe-1.6.0.zip`, bạn sẽ nhận được thư mục `MeetScribe/` hoàn chỉnh chứa `manifest.json`.
 5. Thực hiện theo các bước 2–5 ở trên và trỏ **Tải tiện ích đã giải nén** vào thư mục `MeetScribe/` vừa giải nén.
 
 ---
@@ -92,6 +92,10 @@ Khi nạp MeetScribe, Chrome sẽ đăng ký các quyền được khai báo tro
    - **Google Meet:** Bấm vào biểu tượng **CC** ở thanh điều khiển phía dưới.
    - **Zoom Web:** Bấm vào nút **Phụ đề** (Captions / Show Captions).
 3. Bấm vào biểu tượng **MeetScribe** trên thanh tiện ích Chrome.
-4. Thanh điều khiển kính mờ nổi sẽ xuất hiện ở góc trên bên trái của tab với huy hiệu `LOCAL · PRIVATE` và nút bấm chính mang nhãn `Bắt đầu ghi`.
+4. Capsule MeetScribe xuất hiện gần cạnh phải theo vị trí đã lưu. Bấm capsule để mở menu có nút `Bắt đầu ghi`.
 
 Xem tiếp [Hướng dẫn sử dụng](usage.md) để biết chi tiết thao tác từng nút bấm và quy trình thu nhận. Nếu gặp vấn đề khi cài đặt, tham khảo mục [Xử lý sự cố](troubleshooting.md).
+
+## Microsoft Teams trên trình duyệt
+
+Mở Teams trong Chrome máy tính tại `teams.microsoft.com`, `teams.cloud.microsoft` hoặc `teams.live.com`. Bật Live captions trong cuộc họp trước khi bắt đầu MeetScribe. Xem [hướng dẫn Teams](teams.md). Chưa hỗ trợ ứng dụng Teams desktop, cửa sổ caption tách riêng hoặc khung nhúng trên tên miền khác.

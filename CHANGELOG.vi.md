@@ -2,6 +2,14 @@
 
 [English](CHANGELOG.md) · [README](README.vi.md)
 
+## 1.6.0 — 2026-11-16
+
+- Thêm ghi caption Microsoft Teams web trên teams.microsoft.com, teams.cloud.microsoft và teams.live.com, kiểm tra tên miền chính xác.
+- Tìm toàn bộ khung caption Teams để giữ ngữ cảnh người nói, tự tìm lại khi khung được thay thế và giữ chọn vùng thủ công.
+- Định tuyến frame họp Teams nhúng và quy đổi vùng share về tọa độ tab; giữ luồng lưu cục bộ và xuất ZIP.
+- Thêm kiểm thử tiện ích nạp thật trên trang giả lập cho ba host Teams, VI/EN, caption tự động/thủ công, tọa độ iframe, xả caption lúc dừng và ZIP tải về. Cuộc họp tenant thật vẫn cần kiểm tra thủ công.
+- Cập nhật nhãn giao diện song ngữ và hướng dẫn Teams, không tăng quyền hoặc gọi mạng lúc chạy.
+
 ## 1.5.0 — 2026-11-06
 
 - Xây lại thư viện thành danh sách cuộc họp có tìm kiếm và khung nội dung phiên được chọn, có vùng caption/ảnh, phục hồi theo ngữ cảnh và một cụm xuất dữ liệu.
